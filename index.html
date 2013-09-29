@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>My Octopress Blog</title>
-  <meta name="author" content="Your Name">
+  <title>Agile at Work</title>
+  <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content=" Blog Archives Recent Posts ">
+  <meta name="description" content="You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +21,7 @@
   <link rel="canonical" href="http://mikevalenty.github.io">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -36,9 +36,9 @@
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">My Octopress Blog</a></h1>
+  <h1><a href="/">Agile at Work</a></h1>
   
-    <h2>A blogging framework for hackers.</h2>
+    <h2>by Michael Valenty</h2>
   
 </hgroup>
 
@@ -66,6 +66,172 @@
       <div class="blog-index">
   
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-29T07:11:00-07:00" pubdate data-updated="true">Sep 29<span>th</span>, 2013</time>
+        
+         | <a href="/configuring-decorators-with-google-guice/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">RealBillingService</span> <span class="kd">implements</span> <span class="n">BillingService</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Inject</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">RealBillingService</span><span class="o">(</span><span class="nd">@PayPal</span> <span class="n">CreditCardProcessor</span> <span class="n">processor</span><span class="o">,</span> <span class="o">...)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>  <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This bit of innocuous code encourages the reader to squander the power of dependency inversion and reduce it to a clunky tool that makes unit testing a little bit easier. That sounds harsh, so let’s start by discussing what Guice is and the problem it solves.</p>
+
+<p>Guice and the like are referred to as IoC containers. That’s Inversion of Control. It’s a pretty general principle and when applied to object oriented programming, it manifests itself in the form of a technique called <em>Dependency Inversion</em>. In terms of the <code>BillingService</code> example, it means the code depends on a <code>CreditCardProcessor</code> abstraction rather than new‘ing something specific like a <code>PayPalCreditCardProcessor</code>. Perhaps depends is an overloaded term here. With or without the new keyword, there is a dependency. In one case, a higher level module is responsible for deciding what implementation to use, and in the other case, the class itself decides that it’s using a <code>PayPalCreditCardProcessor</code>, period.</p>
+
+<p>Writing all your classes to declare their dependencies leaves you with the tedious task of building up complex object graphs before you can actually use your object. This is where Guice comes in. It’s a tool to simplify the havoc wreaked by inverting your dependencies and it’s inevitable when guided by a few principles like DRY (Don’t Repeat Yourself). If you don’t believe me, go ahead a see for yourself. Write some truly SOLID code and you’ll end up writing an IoC container in the process.</p>
+
+<p>So now that we’ve covered what Guice is and the problem it solves, we are ready to talk about what’s wrong with <code>@PayPal</code>. Specifying the concrete class you expect with an annotation is pretty much the same as just declaring the dependency explicitly. Sure, you get a few points for using an interface and injecting the object, but it’s really just going through the motions while entirely missing the point. It would be like the Karate Kid going into auto detailing after learning wax-on, wax-off.</p>
+
+<p>Abstractions create seams in your code. It’s how you add new behavior as the application evolves and it’s the key to managing complexity. Since we’re looking at a billing example, let’s throw out a few requirements that could pop up. How about some protection against running the same transaction twice in a short time period. How about checking a blacklist of credit cards or customers. Or maybe you need a card number that always fails in a particular way so QA can test the sad path. Or maybe your company works with a few payment gateways and wants to choose the least cost option based on the charge amount or card type. In this little snippet of code, we’ve got 2 seams we can use to work in this behavior. We’ve got the <code>BillingService</code> and <code>CreditCardProcesor</code>.</p>
+
+<p>Oh, wait a minute we’re declaring that we need the <code>PayPalCreditCardProcessor</code> with that annotation so now our code is rigid and we can’t inject additional behavior by wrapping it in a <code>DoubleChargeCreditCardProcessor</code>, open-closed style. That’s the ‘O’ in SOLID. So you’re probably thinking, why can’t you just change the annotation from <code>@PayPal</code> to <code>@DoubleCharge</code>? Let’s dive a little deeper into this example to find out:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DoubleChargeCreditCardProcessor</span> <span class="kd">implements</span> <span class="n">CreditCardProcessor</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Inject</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">DoubleChargeCreditCardProcessor</span><span class="o">(</span><span class="n">CreditCardProcessor</span> <span class="n">processor</span><span class="o">,</span> <span class="o">...)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>  <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because I’ve already done that, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">RealBillingService</span> <span class="kd">implements</span> <span class="n">BillingService</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Inject</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">RealBillingService</span><span class="o">(</span><span class="nd">@DoubleCharge</span> <span class="n">CreditCardProcessor</span> <span class="n">processor</span><span class="o">,</span> <span class="o">...)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>  <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DoubleChargeCreditCardProcessor</span> <span class="kd">implements</span> <span class="n">CreditCardProcessor</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Inject</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">DoubleChargeCreditCardProcessor</span><span class="o">(</span><span class="nd">@PayPal</span> <span class="n">CreditCardProcessor</span> <span class="n">processor</span><span class="o">,</span> <span class="o">...)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>  <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a thing, it’s a seam and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports multi-tenancy and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
+
+<p>While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. Chances are the original author of Guice and the person writing the documentation for binding annotations aren’t the same person so it’s understandable that a detail like this could get lost in the shuffle. The correct way to use binding annotations and not undermine the point of injecting your dependencies in the first place is like so:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DoubleChargeCreditCardProcessor</span> <span class="kd">implements</span> <span class="n">CreditCardProcessor</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">BASE</span> <span class="o">=</span> <span class="s">&quot;DoubleChargeCreditCardProcessor.base&quot;</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">DoubleChargeCreditCardProcessor</span><span class="o">(</span><span class="nd">@Named</span><span class="o">(</span><span class="n">BASE</span><span class="o">)</span> <span class="n">CreditCardProcessor</span> <span class="n">processor</span><span class="o">,</span> <span class="o">...)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>  <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ConfigureCreditCardProcessor</span> <span class="kd">extends</span> <span class="n">AbstractModule</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">configure</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">bind</span><span class="o">(</span><span class="n">CreditCardProcessor</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">to</span><span class="o">(</span><span class="n">DoubleChargeCreditCardProcessor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">bind</span><span class="o">(</span><span class="n">CreditCardProcessor</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="na">annotatedWith</span><span class="o">(</span><span class="n">Names</span><span class="o">.</span><span class="na">named</span><span class="o">(</span><span class="n">DoubleChargeCreditCardProcessor</span><span class="o">.</span><span class="na">BASE</span><span class="o">))</span>
+</span><span class='line'>      <span class="o">.</span><span class="na">to</span><span class="o">(</span><span class="n">PayPayCreditCardProcessor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Did you catch the difference? It’s subtle, but the devil is in the details. In this last example, the DoubleChargeCreditCardProcessor doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>
@@ -77,6 +243,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
     
   </ul>
 </section>
@@ -91,12 +261,25 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Your Name -
+  Copyright &copy; 2013 - Michael Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
 </footer>
   
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 

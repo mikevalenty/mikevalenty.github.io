@@ -1,12 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://mikevalenty.github.io/configuring-decorators-with-google-guice/</loc>
+        <lastmod>2013-09-29T07:49:01-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-09-28T23:58:25-07:00</lastmod>
+        <lastmod>2013-09-29T07:49:01-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-09-28T23:58:25-07:00</lastmod>
+        <lastmod>2013-09-29T07:49:01-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/robots.txt</loc>
