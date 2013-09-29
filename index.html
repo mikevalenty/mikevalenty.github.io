@@ -239,6 +239,10 @@
 <time datetime="2012-02-20T07:11:00-08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2012</time></div>
 	<div class="tags">
 
+
+	<a class='category' href='/blog/categories/decorator-pattern/'>Decorator Pattern</a>, <a class='category' href='/blog/categories/google-guice/'>Google Guice</a>, <a class='category' href='/blog/categories/inversion-of-control/'>Inversion of Control</a>, <a class='category' href='/blog/categories/open-closed-principle/'>Open Closed Principle</a>
+
+
 </div>
 	
 	<div class="comments"><a href="/configuring-decorators-with-google-guice/#disqus_thread">Comments</a></div>
@@ -544,9 +548,359 @@
 <time datetime="2011-06-18T11:08:00-07:00" pubdate data-updated="true">Jun 18<span>th</span>, 2011</time></div>
 	<div class="tags">
 
+
+	<a class='category' href='/blog/categories/asp-dot-net-mvc/'>ASP.NET MVC</a>, <a class='category' href='/blog/categories/inversion-of-control/'>Inversion of Control</a>, <a class='category' href='/blog/categories/nhibernate/'>NHibernate</a>, <a class='category' href='/blog/categories/open-closed-principle/'>Open Closed Principle</a>, <a class='category' href='/blog/categories/unity/'>Unity</a>
+
+
 </div>
 	
 	<div class="comments"><a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">
+		
+			Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
+	</h2>
+	<div class="entry-content">
+		<h3>The Mission:</h3>
+
+<p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
+
+<h3>The Plan:</h3>
+
+<p>To pull this off, we’re going to have to rely on our SOLID design principles, especially Single Responsibility and Dependency Inversion. We’ll get some help from these frameworks:</p>
+
+<ul>
+<li><a href="http://www.asp.net/mvc">ASP.NET MVC</a></li>
+<li><a href="http://unity.codeplex.com/">Unity</a></li>
+<li><a href="http://nhforge.org/Default.aspx">NHibernate</a></li>
+</ul>
+
+
+<h3>Game on:</h3>
+
+<p>Let’s take a look at a controller that uses NHibernate to talk to the database. I’m not going to get into whether you should talk directly to NHibernate from the controller or go through a service layer or repository because it doesn’t affect how we’re going to add multi-tenancy. The important thing here is that the <code>ISession</code> is injected into the controller, and we aren’t using the service locator pattern to request the <code>ISession</code> from a singleton.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UserController</span> <span class="p">:</span> <span class="n">Controller</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ISession</span> <span class="n">session</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">UserController</span><span class="p">(</span><span class="n">ISession</span> <span class="n">session</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">session</span> <span class="p">=</span> <span class="n">session</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Edit</span><span class="p">(</span><span class="kt">int</span> <span class="n">id</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">user</span> <span class="p">=</span> <span class="n">session</span><span class="p">.</span><span class="n">Load</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;(</span><span class="n">id</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Alright, now it’s time to write some new code and make our web application connect to the correct database based on the host header in the http request. First, we’ll need a database to store a list of tenants along with the connection string for that tenant’s database. Here’s my entity:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Tenant</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Host</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">ConnectionString</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I’ll use the repository pattern here so there is a crisp consumer of the <code>ISession</code> that connects to the lookup database rather than one of the tenant shards. This will be important later when we go to configure Unity.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">NHibernateTenantRepository</span> <span class="p">:</span> <span class="n">ITenantRepository</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ISession</span> <span class="n">session</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">NHibernateTenantRepository</span><span class="p">(</span><span class="n">ISession</span> <span class="n">session</span><span class="p">,</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">session</span> <span class="p">=</span> <span class="n">session</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">context</span> <span class="p">=</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Tenant</span> <span class="n">Current</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">get</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">host</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s">&quot;Host&quot;</span><span class="p">];</span>
+</span><span class='line'>            <span class="k">return</span> <span class="nf">FindByHost</span><span class="p">(</span><span class="n">host</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Tenant</span> <span class="nf">FindByHost</span><span class="p">(</span><span class="kt">string</span> <span class="n">host</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">session</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">Query</span><span class="p">&lt;</span><span class="n">Tenant</span><span class="p">&gt;()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">SingleOrDefault</span><span class="p">(</span><span class="n">t</span> <span class="p">=&gt;</span> <span class="n">t</span><span class="p">.</span><span class="n">Host</span> <span class="p">==</span> <span class="n">host</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So now we need a dedicated <code>ISessionFactory</code> for the lookup database and make sure that our <code>NHibernateTenantRepository</code> gets the right <code>ISession</code>. It’s not too bad, we just need to name them in the container so we can refer to them explicitly.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;(</span>
+</span><span class='line'>        <span class="s">&quot;tenant_session_factory&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">ContainerControlledLifetimeManager</span><span class="p">(),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
+</span><span class='line'>            <span class="k">new</span> <span class="n">NHibernate</span><span class="p">.</span><span class="n">Cfg</span><span class="p">.</span><span class="n">Configuration</span><span class="p">().</span><span class="n">Configure</span><span class="p">().</span><span class="n">BuildSessionFactory</span><span class="p">())</span>
+</span><span class='line'>    <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span>
+</span><span class='line'>        <span class="s">&quot;tenant_session&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">PerRequestLifetimeManager</span><span class="p">(),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
+</span><span class='line'>            <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;(</span><span class="s">&quot;tenant_session_factory&quot;</span><span class="p">).</span><span class="n">OpenSession</span><span class="p">())</span>
+</span><span class='line'>    <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ITenantRepository</span><span class="p">,</span> <span class="n">NHibernateTenantRepository</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">NHibernateTenantRepository</span><span class="p">&gt;(</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionConstructor</span><span class="p">(</span>
+</span><span class='line'>            <span class="k">new</span> <span class="n">ResolvedParameter</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span><span class="s">&quot;tenant_session&quot;</span><span class="p">),</span>
+</span><span class='line'>            <span class="k">new</span> <span class="n">ResolvedParameter</span><span class="p">&lt;</span><span class="n">HttpContextBase</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'>    <span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Hopefully that’s about what you were expecting since it’s not really the interesting part. The more interesting part is configuring the <code>ISession</code> that gets injected into the <code>UserController</code> to connect to a different database based on the host header in the http request. The Unity feature we’re going to leverage for this is the <code>LifetimeManager</code>. This is an often overlooked feature of IoC containers.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;(</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">PerHostLifetimeManager</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">HttpContextWrapper</span><span class="p">(</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Current</span><span class="p">)),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">connString</span> <span class="p">=</span> <span class="n">c</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ITenantRepository</span><span class="p">&gt;()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Current</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">ConnectionString</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="n">NHibernate</span><span class="p">.</span><span class="n">Cfg</span><span class="p">.</span><span class="n">Configuration</span><span class="p">()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Configure</span><span class="p">()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">SetProperty</span><span class="p">(</span><span class="n">NHibernate</span><span class="p">.</span><span class="n">Cfg</span><span class="p">.</span><span class="n">Environment</span><span class="p">.</span><span class="n">ConnectionString</span><span class="p">,</span> <span class="n">connString</span><span class="p">)</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">BuildSessionFactory</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}));</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">PerRequestLifetimeManager</span><span class="p">(),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span> <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;().</span><span class="n">OpenSession</span><span class="p">())</span>
+</span><span class='line'>    <span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we’re using a custom <code>PerHostLifetimeManager</code>. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the <code>InjectionFactory</code> block to create one using the connection string associated with that tenant.</p>
+
+<p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> isn’t thread safe.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">PerHostLifetimeManager</span> <span class="p">:</span> <span class="n">SynchronizedLifetimeManager</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">HttpContextBase</span><span class="p">&gt;</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IDictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span> <span class="n">store</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">PerHostLifetimeManager</span><span class="p">(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">HttpContextBase</span><span class="p">&gt;</span> <span class="n">context</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">context</span> <span class="p">=</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">store</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">SynchronizedGetValue</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">host</span> <span class="p">=</span> <span class="n">GetHost</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(!</span><span class="n">store</span><span class="p">.</span><span class="n">ContainsKey</span><span class="p">(</span><span class="n">host</span><span class="p">))</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">null</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="n">host</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">SynchronizedSetValue</span><span class="p">(</span><span class="kt">object</span> <span class="n">newValue</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">store</span><span class="p">[</span><span class="n">GetHost</span><span class="p">()]</span> <span class="p">=</span> <span class="n">newValue</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="nf">GetHost</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">context</span><span class="p">().</span><span class="n">Request</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s">&quot;Host&quot;</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So what did we accomplish? Well we didn’t touch any of our existing application code. We just wrote new code and through configuration we added multi-tenancy! That’s pretty cool, but was it worth it? Well, the goal in itself isn’t super important, but this exercise can certainly highlight areas of your codebase where you might be violating the single responsibility principle or leaking too many infrastructure concepts into your application logic.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-14T13:09:00-07:00" pubdate data-updated="true">May 14<span>th</span>, 2011</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/asp-dot-net-mvc/'>ASP.NET MVC</a>, <a class='category' href='/blog/categories/inversion-of-control/'>Inversion of Control</a>, <a class='category' href='/blog/categories/nhibernate/'>NHibernate</a>, <a class='category' href='/blog/categories/open-closed-principle/'>Open Closed Principle</a>, <a class='category' href='/blog/categories/unity/'>Unity</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>

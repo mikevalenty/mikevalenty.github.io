@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Open Closed Principle | Agile at Work]]></title>
+  <link href="http://mikevalenty.github.io/blog/categories/open-closed-principle/atom.xml" rel="self"/>
+  <link href="http://mikevalenty.github.io/"/>
+  <updated>2013-09-29T13:32:32-07:00</updated>
+  <id>http://mikevalenty.github.io/</id>
+  <author>
+    <name><![CDATA[Michael Valenty]]></name>
+    <email><![CDATA[mike@valenty.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Configuring Decorators with Google Guice]]></title>
+    <link href="http://mikevalenty.github.io/configuring-decorators-with-google-guice/"/>
+    <updated>2012-02-20T07:11:00-08:00</updated>
+    <id>http://mikevalenty.github.io/configuring-decorators-with-google-guice</id>
+    <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
+
+<p>``` java
+public class RealBillingService implements BillingService {</p>
+
+<p>  @Inject
+  public RealBillingService(@PayPal CreditCardProcessor processor, &hellip;) {</p>
+
+<pre><code>...
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>This bit of innocuous code encourages the reader to squander the power of dependency inversion and reduce it to a clunky tool that makes unit testing a little bit easier. That sounds harsh, so let’s start by discussing what Guice is and the problem it solves.</p>
+
+<p>Guice and the like are referred to as IoC containers. That’s Inversion of Control. It’s a pretty general principle and when applied to object oriented programming, it manifests itself in the form of a technique called <em>Dependency Inversion</em>. In terms of the <code>BillingService</code> example, it means the code depends on a <code>CreditCardProcessor</code> abstraction rather than new‘ing something specific like a <code>PayPalCreditCardProcessor</code>. Perhaps depends is an overloaded term here. With or without the new keyword, there is a dependency. In one case, a higher level module is responsible for deciding what implementation to use, and in the other case, the class itself decides that it’s using a <code>PayPalCreditCardProcessor</code>, period.</p>
+
+<p>Writing all your classes to declare their dependencies leaves you with the tedious task of building up complex object graphs before you can actually use your object. This is where Guice comes in. It’s a tool to simplify the havoc wreaked by inverting your dependencies and it’s inevitable when guided by a few principles like DRY (Don’t Repeat Yourself). If you don’t believe me, go ahead a see for yourself. Write some truly SOLID code and you’ll end up writing an IoC container in the process.</p>
+
+<p>So now that we’ve covered what Guice is and the problem it solves, we are ready to talk about what’s wrong with <code>@PayPal</code>. Specifying the concrete class you expect with an annotation is pretty much the same as just declaring the dependency explicitly. Sure, you get a few points for using an interface and injecting the object, but it’s really just going through the motions while entirely missing the point. It would be like the Karate Kid going into auto detailing after learning wax-on, wax-off.</p>
+
+<p>Abstractions create seams in your code. It’s how you add new behavior as the application evolves and it’s the key to managing complexity. Since we’re looking at a billing example, let’s throw out a few requirements that could pop up. How about some protection against running the same transaction twice in a short time period. How about checking a blacklist of credit cards or customers. Or maybe you need a card number that always fails in a particular way so QA can test the sad path. Or maybe your company works with a few payment gateways and wants to choose the least cost option based on the charge amount or card type. In this little snippet of code, we’ve got 2 seams we can use to work in this behavior. We’ve got the <code>BillingService</code> and <code>CreditCardProcesor</code>.</p>
+
+<p>Oh, wait a minute we’re declaring that we need the <code>PayPalCreditCardProcessor</code> with that annotation so now our code is rigid and we can’t inject additional behavior by wrapping it in a <code>DoubleChargeCreditCardProcessor</code>, open-closed style. That’s the ‘O’ in SOLID. So you’re probably thinking, why can’t you just change the annotation from <code>@PayPal</code> to <code>@DoubleCharge</code>? Let’s dive a little deeper into this example to find out:</p>
+
+<p>``` java
+public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
+
+<p>  @Inject
+  public DoubleChargeCreditCardProcessor(CreditCardProcessor processor, &hellip;) {</p>
+
+<pre><code>...
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because I’ve already done that, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
+
+<p>``` java
+public class RealBillingService implements BillingService {</p>
+
+<p>  @Inject
+  public RealBillingService(@DoubleCharge CreditCardProcessor processor, &hellip;) {</p>
+
+<pre><code>...
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>``` java
+public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
+
+<p>  @Inject
+  public DoubleChargeCreditCardProcessor(@PayPal CreditCardProcessor processor, &hellip;) {</p>
+
+<pre><code>...
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a thing, it’s a seam and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports multi-tenancy and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
+
+<p>While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. Chances are the original author of Guice and the person writing the documentation for binding annotations aren’t the same person so it’s understandable that a detail like this could get lost in the shuffle. The correct way to use binding annotations and not undermine the point of injecting your dependencies in the first place is like so:</p>
+
+<p>``` java
+public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
+
+<p>  public static final String BASE = &ldquo;DoubleChargeCreditCardProcessor.base&rdquo;;</p>
+
+<p>  public DoubleChargeCreditCardProcessor(@Named(BASE) CreditCardProcessor processor, &hellip;) {</p>
+
+<pre><code>...
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>``` java
+public class ConfigureCreditCardProcessor extends AbstractModule {</p>
+
+<p>  @Override
+  protected void configure() {</p>
+
+<pre><code>bind(CreditCardProcessor.class).to(DoubleChargeCreditCardProcessor.class);
+
+bind(CreditCardProcessor.class)
+  .annotatedWith(Names.named(DoubleChargeCreditCardProcessor.BASE))
+  .to(PayPayCreditCardProcessor.class);
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>Did you catch the difference? It’s subtle, but the devil is in the details. In this last example, the DoubleChargeCreditCardProcessor doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
+    <link href="http://mikevalenty.github.io/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <updated>2011-06-18T11:08:00-07:00</updated>
+    <id>http://mikevalenty.github.io/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
+
+<p>``` xml
+&lt;hibernate-mapping xmlns=&ldquo;urn:nhibernate-mapping-2.2&rdquo;></p>
+
+<p>  &lt;filter-def name=&ldquo;tenant&rdquo;></p>
+
+<pre><code>&lt;filter-param name="id" type="System.Int32" /&gt;
+</code></pre>
+
+<p>  &lt;/filter-def></p>
+
+<p>&lt;/hibernate-mapping>
+```</p>
+
+<p>And then apply it to each entity:</p>
+
+<p>``` xml
+<class name="User" table="[user]"></p>
+
+<p>  <id name="Id" column="user_id"></p>
+
+<pre><code>&lt;generator class="identity" /&gt;
+</code></pre>
+
+<p>  </id></p>
+
+<p>  <property name="Username" />
+  <property name="Email" /></p>
+
+<p>  <filter name="tenant" condition="tenant_id = :id" /></p>
+
+<p></class>
+```</p>
+
+<p>The last step is to set the value of the filter at runtime. This is done on the <code>ISession</code> like this:</p>
+
+<p>``` c#
+Container</p>
+
+<pre><code>.RegisterType&lt;ISession&gt;(
+    new PerRequestLifetimeManager(),
+    new InjectionFactory(c =&gt;
+    {
+        var session = c.Resolve&lt;ISessionFactory&gt;().OpenSession();
+        session.EnableFilter("tenant").SetParameter("id", c.Resolve&lt;Tenant&gt;().Id);
+        return session;
+    })
+);
+</code></pre>
+
+<p>```</p>
+
+<p>The current tenant comes from <code>c.Resolve&lt;Tenant&gt;()</code>. In order for that to work, you have to tell Unity how to find the current tenant. In ASP.NET MVC, we can look at the host header on the request and find our tenant that way. We could just as easily use another strategy though. Maybe if this were a WCF service, we could use an authentication header to establish the current tenant context. You could build out some interfaces and strategies around establishing the current tenant context, however for this article I’ll just bang it out.</p>
+
+<p>``` c#
+Container</p>
+
+<pre><code>.RegisterType&lt;Tenant&gt;(new InjectionFactory(c =&gt;
+{
+    var repository = c.Resolve&lt;ITenantRepository&gt;();
+
+    var context = c.Resolve&lt;HttpContextBase&gt;();
+
+    var host = context.Request.Headers["Host"] ?? context.Request.Url.Host;
+
+    return repository.FindByHost(host);
+}));
+</code></pre>
+
+<p>```</p>
+
+<p>Second, we have to set the tenant_id when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
+
+<p>``` c#
+public class User
+{</p>
+
+<pre><code>private int? tenantId;
+
+public virtual int Id { get; set; }
+
+public virtual string Username { get; set; }
+
+public virtual string Email { get; set; }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>It’s private because I don’t want the business logic to deal with it and it’s nullable because my tenant table is in a separate database which means I can’t lean on the data model to enforce referential integrity. That’s a problem because the default value for an integer is zero which could be happily saved by the database. By making it nullable I can be sure the database will blow up if the <code>tenant_id</code> is not set.</p>
+
+<p>So, back to the issue at hand. The <code>tenant_id</code> needs to be set when the entity is saved. For this, I’m using an interceptor and setting the value in the <code>OnSave</code> method:</p>
+
+<p>``` c#
+public class MultiTenantInterceptor : EmptyInterceptor
+{</p>
+
+<pre><code>private readonly Func&lt;Tenant&gt; tenant;
+
+public MultiTenantInterceptor(Func&lt;Tenant&gt; tenant)
+{
+    this.tenant = tenant;
+}
+
+public override bool OnSave(object entity... object[] state, string[] propertyNames...)
+{
+    var index = Array.IndexOf(propertyNames, "tenantId");
+
+    if (index == -1)
+        return false;
+
+    var tenantId = tenant().Id;
+
+    state[index] = tenantId;
+
+    entity
+        .GetType()
+        .GetField("tenantId", BindingFlags.Instance | BindingFlags.NonPublic)
+        .SetValue(entity, tenantId);
+
+    return false;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>This <code>IInterceptor</code> mechanism is a little wonky. If you change any data, you have to do it in both the entity instance and the state array that NHibernate uses to hydrate entities. It’s not a big deal, it’s just one of those things you have to accept like the fact that Apple and Google are tracking your every move via your smart phone. Oh, and the interceptor gets wired up like this:</p>
+
+<p>``` c#
+Container</p>
+
+<pre><code>.RegisterType&lt;ISessionFactory&gt;(
+    new ContainerControlledLifetimeManager(),
+    new InjectionFactory(c =&gt;
+    {
+        return new NHibernate.Cfg.Configuration()
+            .Configure()
+            .SetInterceptor(new MultiTenantInterceptor(() =&gt; c.Resolve&lt;Tenant&gt;()))
+            .BuildSessionFactory();
+    })
+);
+</code></pre>
+
+<p>```</p>
+
+<p>We’re almost done. There is one more case that needs to be handled. When NHibernate loads an entity by its primary key, it doesn’t run through the query engine which means the tenant filter isn’t applied. Fortunately, we can take care of this in the interceptor:</p>
+
+<p>``` c#
+public class MultiTenantInterceptor : EmptyInterceptor
+{</p>
+
+<pre><code>...
+
+public override bool OnLoad(object entity... object[] state, string[] propertyNames...)
+{
+    var index = Array.IndexOf(propertyNames, "tenantId");
+
+    if (index == -1)
+        return false;
+
+    var entityTenantId = Convert.ToInt32(state[index]);
+
+    var currentTenantId = tenant().Id;
+
+    if (entityTenantId != currentTenantId)
+    {
+        throw new AuthorizationException("Permission denied to {0}", entity);
+    }
+
+    return false;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>That’s it. Have fun and happy commingling.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
+    <link href="http://mikevalenty.github.io/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <updated>2011-05-14T13:09:00-07:00</updated>
+    <id>http://mikevalenty.github.io/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <content type="html"><![CDATA[<h3>The Mission:</h3>
+
+<p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
+
+<h3>The Plan:</h3>
+
+<p>To pull this off, we’re going to have to rely on our SOLID design principles, especially Single Responsibility and Dependency Inversion. We’ll get some help from these frameworks:</p>
+
+<ul>
+<li><a href="http://www.asp.net/mvc">ASP.NET MVC</a></li>
+<li><a href="http://unity.codeplex.com/">Unity</a></li>
+<li><a href="http://nhforge.org/Default.aspx">NHibernate</a></li>
+</ul>
+
+
+<h3>Game on:</h3>
+
+<p>Let’s take a look at a controller that uses NHibernate to talk to the database. I’m not going to get into whether you should talk directly to NHibernate from the controller or go through a service layer or repository because it doesn’t affect how we’re going to add multi-tenancy. The important thing here is that the <code>ISession</code> is injected into the controller, and we aren’t using the service locator pattern to request the <code>ISession</code> from a singleton.</p>
+
+<p>``` c#
+public class UserController : Controller
+{</p>
+
+<pre><code>private readonly ISession session;
+
+public UserController(ISession session)
+{
+    this.session = session;
+}
+
+public ActionResult Edit(int id)
+{
+    var user = session.Load&lt;User&gt;(id);
+
+    return View(user);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Alright, now it’s time to write some new code and make our web application connect to the correct database based on the host header in the http request. First, we’ll need a database to store a list of tenants along with the connection string for that tenant’s database. Here’s my entity:</p>
+
+<p>``` c#
+public class Tenant
+{</p>
+
+<pre><code>public virtual string Name { get; set; }
+
+public virtual string Host { get; set; }
+
+public virtual string ConnectionString { get; set; }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>I’ll use the repository pattern here so there is a crisp consumer of the <code>ISession</code> that connects to the lookup database rather than one of the tenant shards. This will be important later when we go to configure Unity.</p>
+
+<p>``` c#
+public class NHibernateTenantRepository : ITenantRepository
+{</p>
+
+<pre><code>private readonly ISession session;
+private readonly HttpContextBase context;
+
+public NHibernateTenantRepository(ISession session, HttpContextBase context)
+{
+    this.session = session;
+    this.context = context;
+}
+
+public Tenant Current
+{
+    get
+    {
+        var host = context.Request.Headers["Host"];
+        return FindByHost(host);
+    }
+}
+
+public Tenant FindByHost(string host)
+{
+    return session
+        .Query&lt;Tenant&gt;()
+        .SingleOrDefault(t =&gt; t.Host == host);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>So now we need a dedicated <code>ISessionFactory</code> for the lookup database and make sure that our <code>NHibernateTenantRepository</code> gets the right <code>ISession</code>. It’s not too bad, we just need to name them in the container so we can refer to them explicitly.</p>
+
+<p>``` c#
+Container</p>
+
+<pre><code>.RegisterType&lt;ISessionFactory&gt;(
+    "tenant_session_factory",
+    new ContainerControlledLifetimeManager(),
+    new InjectionFactory(c =&gt;
+        new NHibernate.Cfg.Configuration().Configure().BuildSessionFactory())
+);
+</code></pre>
+
+<p>Container</p>
+
+<pre><code>.RegisterType&lt;ISession&gt;(
+    "tenant_session",
+    new PerRequestLifetimeManager(),
+    new InjectionFactory(c =&gt;
+        c.Resolve&lt;ISessionFactory&gt;("tenant_session_factory").OpenSession())
+);
+</code></pre>
+
+<p>Container</p>
+
+<pre><code>.RegisterType&lt;ITenantRepository, NHibernateTenantRepository&gt;()
+.RegisterType&lt;NHibernateTenantRepository&gt;(
+    new InjectionConstructor(
+        new ResolvedParameter&lt;ISession&gt;("tenant_session"),
+        new ResolvedParameter&lt;HttpContextBase&gt;()
+    )
+);
+</code></pre>
+
+<p>```</p>
+
+<p>Hopefully that’s about what you were expecting since it’s not really the interesting part. The more interesting part is configuring the <code>ISession</code> that gets injected into the <code>UserController</code> to connect to a different database based on the host header in the http request. The Unity feature we’re going to leverage for this is the <code>LifetimeManager</code>. This is an often overlooked feature of IoC containers.</p>
+
+<p>``` c#
+Container</p>
+
+<pre><code>.RegisterType&lt;ISessionFactory&gt;(
+    new PerHostLifetimeManager(() =&gt; new HttpContextWrapper(HttpContext.Current)),
+    new InjectionFactory(c =&gt;
+    {
+        var connString = c
+            .Resolve&lt;ITenantRepository&gt;()
+            .Current
+            .ConnectionString;
+
+        return new NHibernate.Cfg.Configuration()
+            .Configure()
+            .SetProperty(NHibernate.Cfg.Environment.ConnectionString, connString)
+            .BuildSessionFactory();
+    }));
+</code></pre>
+
+<p>Container</p>
+
+<pre><code>.RegisterType&lt;ISession&gt;(
+    new PerRequestLifetimeManager(),
+    new InjectionFactory(c =&gt; c.Resolve&lt;ISessionFactory&gt;().OpenSession())
+);
+</code></pre>
+
+<p>```</p>
+
+<p>Here we’re using a custom <code>PerHostLifetimeManager</code>. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the <code>InjectionFactory</code> block to create one using the connection string associated with that tenant.</p>
+
+<p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> isn’t thread safe.</p>
+
+<p>``` c#
+public class PerHostLifetimeManager : SynchronizedLifetimeManager
+{</p>
+
+<pre><code>private readonly Func&lt;HttpContextBase&gt; context;
+private readonly IDictionary&lt;string, object&gt; store;
+
+public PerHostLifetimeManager(Func&lt;HttpContextBase&gt; context)
+{
+    this.context = context;
+    store = new Dictionary&lt;string, object&gt;();
+}
+
+protected override object SynchronizedGetValue()
+{
+    var host = GetHost();
+
+    if (!store.ContainsKey(host))
+        return null;
+
+    return store[host];
+}
+
+protected override void SynchronizedSetValue(object newValue)
+{
+    store[GetHost()] = newValue;
+}
+
+private string GetHost()
+{
+    return context().Request.Headers["Host"];
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>So what did we accomplish? Well we didn’t touch any of our existing application code. We just wrote new code and through configuration we added multi-tenancy! That’s pretty cool, but was it worth it? Well, the goal in itself isn’t super important, but this exercise can certainly highlight areas of your codebase where you might be violating the single responsibility principle or leaking too many infrastructure concepts into your application logic.</p>
+]]></content>
+  </entry>
+  
+</feed>
