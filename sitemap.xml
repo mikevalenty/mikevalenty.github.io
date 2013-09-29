@@ -2,42 +2,48 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>
+            http://mikevalenty.github.io/tamarack-chain-of-responsibility-framework-for-net/
+        </loc>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
+    </url>
+    <url>
+        <loc>
             http://mikevalenty.github.io/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/
         </loc>
-        <lastmod>2013-09-29T13:30:47-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>
             http://mikevalenty.github.io/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/
         </loc>
-        <lastmod>2013-09-29T13:30:39-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/configuring-decorators-with-google-guice/</loc>
-        <lastmod>2013-09-29T13:30:16-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/about-mike-valenty/</loc>
-        <lastmod>2013-09-29T11:07:26-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-09-29T13:30:47-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
-        <lastmod>2013-09-29T11:04:45-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-09-29T13:30:47-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>
-        <lastmod>2013-09-29T11:04:45-07:00</lastmod>
+        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/robots.txt</loc>
-        <lastmod>2013-09-29T10:49:52-07:00</lastmod>
+        <lastmod>2013-09-29T14:30:54-07:00</lastmod>
     </url>
 </urlset>

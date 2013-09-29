@@ -905,6 +905,269 @@
 </div>
 </article>
 
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/tamarack-chain-of-responsibility-framework-for-net/">
+		
+			Tamarack: Chain of Responsibility Framework for .NET</a>
+	</h2>
+	<div class="entry-content">
+		<p>The Chain of Responsibility is a key building block of extensible software.</p>
+
+<blockquote><p>Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. – Gang of Four</p></blockquote>
+
+<p>Variations of this pattern are the basis for <a href="http://www.oracle.com/technetwork/java/filters-137243.html">Servlet Filters</a>, <a href="http://learn.iis.net/page.aspx/366/developing-iis-70-modules-and-handlers-with-the-net-framework/">IIS Modules and Handlers</a> and several open source projects I’ve had the opportunity to work with including <a href="https://www.forge.funambol.org/">Sync4J</a>, <a href="http://james.apache.org/">JAMES</a>, <a href="http://logging.apache.org/log4net/">Log4Net</a>, <a href="http://unity.codeplex.com/">Unity</a> and yes, even <a href="http://www.joomla.org/">Joomla</a>. It’s an essential tool in the OO toolbox and key in transforming rigid procedural code into a composable Domain Specific Language.</p>
+
+<p>I’ve blogged about this pattern before so what’s new this time?</p>
+
+<ol>
+<li>The next filter in the chain is provided via a delegate parameter rather than a property</li>
+<li>The project is <a href="https://github.com/mikevalenty/tamarack">hosted on github</a></li>
+<li>There is a <a href="http://nuget.org/List/Search?packageType=Packages&amp;searchCategory=All+Categories&amp;searchTerm=tamarack">NuGet package</a> for it</li>
+</ol>
+
+
+<p><img src="/images/posts/pkgmgr31.png"></p>
+
+<p>How does it work?
+It’s pretty simple, there is just one interface to implement and it looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IFilter</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TOut</span><span class="p">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">TOut</span> <span class="nf">Execute</span><span class="p">(</span><span class="n">T</span> <span class="n">context</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TOut</span><span class="p">&gt;</span> <span class="n">executeNext</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Basically, you get an input to operate on and a value to return. The <code>executeNext</code> parameter is a delegate for the next filter in the chain. The filters are composed together in a chain which is referred to as a Pipeline in the Tamarack framework. This structure is the essence of the Chain of Responsibility pattern and it facilitates some pretty cool things:</p>
+
+<ul>
+<li>Modify the input before the next filter gets it</li>
+<li>Modify the output of the next filter before returning</li>
+<li>Short circuit out of the chain by not calling the executeNext delegate</li>
+</ul>
+
+
+<h3>Show me examples!</h3>
+
+<p>Consider a block of code to process a blog comment coming from a web-based rich text editor. There are probably several things you’ll want to do before letting the text into your database.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="kt">int</span> <span class="nf">Submit</span><span class="p">(</span><span class="n">Post</span> <span class="n">post</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">pipeline</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Pipeline</span><span class="p">&lt;</span><span class="n">Post</span><span class="p">,</span> <span class="kt">int</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">CanoncalizeHtml</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">StripMaliciousTags</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">RemoveJavascript</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">RewriteProfanity</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">GuardAgainstDoublePost</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Finally</span><span class="p">(</span><span class="n">p</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">p</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">newId</span> <span class="p">=</span> <span class="n">pipeline</span><span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">post</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">newId</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What about dependency injection for complex filters? Take a look at this user login pipeline. Notice the generic syntax for adding filters by type. Those filters are built-up using the supplied implementation of <code>System.IServiceProvider</code>. My favorite is <code>UnityServiceProvider</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="kt">bool</span> <span class="nf">Login</span><span class="p">(</span><span class="kt">string</span> <span class="n">username</span><span class="p">,</span> <span class="kt">string</span> <span class="n">password</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">pipeline</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Pipeline</span><span class="p">&lt;</span><span class="n">LoginContext</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;(</span><span class="n">serviceProvider</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">WriteLoginAttemptToAuditLog</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">LockoutOnConsecutiveFailures</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">AuthenticateAgainstLocalStore</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">AuthenticateAgainstLdap</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Finally</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span> <span class="k">false</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">pipeline</span><span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="k">new</span> <span class="n">LoginContext</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here’s another place you might see the chain of responsibility pattern. Calculating the spam score of a block of text:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="kt">double</span> <span class="nf">CalculateSpamScore</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">pipeline</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Pipeline</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">double</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">SpamCopBlacklistFilter</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">PerspcriptionDrugFilter</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">PornographyFilter</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Finally</span><span class="p">(</span><span class="n">score</span> <span class="p">=&gt;</span> <span class="m">0</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">pipeline</span><span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Prefer convention over configuration? Try this instead:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="kt">double</span> <span class="nf">CalculateSpamScore</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">pipeline</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Pipeline</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">double</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">AddFiltersIn</span><span class="p">(</span><span class="s">&quot;Tamarack.Example.Pipeline.SpamScorer.Filters&quot;</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Finally</span><span class="p">(</span><span class="n">score</span> <span class="p">=&gt;</span> <span class="m">0</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">pipeline</span><span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let’s look at the <code>IFilter</code> interface in action. In the spam score calculator example, each filter looks for markers in the text and adds to the overall spam score by modifying the result of the next filter before returning.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">PerspcriptionDrugFilter</span> <span class="p">:</span> <span class="n">IFilter</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">double</span><span class="p">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">double</span> <span class="nf">Execute</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">double</span><span class="p">&gt;</span> <span class="n">executeNext</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">score</span> <span class="p">=</span> <span class="n">executeNext</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">text</span><span class="p">.</span><span class="n">Contains</span><span class="p">(</span><span class="s">&quot;viagra&quot;</span><span class="p">))</span>
+</span><span class='line'>            <span class="n">score</span> <span class="p">+=</span> <span class="p">.</span><span class="m">25</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">score</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the login example, we look for the user in our local user store and if it exists we’ll short-circuit the chain and authenticate the request. Otherwise we’ll let the request continue to the next filter which looks for the user in an LDAP repository.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AuthenticateAgainstLocalStore</span> <span class="p">:</span> <span class="n">IFilter</span><span class="p">&lt;</span><span class="n">LoginContext</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IUserRepository</span> <span class="n">repository</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">AuthenticateAgainstLocalStore</span><span class="p">(</span><span class="n">IUserRepository</span> <span class="n">repository</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">repository</span> <span class="p">=</span> <span class="n">repository</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Execute</span><span class="p">(</span><span class="n">LoginContext</span> <span class="n">context</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">LoginContext</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">executeNext</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">user</span> <span class="p">=</span> <span class="n">repository</span><span class="p">.</span><span class="n">FindByUsername</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">Username</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">user</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">user</span><span class="p">.</span><span class="n">IsValid</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">Password</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">executeNext</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why should I use it?</p>
+
+<blockquote><p>It’s pretty much my favorite animal. It’s like a lion and a tiger mixed… bred for its skills in magic. – Napoleon Dynamite</p></blockquote>
+
+<p>It’s simple and mildly opinionated in effort to guide you and your code into The Pit of Success. It’s easy to write single responsibility classes and use inversion of control and composition and convention over configuration and lots of other goodness. Try it out. Tell a friend.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-21T21:39:00-07:00" pubdate data-updated="true">Apr 21<span>st</span>, 2011</time></div>
+	<div class="tags">
+
+</div>
+	
+	<div class="comments"><a href="/tamarack-chain-of-responsibility-framework-for-net/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
 <nav id="pagenavi">
     
     
