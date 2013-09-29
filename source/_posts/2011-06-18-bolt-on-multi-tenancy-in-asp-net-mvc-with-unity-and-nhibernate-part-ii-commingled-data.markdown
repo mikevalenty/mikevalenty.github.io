@@ -3,7 +3,7 @@ layout: post
 title: "Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data"
 date: 2011-06-18 11:08
 comments: true
-categories: 
+categories: [ASP.NET MVC, Inversion of Control, NHibernate, Open Closed Principle, Unity]
 ---
 
 Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:

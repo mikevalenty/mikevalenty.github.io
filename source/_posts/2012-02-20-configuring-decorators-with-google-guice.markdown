@@ -3,7 +3,7 @@ layout: post
 title: "Configuring Decorators with Google Guice"
 date: 2012-02-20 07:11
 comments: true
-categories: 
+categories: [Decorator Pattern, Google Guice, Inversion of Control, Open Closed Principle]
 ---
 
 You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:
