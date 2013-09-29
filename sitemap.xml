@@ -1,6 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://mikevalenty.github.io/a-proper-closure-in-csharp/</loc>
+        <lastmod>2013-09-29T14:56:21-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/a-custom-httpmodule-to-log-request-duration/</loc>
+        <lastmod>2013-09-29T14:52:38-07:00</lastmod>
+    </url>
+    <url>
         <loc>
             http://mikevalenty.github.io/tamarack-chain-of-responsibility-framework-for-net/
         </loc>
@@ -28,7 +36,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
+        <lastmod>2013-09-29T14:56:21-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
@@ -36,7 +44,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-09-29T14:41:35-07:00</lastmod>
+        <lastmod>2013-09-29T14:56:21-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>

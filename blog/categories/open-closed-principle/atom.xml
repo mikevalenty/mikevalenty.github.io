@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Open Closed Principle | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/open-closed-principle/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-09-29T14:42:11-07:00</updated>
+  <updated>2013-09-29T14:56:54-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -513,6 +513,92 @@ private string GetHost()
 ```</p>
 
 <p>So what did we accomplish? Well we didn’t touch any of our existing application code. We just wrote new code and through configuration we added multi-tenancy! That’s pretty cool, but was it worth it? Well, the goal in itself isn’t super important, but this exercise can certainly highlight areas of your codebase where you might be violating the single responsibility principle or leaking too many infrastructure concepts into your application logic.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A Custom HttpModule to Log Request Duration]]></title>
+    <link href="http://mikevalenty.github.io/a-custom-httpmodule-to-log-request-duration/"/>
+    <updated>2011-01-16T02:31:00-08:00</updated>
+    <id>http://mikevalenty.github.io/a-custom-httpmodule-to-log-request-duration</id>
+    <content type="html"><![CDATA[<p>My application has logging of fine-grained operations, but I want to see the duration of the entire web request. The idea is to start a <code>Stopwatch</code> on the <code>BeginRequest</code> event and then log the elapsed time on the <code>EndRequest</code> event. I started by modifying the <code>Global.asax</code> to wire this up, but quickly got turned off because I was violating the Open-Closed Principle. I really just want to bolt-in this behavior while I’m profiling the application and then turn it off when the kinks are worked out. IIS has a pretty slick extension point for this sort of thing that let’s you hook into the request lifecycle events.</p>
+
+<p>``` c#
+public class RequestDurationLoggerModule : IHttpModule
+{</p>
+
+<pre><code>private const string ContextItemKey = "stopwatchContextItemKey";
+
+public void Init(HttpApplication application)
+{
+    application.BeginRequest += (o, args) =&gt;
+    {
+        application.Context.Items[ContextItemKey] = Stopwatch.StartNew();
+    };
+
+    application.EndRequest += (o, args) =&gt;
+    {
+        var stopwatch = (Stopwatch)application.Context.Items[ContextItemKey];
+        stopwatch.Stop();
+
+        var logger = GetLogger(application);
+
+        logger.Debug(
+            "{0} -&gt; [{1} ms]",
+            application.Context.Request.RawUrl,
+            stopwatch.ElapsedMilliseconds);
+    };
+}
+
+private static ILogger GetLogger(HttpApplication application)
+{
+    var serviceProvider = application as IServiceProvider;
+
+    if (serviceProvider == null)
+    {
+        return new NullLogger();
+    }
+
+    return serviceProvider.GetService&lt;ILogger&gt;();
+}
+
+public void Dispose()
+{
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>The only weird part here is getting a handle to the logger. I’m using an IoC container in my application, however I can’t tell IIS how to build up my <code>RequestDurationLoggerModule</code>, so I’m stuck using the Service Locator pattern. The container could be a singleton, but I don’t like singletons, so I implemented <code>IServiceProvider</code> in <code>Global.asax</code> instead. All that’s left now is wiring in the module. Since Cassini behaves like IIS6, you have to use the legacy style configuration, which looks like this:</p>
+
+<p>``` xml
+  &lt;system.web></p>
+
+<pre><code>&lt;httpModules&gt;
+  &lt;add name="..." type="MyApplication.RequestDurationLoggerModule, MyApplication"/&gt;
+&lt;/httpModules&gt;
+</code></pre>
+
+<p>  &lt;/system.web>
+```</p>
+
+<p>For IIS7 though, you add it like this:</p>
+
+<p>``` xml
+  &lt;system.webServer></p>
+
+<pre><code>&lt;modules&gt;
+  &lt;add name="..." type="MyApplication.RequestDurationLoggerModule, MyApplication"/&gt;
+&lt;/modules&gt;
+</code></pre>
+
+<p>  &lt;/system.webServer>
+```</p>
+
+<p>Finally, it’s time to run the application and see the total request duration logged.</p>
+
+<p><img src="/images/posts/durationmodule.png"></p>
 ]]></content>
   </entry>
   

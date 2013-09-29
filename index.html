@@ -1168,6 +1168,307 @@ It’s pretty simple, there is just one interface to implement and it looks like
 </div>
 </article>
 
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/a-custom-httpmodule-to-log-request-duration/">
+		
+			A Custom HttpModule to Log Request Duration</a>
+	</h2>
+	<div class="entry-content">
+		<p>My application has logging of fine-grained operations, but I want to see the duration of the entire web request. The idea is to start a <code>Stopwatch</code> on the <code>BeginRequest</code> event and then log the elapsed time on the <code>EndRequest</code> event. I started by modifying the <code>Global.asax</code> to wire this up, but quickly got turned off because I was violating the Open-Closed Principle. I really just want to bolt-in this behavior while I’m profiling the application and then turn it off when the kinks are worked out. IIS has a pretty slick extension point for this sort of thing that let’s you hook into the request lifecycle events.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">RequestDurationLoggerModule</span> <span class="p">:</span> <span class="n">IHttpModule</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">ContextItemKey</span> <span class="p">=</span> <span class="s">&quot;stopwatchContextItemKey&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Init</span><span class="p">(</span><span class="n">HttpApplication</span> <span class="n">application</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">application</span><span class="p">.</span><span class="n">BeginRequest</span> <span class="p">+=</span> <span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">application</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">Items</span><span class="p">[</span><span class="n">ContextItemKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">Stopwatch</span><span class="p">.</span><span class="n">StartNew</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">application</span><span class="p">.</span><span class="n">EndRequest</span> <span class="p">+=</span> <span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">stopwatch</span> <span class="p">=</span> <span class="p">(</span><span class="n">Stopwatch</span><span class="p">)</span><span class="n">application</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">Items</span><span class="p">[</span><span class="n">ContextItemKey</span><span class="p">];</span>
+</span><span class='line'>            <span class="n">stopwatch</span><span class="p">.</span><span class="n">Stop</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">GetLogger</span><span class="p">(</span><span class="n">application</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span>
+</span><span class='line'>                <span class="s">&quot;{0} -&gt; [{1} ms]&quot;</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">application</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">RawUrl</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">stopwatch</span><span class="p">.</span><span class="n">ElapsedMilliseconds</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">};</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="n">ILogger</span> <span class="nf">GetLogger</span><span class="p">(</span><span class="n">HttpApplication</span> <span class="n">application</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">serviceProvider</span> <span class="p">=</span> <span class="n">application</span> <span class="k">as</span> <span class="n">IServiceProvider</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">serviceProvider</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="nf">NullLogger</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">serviceProvider</span><span class="p">.</span><span class="n">GetService</span><span class="p">&lt;</span><span class="n">ILogger</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Dispose</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The only weird part here is getting a handle to the logger. I’m using an IoC container in my application, however I can’t tell IIS how to build up my <code>RequestDurationLoggerModule</code>, so I’m stuck using the Service Locator pattern. The container could be a singleton, but I don’t like singletons, so I implemented <code>IServiceProvider</code> in <code>Global.asax</code> instead. All that’s left now is wiring in the module. Since Cassini behaves like IIS6, you have to use the legacy style configuration, which looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>  <span class="nt">&lt;system.web&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;httpModules&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;add</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span> <span class="na">type=</span><span class="s">&quot;MyApplication.RequestDurationLoggerModule, MyApplication&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/httpModules&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/system.web&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For IIS7 though, you add it like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>  <span class="nt">&lt;system.webServer&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;modules&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;add</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span> <span class="na">type=</span><span class="s">&quot;MyApplication.RequestDurationLoggerModule, MyApplication&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/modules&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/system.webServer&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, it’s time to run the application and see the total request duration logged.</p>
+
+<p><img src="/images/posts/durationmodule.png"></p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-16T02:31:00-08:00" pubdate data-updated="true">Jan 16<span>th</span>, 2011</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/open-closed-principle/'>Open Closed Principle</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/a-custom-httpmodule-to-log-request-duration/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/a-proper-closure-in-csharp/">
+		
+			A Proper Closure in C#</a>
+	</h2>
+	<div class="entry-content">
+		<p>You’ve seen code like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Order</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ITaxCalculator</span> <span class="n">taxCalculator</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">decimal?</span> <span class="n">tax</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">Order</span><span class="p">(</span><span class="n">ITaxCalculator</span> <span class="n">taxCalculator</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">taxCalculator</span> <span class="p">=</span> <span class="n">taxCalculator</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">decimal</span> <span class="nf">CalculateTax</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(!</span><span class="n">tax</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">tax</span> <span class="p">=</span> <span class="n">taxCalculator</span><span class="p">.</span><span class="n">Calculate</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">tax</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There are a few things to pick at. I’m looking at the member variable named <code>tax</code> that is null until you call <code>CalculateTax</code> for the first time. There isn’t anything to prevent the rest of the class from using the tax variable directly and possibly repeating the null check code in multiple places. I thought it would be fun to rewrite it using a closure. I don’t mean the kind of accidental closures we write with LINQ, but an honest to goodness proper closure.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Order</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">Order</span><span class="p">(</span><span class="n">ITaxCalculator</span> <span class="n">taxCalculator</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">CalculateTax</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="kt">decimal</span><span class="p">&gt;&gt;(()</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">decimal?</span> <span class="n">tax</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">return</span> <span class="p">()</span> <span class="p">=&gt;</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(!</span><span class="n">tax</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
+</span><span class='line'>                <span class="p">{</span>
+</span><span class='line'>                    <span class="n">tax</span> <span class="p">=</span> <span class="n">taxCalculator</span><span class="p">.</span><span class="n">Calculate</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>                <span class="k">return</span> <span class="n">tax</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">};</span>
+</span><span class='line'>        <span class="p">})();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Func</span><span class="p">&lt;</span><span class="kt">decimal</span><span class="p">&gt;</span> <span class="n">CalculateTax</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A closure is created around the tax variable so only the <code>CalculateTax</code> function has access to it. That’s pretty awesome. I wouldn’t have thought of using this technique before learning JavaScript all over again. It’s fun code to write, but it’s not going to get checked-in to source control. It’s basically a landmine for the next guy that has to make changes. The mental energy it takes to wrap your head around it is like listening to a joke with a really long setup and a lousy punch line. The solution is more complicated than the problem.</p>
+
+<p>I still thought it was worth the mental exercise. Each language has its wheelhouse which makes a certain class of problems easy to solve. Admittedly this was a bit forced here, but opening your mind to other solutions may lead to a breakthrough solving a legitimately tough problem.</p>
+
+		
+		
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-12-18T20:46:00-08:00" pubdate data-updated="true">Dec 18<span>th</span>, 2010</time></div>
+	<div class="tags">
+
+</div>
+	
+	<div class="comments"><a href="/a-proper-closure-in-csharp/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
 <nav id="pagenavi">
     
     
