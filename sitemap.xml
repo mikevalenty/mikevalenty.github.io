@@ -1,6 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://mikevalenty.github.io/dont-say-singleton/</loc>
+        <lastmod>2013-09-29T22:24:55-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/hacker-artist-craftsman-or-engineer/</loc>
+        <lastmod>2013-09-29T22:08:46-07:00</lastmod>
+    </url>
+    <url>
         <loc>
             http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/
         </loc>
@@ -50,7 +58,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-09-29T21:59:56-07:00</lastmod>
+        <lastmod>2013-09-29T22:24:55-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
@@ -58,7 +66,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-09-29T21:59:56-07:00</lastmod>
+        <lastmod>2013-09-29T22:24:55-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>
