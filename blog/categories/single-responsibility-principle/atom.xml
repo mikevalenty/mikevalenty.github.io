@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Single Responsibility Principle | Agile at Work]]></title>
+  <link href="http://mikevalenty.github.io/blog/categories/single-responsibility-principle/atom.xml" rel="self"/>
+  <link href="http://mikevalenty.github.io/"/>
+  <updated>2013-09-30T07:12:52-07:00</updated>
+  <id>http://mikevalenty.github.io/</id>
+  <author>
+    <name><![CDATA[Michael Valenty]]></name>
+    <email><![CDATA[mike@valenty.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Refactoring: Introduce Parameter Object]]></title>
+    <link href="http://mikevalenty.github.io/rafactoring-introduce-parameter-object/"/>
+    <updated>2010-02-15T06:49:00-08:00</updated>
+    <id>http://mikevalenty.github.io/rafactoring-introduce-parameter-object</id>
+    <content type="html"><![CDATA[<p>Take a look at this function:</p>
+
+<p>``` c#
+public UserIndexViewModel GetIndexViewModel(int pageSize, int pageNumber) {</p>
+
+<pre><code>var model = new UserIndexViewModel();
+
+var allUsers = Session.CreateCriteria&lt;User&gt;();
+
+model.Total = CriteriaTransformer
+    .TransformToRowCount(allUsers)
+    .UniqueResult&lt;int&gt;();
+
+model.Users = allUsers
+    .SetFirstResult(pageSize * (pageNumber - 1) + 1)
+    .SetMaxResults(pageSize)
+    .AddOrder&lt;User&gt;(u =&gt; u.LastName, Order.Asc)
+    .List&lt;User&gt;();
+
+return model;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>There isn’t much going on here, but it could be better. I’m looking at the arguments <code>pageSize</code> and <code>pageNumber</code>. Notice how they both start with the prefix “page”. That’s a smell. The common prefix means the arguments are related, so let’s apply the <em>Introduce Parameter Object</em> refactoring and see what happens.</p>
+
+<p>``` c#
+public class Page {</p>
+
+<pre><code>private readonly int number;
+private readonly int size;
+
+public Page(int number, int size) {
+    this.number = number;
+    this.size = size;
+}
+
+public int Size {
+    get { return size; }
+}
+
+public int Number {
+    get { return number; }
+}
+
+public int FirstResult {
+    get { return size * (number - 1) + 1; }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>What did we accomplish?</p>
+
+<ul>
+<li>Creating the parameter object gave us a place to put the logic of calculating the first result of the current page. This logic would otherwise be scattered around the application and even though it’s simple, it’s error prone.</li>
+<li>The logic of calculating the first result is testable.</li>
+</ul>
+
+
+<p>``` c#
+[Test]
+public void Should_calculate_first_result_of_current_page() {</p>
+
+<pre><code>Assert.That(new Page(1, 20).FirstResult, Is.EqualTo(1));
+Assert.That(new Page(2, 20).FirstResult, Is.EqualTo(21));
+Assert.That(new Page(3, 20).FirstResult, Is.EqualTo(41));
+</code></pre>
+
+<p>}
+```</p>
+
+<p>It’s not rocket science, but it still deserves a test. Our other option is spinning up Cassini and clicking around to make sure we got it right. That’s just silly. A little piece of me dies each time I press F5 to run a manual test.</p>
+
+<p>Anyway, there is this thing that happens with single responsibility classes. Because their purpose is crisp, it draws out robustness. In this case, I’m thinking about what we should we do if we get zero or a negative value for page number. I’m a fail fast kind of guy, so I’d probably go with a guard clause.</p>
+
+<p>``` c#
+public Page(int number, int size) {</p>
+
+<pre><code>GuardAgainstLessThanOne(number);
+...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>But you could silently correct it if that’s how you roll:</p>
+
+<p>``` c#
+public int Number {</p>
+
+<pre><code>get { return Math.Max(1, number); }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>The point is that this is an obvious scenario to consider when looking at such a special purpose object. All too often though, bits of logic are mixed together like 32 kindergarteners sitting next to each other on a rug during a lesson. The room is one fart or tickle away from erupting into total kaos. It’s roughly half teaching and half crowd control, only without the rubber bullets and pepper spray. Not surprisingly, overcrowded classrooms don’t work that well and over-ambitous functions don’t work that well either. Each little bit of logic needs some one on one with you. Give it a chance to be all it can be by pulling it aside and getting to know it a little better. You might be surprised.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Interfaces (No Excuses!)]]></title>
+    <link href="http://mikevalenty.github.io/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/"/>
+    <updated>2010-01-13T22:24:00-08:00</updated>
+    <id>http://mikevalenty.github.io/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses</id>
+    <content type="html"><![CDATA[<p><span style="font-size: 70%">
+The title of this article was inspired by <a href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!) </a>
+by Joel Spolsky
+</span></p>
+
+<p>I recently saw this question on stackoverflow:</p>
+
+<p><img src="/images/posts/quest.png"></p>
+
+<p>There were good points on both sides, but the majority of responses were from closet interface haters succumbing to the mob effect to say &ldquo;me too&rdquo;. On the other side of the argument, many took cover behind regurgitated responses like interfaces are for mocking dependencies in unit tests and because people that write books say you should use them. So how is it that scores of professional software developers don’t understand or can’t communicate why and how to use the most fundamental of object-oriented language features? Perhaps there is a clue in the details of the original question:</p>
+
+<blockquote><p>Is there some hidden benefit of using an interface when you have 1 version of a class and no immediate need to create an interface?</p></blockquote>
+
+<p>The scattered and ineffectual responses are an unfortunate casualty of the ubiquitous poor online examples found on the Internet. No doubt you’ve seen something like this before:</p>
+
+<p>``` c#
+public interface IVehicle {</p>
+
+<pre><code>int NumberOfPassengers { get; }
+</code></pre>
+
+<p>}</p>
+
+<p>public class Car : IVehicle {</p>
+
+<pre><code>public int NumberOfPassengers { get { return 4; } }
+</code></pre>
+
+<p>}</p>
+
+<p>public class Bus : IVehicle {</p>
+
+<pre><code>public int NumberOfPassengers { get { return 20; } }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>I can’t help but have visions of rich objects that model the physical world so well they put an end to wars and world hunger. You know, methods like <code>Bark()</code> on a <code>Dog</code> object. These examples aren’t wrong per se, but they usher the reader down a predictable and dead-end path. It’s like the horribly cliché <a href="http://en.wikipedia.org/wiki/Thinking_outside_the_box">nine dots puzzle</a> in which the goal is to link all 9 dots using four straight lines or less, without lifting the pen.</p>
+
+<p>Common sense suggests it can’t be done because we have subconsciously imposed a false restriction that the lines must be within the boundaries of the square (I won’t insult you with the hopelessly worn out catch phrase). The point I’m trying to make here is the examples out there unwittingly set us up for failure. In social science this is called <a href="http://en.wikipedia.org/wiki/Framing_(social_sciences">framing</a>. The human brain is an impressive problem solving machine, but we can be easily fooled by framing a problem in a way that our stereotypes and assumptions obscure the often obvious answer.</p>
+
+<p>In the case of interfaces, the examples suggest the concrete implementations are mutually exclusive physical concepts like <em>Car</em> and <em>Bus</em>, or perhaps <code>SqlUserStore</code> and <code>LdapUserStore</code>. It’s an easy concept to latch on to, and it’s the bane of good object oriented design.</p>
+
+<p>To think of a user store as a thing is a mistake. <code>IUserStore</code> defines a seam in which responsibility crosses a boundary. In an MVC application, it’s the seam between the controller’s routing responsibility and the model’s business logic. If you only have one implementation of <code>IUserStore</code>, then you’d better take another look because that’s a smell.</p>
+
+<p>The place to start looking is within your one and only implementation. Where is the logic about sending a confirmation email or checking if the username is available? Chances are it ended up in the controller leaving your model anemic or it ended up in your model violating the single responsibility principle. Either way it’s a big fail sandwich.</p>
+
+<p>Again, this is because of the false assumption that implementations are mutually exclusive as in the <em>Car</em> and <em>Bus</em> example. In other words, if I have a <em>Car</em>, then I don’t have a <em>Bus</em>. This is the wrong way to think of objects. Of course they can be mutually exclusive, but they are far more powerful when they are composable. Consider these implementations of <code>IUserService</code>:</p>
+
+<ul>
+<li><code>EmailConfirmationUserService</code></li>
+<li><code>ValidatingUserService</code></li>
+<li><code>SqlUserService</code></li>
+<li><code>CachingUserService</code></li>
+</ul>
+
+
+<p>Each concern is orthogonal to each other concern and they are combined together to create the overall behavior of the system. The interface facilitates composition which is the key to high-quality, robust software. So the real problem isn’t that interfaces are overused, it’s that interfaces are squandered.</p>
+]]></content>
+  </entry>
+  
+</feed>

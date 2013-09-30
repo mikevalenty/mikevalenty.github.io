@@ -1,6 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>
+            http://mikevalenty.github.io/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/
+        </loc>
+        <lastmod>2013-09-30T07:12:52-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/rafactoring-introduce-parameter-object/</loc>
+        <lastmod>2013-09-30T06:56:39-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/my-favorite-interview-question/</loc>
+        <lastmod>2013-09-30T06:48:04-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://mikevalenty.github.io/dont-say-singleton/</loc>
         <lastmod>2013-09-29T22:24:55-07:00</lastmod>
     </url>
@@ -58,7 +72,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-09-29T22:24:55-07:00</lastmod>
+        <lastmod>2013-09-30T07:12:52-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
@@ -66,7 +80,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-09-29T22:24:55-07:00</lastmod>
+        <lastmod>2013-09-30T07:12:52-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>
