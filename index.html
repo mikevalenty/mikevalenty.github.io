@@ -1823,6 +1823,99 @@ It’s pretty simple, there is just one interface to implement and it looks like
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/automatic-deployment-from-teamcity-using-webdeploy/">Automatic Deployment From TeamCity Using WebDeploy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
+        
+         | <a href="/automatic-deployment-from-teamcity-using-webdeploy/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
+
+<p><img src="/images/posts/tcp1.jpg"></p>
+
+<ol>
+<li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
+<li><strong>Run integration tests</strong>  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.</li>
+<li><strong>Run acceptance tests</strong> – these tests are written in the Given, When, Then style. We write the tests in BehaveN, but we expect that a stakeholder could read them and verify the business rules are correct.</li>
+<li><strong>Deploy to CI and run UI tests</strong> – these are qunit and Selenium tests. They require the code to be deployed to a real web server before the tests run. That’s what this article is about.</li>
+<li><strong>Deploy to QA</strong> – once the automated UI tests have passed, we deploy to our QA server for manual testing.</li>
+</ol>
+
+
+<p><strong>Step 1:</strong> <a href="http://weblogs.asp.net/scottgu/archive/2010/09/13/automating-deployment-with-microsoft-web-deploy.aspx">Install WebDeploy on the web server you want to deploy to.</a></p>
+
+<p><strong>Step 2:</strong> <a href="http://blogs.msdn.com/b/webdevtools/archive/2009/05/04/web-deployment-web-config-transformation.aspx">Configure Web.config transforms.</a> This will enable you to change connection strings and whatnot based on your build configuration.</p>
+
+<p>Currently this is only supported for web applications, but since it’s built on top of MSBuild tasks, you can do the same thing to an <code>App.config</code> with a little extra work. Take a peak at <code>Microsoft.Web.Publishing.targets</code> (C:\Program Files\MSBuild\Microsoft\VisualStudio\v10.0\Web) to see how to use the build tasks.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;TransformXml&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;MSDeploy&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Step 3:</strong> Figure out the MSBuild command line arguments that work for your application. This took a bit of trial and error before landing on this:</p>
+
+<pre>
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln 
+  /p:Configuration=QA
+  /p:OutputPath=bin
+  /p:DeployOnBuild=True 
+  /p:DeployTarget=MSDeployPublish 
+  /p:MsDeployServiceUrl=https://myserver:8172/msdeploy.axd 
+  /p:username=***** 
+  /p:password=***** 
+  /p:AllowUntrustedCertificate=True 
+  /p:DeployIisAppPath=ci
+  /p:MSDeployPublishMethod=WMSVC
+</pre>
+
+
+<p><strong>Step 4:</strong> Configure the Build Runner in TeamCity</p>
+
+<p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
+
+<p><img src="/images/posts/teamcity2.jpg"></p>
+
+<p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
+
+<p><img src="/images/posts/dep1.jpg"></p>
+
+<p><img src="/images/posts/snap1.jpg"></p>
+
+<p><strong>Step 6:</strong> Write some code.</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>

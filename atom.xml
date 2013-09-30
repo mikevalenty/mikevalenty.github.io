@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-09-29T21:19:11-07:00</updated>
+  <updated>2013-09-29T21:59:57-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -1535,6 +1535,70 @@ It’s pretty simple, there is just one interface to implement and it looks like
 
 
 <p>Imagine you are sitting at the keyboard working on a feature. Can you see how the first list could influence completely different decisions than the second list? It’s not about right or wrong, it’s just about being explicit about how you make decisions and trusting the rest of your team to make similar choices.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Automatic Deployment from TeamCity using WebDeploy]]></title>
+    <link href="http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/"/>
+    <updated>2010-10-27T11:07:00-07:00</updated>
+    <id>http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy</id>
+    <content type="html"><![CDATA[<p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
+
+<p><img src="http://mikevalenty.github.io/images/posts/tcp1.jpg"></p>
+
+<ol>
+<li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
+<li><strong>Run integration tests</strong>  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.</li>
+<li><strong>Run acceptance tests</strong> – these tests are written in the Given, When, Then style. We write the tests in BehaveN, but we expect that a stakeholder could read them and verify the business rules are correct.</li>
+<li><strong>Deploy to CI and run UI tests</strong> – these are qunit and Selenium tests. They require the code to be deployed to a real web server before the tests run. That’s what this article is about.</li>
+<li><strong>Deploy to QA</strong> – once the automated UI tests have passed, we deploy to our QA server for manual testing.</li>
+</ol>
+
+
+<p><strong>Step 1:</strong> <a href="http://weblogs.asp.net/scottgu/archive/2010/09/13/automating-deployment-with-microsoft-web-deploy.aspx">Install WebDeploy on the web server you want to deploy to.</a></p>
+
+<p><strong>Step 2:</strong> <a href="http://blogs.msdn.com/b/webdevtools/archive/2009/05/04/web-deployment-web-config-transformation.aspx">Configure Web.config transforms.</a> This will enable you to change connection strings and whatnot based on your build configuration.</p>
+
+<p>Currently this is only supported for web applications, but since it’s built on top of MSBuild tasks, you can do the same thing to an <code>App.config</code> with a little extra work. Take a peak at <code>Microsoft.Web.Publishing.targets</code> (C:\Program Files\MSBuild\Microsoft\VisualStudio\v10.0\Web) to see how to use the build tasks.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;TransformXml&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;MSDeploy&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Step 3:</strong> Figure out the MSBuild command line arguments that work for your application. This took a bit of trial and error before landing on this:</p>
+
+<pre>
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln 
+  /p:Configuration=QA
+  /p:OutputPath=bin
+  /p:DeployOnBuild=True 
+  /p:DeployTarget=MSDeployPublish 
+  /p:MsDeployServiceUrl=https://myserver:8172/msdeploy.axd 
+  /p:username=***** 
+  /p:password=***** 
+  /p:AllowUntrustedCertificate=True 
+  /p:DeployIisAppPath=ci
+  /p:MSDeployPublishMethod=WMSVC
+</pre>
+
+
+<p><strong>Step 4:</strong> Configure the Build Runner in TeamCity</p>
+
+<p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
+
+<p><img src="http://mikevalenty.github.io/images/posts/teamcity2.jpg"></p>
+
+<p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
+
+<p><img src="http://mikevalenty.github.io/images/posts/dep1.jpg"></p>
+
+<p><img src="http://mikevalenty.github.io/images/posts/snap1.jpg"></p>
+
+<p><strong>Step 6:</strong> Write some code.</p>
 ]]></content>
   </entry>
   

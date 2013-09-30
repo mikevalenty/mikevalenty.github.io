@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Software Development Team Building – Part 1 - Agile at Work</title>
+  <title>Automatic Deployment from TeamCity using WebDeploy - Agile at Work</title>
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season &hellip;">
+  <meta name="description" content="A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mikevalenty.github.io/software-development-team-building-part-1">
+  <link rel="canonical" href="http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
@@ -68,7 +68,7 @@
   
   <header>
     
-      <h1 class="entry-title">Software Development Team Building – Part 1</h1>
+      <h1 class="entry-title">Automatic Deployment From TeamCity Using WebDeploy</h1>
     
     
       <p class="meta">
@@ -84,7 +84,7 @@
   
 
 
-<time datetime="2010-11-13T17:26:00-08:00" pubdate data-updated="true">Nov 13<span>th</span>, 2010</time>
+<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -93,61 +93,62 @@
   </header>
 
 
-<div class="entry-content"><p>The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season because when playoffs start, it’s like watching a different sport. To win the coveted Stanley Cup, a team must battle through four grueling best-of-seven series, and when it’s all over, it’s not about a bad call by the referee or a fluke fumble or broken tackle. It’s not even about a hot goal-tender or superstar forward. It’s about the whole team digging deep and banding together to create a whole greater than the sum of its parts.</p>
+<div class="entry-content"><p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
 
-<p>If that wasn’t true, you could simply put all the best players on one team and watch them dominate. Russia tried it in the 2010 Winter Olympics and only walked away with the bronze medal. A successful team has an identity that transcends individuals. If you watch hockey, you’ll hear teams described as up-tempo, finesse, defensive or gritty and hard-hitting. One isn’t better than another, it really depends on what your core strengths are and then getting buy-in from everyone on the team.</p>
+<p><img src="/images/posts/tcp1.jpg"></p>
 
-<p>On a software team, maybe you’ve got some pre-family twenty-something developers that are wizards with Javascript. Or, maybe you’ve got a veteran team and company with deep enough pockets to invest in a long term product strategy. It really doesn’t matter, just identify your strengths and get buy-in.</p>
-
-<p>Developers are opinionated and not always team players; the cliché herding cats comes to mind. So how do you get developers to buy in? Try out this exercise. Get your team in front of a whiteboard and come up with a list of words that describe positive software quality factors. Here’s a start:</p>
-
-<ul>
-<li>Scalable</li>
-<li>Fast</li>
-<li>Efficient</li>
-<li>Reliable</li>
-<li>Maintainable</li>
-<li>Elegant</li>
-<li>Expressive</li>
-<li>Readable</li>
-<li>Portable</li>
-<li>Concise</li>
-<li>Testable</li>
-<li>Understandable</li>
-<li>Correct</li>
-<li>Consistent</li>
-<li>Clean</li>
-<li>Innovative</li>
-<li>Secure</li>
-<li>Extensible</li>
-<li>Reusable</li>
-<li>Composable</li>
-</ul>
+<ol>
+<li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
+<li><strong>Run integration tests</strong>  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.</li>
+<li><strong>Run acceptance tests</strong> – these tests are written in the Given, When, Then style. We write the tests in BehaveN, but we expect that a stakeholder could read them and verify the business rules are correct.</li>
+<li><strong>Deploy to CI and run UI tests</strong> – these are qunit and Selenium tests. They require the code to be deployed to a real web server before the tests run. That’s what this article is about.</li>
+<li><strong>Deploy to QA</strong> – once the automated UI tests have passed, we deploy to our QA server for manual testing.</li>
+</ol>
 
 
-<p>Have each team member to pick their top 5 and write them on the board. Compare the lists and allow the team to negotiate with each other to come up with a common top 3. Why is a shared list important? Writing software is about trade-offs. We make dozens of decisions per day while writing code and sharing a set of values is essential to consistent forward progress in a team environment.</p>
+<p><strong>Step 1:</strong> <a href="http://weblogs.asp.net/scottgu/archive/2010/09/13/automating-deployment-with-microsoft-web-deploy.aspx">Install WebDeploy on the web server you want to deploy to.</a></p>
 
-<blockquote><p>If you don’t know where you’re going, you might not get there – Yogi Berra</p></blockquote>
+<p><strong>Step 2:</strong> <a href="http://blogs.msdn.com/b/webdevtools/archive/2009/05/04/web-deployment-web-config-transformation.aspx">Configure Web.config transforms.</a> This will enable you to change connection strings and whatnot based on your build configuration.</p>
 
-<p>Consider this list:</p>
+<p>Currently this is only supported for web applications, but since it’s built on top of MSBuild tasks, you can do the same thing to an <code>App.config</code> with a little extra work. Take a peak at <code>Microsoft.Web.Publishing.targets</code> (C:\Program Files\MSBuild\Microsoft\VisualStudio\v10.0\Web) to see how to use the build tasks.</p>
 
-<ul>
-<li>Testable</li>
-<li>Expressive</li>
-<li>Scalable</li>
-</ul>
-
-
-<p>Compare that with:</p>
-
-<ul>
-<li>Innovative</li>
-<li>Efficient</li>
-<li>Elegant</li>
-</ul>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;TransformXml&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;MSDeploy&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Imagine you are sitting at the keyboard working on a feature. Can you see how the first list could influence completely different decisions than the second list? It’s not about right or wrong, it’s just about being explicit about how you make decisions and trusting the rest of your team to make similar choices.</p>
+<p><strong>Step 3:</strong> Figure out the MSBuild command line arguments that work for your application. This took a bit of trial and error before landing on this:</p>
+
+<pre>
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln 
+  /p:Configuration=QA
+  /p:OutputPath=bin
+  /p:DeployOnBuild=True 
+  /p:DeployTarget=MSDeployPublish 
+  /p:MsDeployServiceUrl=https://myserver:8172/msdeploy.axd 
+  /p:username=***** 
+  /p:password=***** 
+  /p:AllowUntrustedCertificate=True 
+  /p:DeployIisAppPath=ci
+  /p:MSDeployPublishMethod=WMSVC
+</pre>
+
+
+<p><strong>Step 4:</strong> Configure the Build Runner in TeamCity</p>
+
+<p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
+
+<p><img src="/images/posts/teamcity2.jpg"></p>
+
+<p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
+
+<p><img src="/images/posts/dep1.jpg"></p>
+
+<p><img src="/images/posts/snap1.jpg"></p>
+
+<p><strong>Step 6:</strong> Write some code.</p>
 </div>
 
 
@@ -170,7 +171,7 @@
   
 
 
-<time datetime="2010-11-13T17:26:00-08:00" pubdate data-updated="true">Nov 13<span>th</span>, 2010</time>
+<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
       
 
 
@@ -178,7 +179,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/software-development-team-building-part-1/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/software-development-team-building-part-1/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/" >Tweet</a>
   
   
   
@@ -187,10 +188,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/automatic-deployment-from-teamcity-using-webdeploy/" title="Previous Post: Automatic Deployment from TeamCity using WebDeploy">&laquo; Automatic Deployment from TeamCity using WebDeploy</a>
       
-      
-        <a class="basic-alignment right" href="/refactoring-c-style/" title="Next Post: Refactoring C# Style">Refactoring C# Style &raquo;</a>
+        <a class="basic-alignment right" href="/software-development-team-building-part-1/" title="Next Post: Software Development Team Building – Part 1">Software Development Team Building – Part 1 &raquo;</a>
       
     </p>
   </footer>
@@ -285,8 +284,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://mikevalenty.github.io/software-development-team-building-part-1/';
-        var disqus_url = 'http://mikevalenty.github.io/software-development-team-building-part-1/';
+        var disqus_identifier = 'http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/';
+        var disqus_url = 'http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/';
         var disqus_script = 'embed.js';
       
     (function () {
