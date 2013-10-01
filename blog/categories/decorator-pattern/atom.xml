@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Decorator Pattern | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/decorator-pattern/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-09-30T07:12:52-07:00</updated>
+  <updated>2013-09-30T20:17:00-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -117,6 +117,137 @@ bind(CreditCardProcessor.class)
 ```</p>
 
 <p>Did you catch the difference? It’s subtle, but the devil is in the details. In this last example, the DoubleChargeCreditCardProcessor doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Inheritance is Evil: The Epic Fail of the DataAnnotationsModelBinder]]></title>
+    <link href="http://mikevalenty.github.io/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/"/>
+    <updated>2010-01-04T06:52:00-08:00</updated>
+    <id>http://mikevalenty.github.io/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
+    <content type="html"><![CDATA[<p>The <code>DataAnnotationsModelBinder</code> is a pretty neat little class that enforces validation attributes on models like this one:</p>
+
+<p>``` c#
+public class Product {</p>
+
+<pre><code>public int Id { get; set; }
+
+[Required]
+public string Description { get; set; }
+
+[Required]
+[RegularExpression(@"^\$?\d+(\.(\d{2}))?$")]
+public decimal UnitPrice { get; set; }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Just for the record, this is a <a href="http://aspnet.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=24471">cool bit of code</a> that was released to the community for backseat drivers like me to use and complain about. I’m really only bitter because I can’t use it. Let’s take a peek at the source code to see why:</p>
+
+<p>``` c#
+/// <summary>
+/// An implementation of IModelBinder which is designed to be a replacement
+/// default model binder, adding the functionality of validation via the validation
+/// attributes in System.ComponentModel.DataAnnotations from .NET 4.0.
+/// </summary>
+public class DataAnnotationsModelBinder : DefaultModelBinder {</p>
+
+<pre><code>...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>The problem with this class is that it’s not just about validation. It’s more about binding with validation sprinkled in. The author even states this as a design goal with the comment “designed to be a replacement default model binder.” This is a violation of the <em>Single Responsibility Principle</em> and it’s the reason I can’t use it. The <code>DefaultModelBinder</code> does some basic reflection mapping of form elements to model properties. That’s cool, but what about a controller action that takes json, xml, or anything slightly more complicated than what the default binder can handle?</p>
+
+<p>I’ll tell you what happens. You write a custom model binder which is pretty easy and happens to be a pretty rad extension point in the MVC framework. Consider this model binder that deserializes json:</p>
+
+<p>``` c#
+public class JsonModelBinder<T> : IModelBinder {</p>
+
+<pre><code>private string key;
+
+public JsonModelBinder(string requestKey) {
+    this.key = requestKey;
+}
+
+public object BindModel(ControllerContext controllerContext, ...) {
+    var json = controllerContext.HttpContext.Request[key];
+    return new JsonSerializer().Deserialize&lt;T&gt;(json);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>That’s pretty cool, but now I’ve lost my validation! This my friend is the evil of inheritance and the epic fail of the <code>DataAnnotationsModelBinder</code>. So what’s wrong with inheritance, isn’t that what OOP is all about? The short answer is no (the long answer is also no.)</p>
+
+<p><img class="plain" src="/images/posts/petervenkmanghostbusters.jpg"></p>
+
+<blockquote><p>Human sacrifice, dogs and cats living together… mass hysteria! — Dr. Peter Venkman</p></blockquote>
+
+<p>Inheritance is pretty enticing especially coming from procedural-land and it often looks deceptively elegant. I mean all I need to do is add this one bit of functionality to another other class, right? Well, one of the problems is that inheritance is probably the worst form of coupling you can have. Your base class breaks encapsulation by exposing implementation details to subclasses in the form of protected members. This makes your system rigid and fragile.</p>
+
+<p>The more tragic flaw however is the new subclass brings with it all the baggage and opinion of the inheritance chain. Why does a model that enforces validation attributes care how the model is constructed? The answer is it shouldn’t, and to add insult to injury, the better design is actually easier to implement. Listen closely and you may hear the wise whispers of our forefathers…</p>
+
+<p><img class="plain" src="/images/posts/ward.jpg" title="Ward Cunningham" >
+<img class="plain" src="/images/posts/martin.jpg" title="Marting Fowler" >
+<img class="plain" src="/images/posts/kent.jpg" title="Kent Beck" >
+<img class="plain" src="/images/posts/robert.jpg" title="Robert Martin" ></p>
+
+<blockquote><p>Use the decorator pattern.</p></blockquote>
+
+<p>Is this really going to solve all my problems? The short answer is yes. Let’s take a look:</p>
+
+<p>``` c#
+public class BetterDataAnnotationsModelBinder : IModelBinder {</p>
+
+<pre><code>private IModelBinder binder;
+
+public BetterDataAnnotationsModelBinder(IModelBinder binder) {
+    this.binder = binder;
+}
+
+public object BindModel(ControllerContext controllerContext, ...) {
+    var model = binder.BindModel(controllerContext, bindingContext);
+    AddValidationErrorsToModelState(model, controllerContext);
+    return model;
+}
+
+...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Now all this class does is enforce validation and we can use whatever model binder we want to construct our object. Let’s wire this up in the <code>Global.asax</code> real quick:</p>
+
+<p>``` c#
+var productModelBinder = new JsonModelBinder<Product>(&ldquo;product&rdquo;);</p>
+
+<p>ModelBinders.Binders.Add(</p>
+
+<pre><code>typeof(Product),
+new BetterDataAnnotationsModelBinder(productModelBinder));
+</code></pre>
+
+<p>```</p>
+
+<p>This is cool for the following reasons:</p>
+
+<ol>
+<li>We are not coupled to the <code>DefaultModelBinder</code>. This means we don’t know or care about the structure and implementation details of it so it’s free to change in the next version of ASP.NET MVC.</li>
+<li>The code is simpler because it is only about validation.</li>
+<li>The behavior is composable. This means we can add validation to any model binder (like our json model binder) and bolt on more responsibilities with a chain of decorators. How about converting DateTime fields to UTC or striping formatting characters from phone numbers?</li>
+<li>It’s easy to test.</li>
+<li>You can substitute a decorator for a subclass in most cases and in most cases it’s the right choice. You’re better off making the decorator your default choice and only settle for inheritance when you really need it.</li>
+</ol>
+
+
+<p><img src="/images/posts/kip.jpg"></p>
+
+<blockquote><p>…don’t be jealous that I’ve been chatting online with babes all day. Besides, we both know that I’m training to be a cage fighter. — Kip</p></blockquote>
 ]]></content>
   </entry>
   
