@@ -17,3 +17,9 @@ figure.code figcaption {
 .highlight, .gist-highlight {
 	border-radius: 6px;
 }
+
+img.plain {
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+}
