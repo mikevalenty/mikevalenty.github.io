@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>My Favorite Interview Question - Agile at Work</title>
+  <title>Category: Command Query Separation - Agile at Work</title>
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="Lately I’ve been wrapping up interviews with the question “What makes software maintainable?” I usually catch a glimpse that says “hmm… I’ve never &hellip;">
+  <meta name="description" content="Category: Command Query Separation">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mikevalenty.github.io/my-favorite-interview-question">
+  <link rel="canonical" href="http://mikevalenty.github.ioblog/categories/command-query-separation">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
@@ -65,107 +65,36 @@
   <div id="main">
     <div id="content">
       <div>
-<article class="hentry" role="article">
+<article role="article">
   
   <header>
-    
-      <h1 class="entry-title">My Favorite Interview Question</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-09-04T08:12:00-07:00" pubdate data-updated="true">Sep 4<span>th</span>, 2010</time>
-        
-         | <a href="#disqus_thread">Comments</a>
-        
-      </p>
+    <h1 class="entry-title">Category: Command Query Separation</h1>
     
   </header>
-
-
-<div class="entry-content"><p>Lately I’ve been wrapping up interviews with the question “What makes software maintainable?” I usually catch a glimpse that says “hmm… I’ve never really thought about maintainability” followed by a response to the question “What makes software good?”, which I didn’t actually ask, but most programmers have thought enough about to give an on the spot answer. The bland responses inevitably involve documentation (fail) and maybe something about consistency (meh).</p>
-
-<p><img src="/images/posts/trump_thumb.jpg"></p>
-
-<p>The underlying question I’m asking is a question you should ask yourself every time you write a line of line of code. That question is “What are you optimizing?” Most programmers have mentally hard-coded the term optimize to mean efficient use of memory and cpu, however it’s a horribly myopic definition. In fact, it’s just plain wrong unless you’re writing an iPhone game or maybe you work at Google and saving a few cpu cycles translates to kilowatts of power and possibly saving a small rain forest.</p>
-
-<p>Let’s see what Wikipedia has to say.</p>
-
-<blockquote><p>In computer science, program optimization or software optimization is the process of modifying a software system to make some aspect of it work more efficiently or use fewer resources.[1] In general, a computer program may be optimized so that it executes more rapidly, or is capable of operating with less memory storage or other resources, or draw less power. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(computer_science)</p></blockquote>
-
-<p><img src="/images/posts/conserve_thumb1.jpg"></p>
-
-<p>It’s not wrong, but it reinforces the notion that less is more and the precious resources are physical resources like memory and cpu. Is it better to have fewer files in your project, fewer dlls in your bin directory, or use fewer semicolons? I recently debugged a chain of jQuery statements that was 430 characters long (un-minified) and used one semicolon. Is that optimized?</p>
-
-<p>Consider this definition:</p>
-
-<blockquote><p>In mathematics, computer science and economics, optimization, or mathematical programming, refers to choosing the best element from some set of available alternatives. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(mathematics)</p></blockquote>
-
-<p>This does a better job of capturing the trade-offs we make on a daily basis. I like the idea of choosing the best element rather than consuming the fewest resources. Instead of asking what you’re optimizing, a better question might be what are you maximizing? For a new iPhone game, maybe time to market is your number one concern. I work on enterprise SaaS applications that have a long shelf life so maintainability is a pretty big deal. I strive to maximize readability and testability when I write software. What are you maximizing?</p>
-</div>
-
-
-  <footer>
-    <p class="meta">
-      
   
-
-<span class="byline author vcard">Posted by <span class="fn">Michael Valenty</span></span>
-
-      
-
-
-
-
-
+  <div id="blog-archives" class="category">
 
 
 
   
+  <h2>2009</h2>
 
-
-<time datetime="2010-09-04T08:12:00-07:00" pubdate data-updated="true">Sep 4<span>th</span>, 2010</time>
-      
-
-
-    </p>
-    
-      <div class="sharing">
+<article>
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/my-favorite-interview-question/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/my-favorite-interview-question/" >Tweet</a>
-  
-  
-  
-</div>
+<h1><a href="/custom-model-binder-in-asp-dot-net-mvc/">Custom Model Binder in ASP.NET MVC</a></h1>
+<time datetime="2009-12-31T14:59:00-08:00" pubdate><span class='month'>Dec</span> <span class='day'>31</span> <span class='year'>2009</span></time>
 
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/rafactoring-introduce-parameter-object/" title="Previous Post: Refactoring: Introduce Parameter Object">&laquo; Refactoring: Introduce Parameter Object</a>
-      
-      
-        <a class="basic-alignment right" href="/dont-say-singleton/" title="Next Post: Don't Say Singleton">Don't Say Singleton &raquo;</a>
-      
-    </p>
-  </footer>
+<footer>
+  <span class="categories">posted in <a class='category' href='/blog/categories/asp-dot-net-mvc/'>ASP.NET MVC</a>, <a class='category' href='/blog/categories/command-query-separation/'>Command Query Separation</a>, <a class='category' href='/blog/categories/decorator-pattern/'>Decorator Pattern</a>, <a class='category' href='/blog/categories/single-responsibility-principle/'>Single Responsibility Principle</a></span>
+</footer>
+
+
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
-  </section>
+
+  
+</article>
 
 </div>
 
@@ -249,10 +178,7 @@
       var disqus_shortname = 'agileatwork';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://mikevalenty.github.io/my-favorite-interview-question/';
-        var disqus_url = 'http://mikevalenty.github.io/my-favorite-interview-question/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

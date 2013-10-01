@@ -1,10 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://mikevalenty.github.io/custom-model-binder-in-asp-dot-net-mvc/</loc>
+        <lastmod>2013-09-30T21:39:16-07:00</lastmod>
+    </url>
+    <url>
         <loc>
             http://mikevalenty.github.io/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/
         </loc>
-        <lastmod>2013-09-30T20:17:00-07:00</lastmod>
+        <lastmod>2013-09-30T21:32:56-07:00</lastmod>
     </url>
     <url>
         <loc>
@@ -54,13 +58,13 @@
         <loc>
             http://mikevalenty.github.io/tamarack-chain-of-responsibility-framework-for-net/
         </loc>
-        <lastmod>2013-09-29T15:14:07-07:00</lastmod>
+        <lastmod>2013-09-30T21:41:12-07:00</lastmod>
     </url>
     <url>
         <loc>
             http://mikevalenty.github.io/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/
         </loc>
-        <lastmod>2013-09-29T15:14:07-07:00</lastmod>
+        <lastmod>2013-09-30T21:42:03-07:00</lastmod>
     </url>
     <url>
         <loc>
@@ -78,7 +82,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-09-30T20:17:00-07:00</lastmod>
+        <lastmod>2013-09-30T21:42:03-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
@@ -86,7 +90,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-09-30T20:17:00-07:00</lastmod>
+        <lastmod>2013-09-30T21:42:03-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>

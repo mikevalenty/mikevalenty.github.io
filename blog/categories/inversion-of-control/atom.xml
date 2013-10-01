@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Inversion of Control | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/inversion-of-control/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-09-30T20:17:00-07:00</updated>
+  <updated>2013-09-30T21:42:03-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -473,7 +473,7 @@ Container</p>
 
 <p>Here we’re using a custom <code>PerHostLifetimeManager</code>. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the <code>InjectionFactory</code> block to create one using the connection string associated with that tenant.</p>
 
-<p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> isn’t thread safe.</p>
+<p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> <a href="http://stackoverflow.com/questions/157933/whats-the-best-way-of-implementing-a-thread-safe-dictionary-in-net">isn’t thread safe</a>.</p>
 
 <p>``` c#
 public class PerHostLifetimeManager : SynchronizedLifetimeManager
@@ -513,6 +513,182 @@ private string GetHost()
 ```</p>
 
 <p>So what did we accomplish? Well we didn’t touch any of our existing application code. We just wrote new code and through configuration we added multi-tenancy! That’s pretty cool, but was it worth it? Well, the goal in itself isn’t super important, but this exercise can certainly highlight areas of your codebase where you might be violating the single responsibility principle or leaking too many infrastructure concepts into your application logic.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Tamarack: Chain of Responsibility Framework for .NET]]></title>
+    <link href="http://mikevalenty.github.io/tamarack-chain-of-responsibility-framework-for-net/"/>
+    <updated>2011-04-21T21:39:00-07:00</updated>
+    <id>http://mikevalenty.github.io/tamarack-chain-of-responsibility-framework-for-net</id>
+    <content type="html"><![CDATA[<p>The Chain of Responsibility is a key building block of extensible software.</p>
+
+<blockquote><p>Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. – Gang of Four</p></blockquote>
+
+<p>Variations of this pattern are the basis for <a href="http://www.oracle.com/technetwork/java/filters-137243.html">Servlet Filters</a>, <a href="http://learn.iis.net/page.aspx/366/developing-iis-70-modules-and-handlers-with-the-net-framework/">IIS Modules and Handlers</a> and several open source projects I’ve had the opportunity to work with including <a href="https://www.forge.funambol.org/">Sync4J</a>, <a href="http://james.apache.org/">JAMES</a>, <a href="http://logging.apache.org/log4net/">Log4Net</a>, <a href="http://unity.codeplex.com/">Unity</a> and yes, even <a href="http://www.joomla.org/">Joomla</a>. It’s an essential tool in the OO toolbox and key in transforming rigid procedural code into a composable Domain Specific Language.</p>
+
+<p>I’ve blogged about this pattern before so what’s new this time?</p>
+
+<ol>
+<li>The next filter in the chain is provided via a delegate parameter rather than a property</li>
+<li>The project is <a href="https://github.com/mikevalenty/tamarack">hosted on github</a></li>
+<li>There is a <a href="http://nuget.org/List/Search?packageType=Packages&amp;searchCategory=All+Categories&amp;searchTerm=tamarack">NuGet package</a> for it</li>
+</ol>
+
+
+<p><img src="/images/posts/pkgmgr31.png"></p>
+
+<p>How does it work?
+It’s pretty simple, there is just one interface to implement and it looks like this:</p>
+
+<p>``` c#
+public interface IFilter&lt;T, TOut>
+{</p>
+
+<pre><code>TOut Execute(T context, Func&lt;T, TOut&gt; executeNext);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Basically, you get an input to operate on and a value to return. The <code>executeNext</code> parameter is a delegate for the next filter in the chain. The filters are composed together in a chain which is referred to as a Pipeline in the Tamarack framework. This structure is the essence of the Chain of Responsibility pattern and it facilitates some pretty cool things:</p>
+
+<ul>
+<li>Modify the input before the next filter gets it</li>
+<li>Modify the output of the next filter before returning</li>
+<li>Short circuit out of the chain by not calling the executeNext delegate</li>
+</ul>
+
+
+<h3>Show me examples!</h3>
+
+<p>Consider a block of code to process a blog comment coming from a web-based rich text editor. There are probably several things you’ll want to do before letting the text into your database.</p>
+
+<p>``` c#
+public int Submit(Post post)
+{</p>
+
+<pre><code>var pipeline = new Pipeline&lt;Post, int&gt;()
+    .Add(new CanoncalizeHtml())
+    .Add(new StripMaliciousTags())
+    .Add(new RemoveJavascript())
+    .Add(new RewriteProfanity())
+    .Add(new GuardAgainstDoublePost())
+    .Finally(p =&gt; repository.Save(p));
+
+var newId = pipeline.Execute(post);
+
+return newId;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>What about dependency injection for complex filters? Take a look at this user login pipeline. Notice the generic syntax for adding filters by type. Those filters are built-up using the supplied implementation of <code>System.IServiceProvider</code>. My favorite is <code>UnityServiceProvider</code>.</p>
+
+<p>``` c#
+public bool Login(string username, string password)
+{</p>
+
+<pre><code>var pipeline = new Pipeline&lt;LoginContext, bool&gt;(serviceProvider)
+    .Add&lt;WriteLoginAttemptToAuditLog&gt;()
+    .Add&lt;LockoutOnConsecutiveFailures&gt;()
+    .Add&lt;AuthenticateAgainstLocalStore&gt;()
+    .Add&lt;AuthenticateAgainstLdap&gt;()
+    .Finally(c =&gt; false);
+
+return pipeline.Execute(new LoginContext(username, password));
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Here’s another place you might see the chain of responsibility pattern. Calculating the spam score of a block of text:</p>
+
+<p>``` c#
+public double CalculateSpamScore(string text)
+{</p>
+
+<pre><code>var pipeline = new Pipeline&lt;string, double&gt;()
+    .Add&lt;SpamCopBlacklistFilter&gt;()
+    .Add&lt;PerspcriptionDrugFilter&gt;()
+    .Add&lt;PornographyFilter&gt;()
+    .Finally(score =&gt; 0);
+
+return pipeline.Execute(text);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Prefer convention over configuration? Try this instead:</p>
+
+<p>``` c#
+public double CalculateSpamScore(string text)
+{</p>
+
+<pre><code>var pipeline = new Pipeline&lt;string, double&gt;()
+    .AddFiltersIn("Tamarack.Example.Pipeline.SpamScorer.Filters")
+    .Finally(score =&gt; 0);
+
+return pipeline.Execute(text);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Let’s look at the <code>IFilter</code> interface in action. In the spam score calculator example, each filter looks for markers in the text and adds to the overall spam score by modifying the result of the next filter before returning.</p>
+
+<p>``` c#
+public class PerspcriptionDrugFilter : IFilter&lt;string, double>
+{</p>
+
+<pre><code>public double Execute(string text, Func&lt;string, double&gt; executeNext)
+{
+    var score = executeNext(text);
+
+    if (text.Contains("viagra"))
+        score += .25;
+
+    return score;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>In the login example, we look for the user in our local user store and if it exists we’ll short-circuit the chain and authenticate the request. Otherwise we’ll let the request continue to the next filter which looks for the user in an LDAP repository.</p>
+
+<p>``` c#
+public class AuthenticateAgainstLocalStore : IFilter&lt;LoginContext, bool>
+{</p>
+
+<pre><code>private readonly IUserRepository repository;
+
+public AuthenticateAgainstLocalStore(IUserRepository repository)
+{
+    this.repository = repository;
+}
+
+public bool Execute(LoginContext context, Func&lt;LoginContext, bool&gt; executeNext)
+{
+    var user = repository.FindByUsername(context.Username);
+
+    if (user != null)
+        return user.IsValid(context.Password);
+
+    return executeNext(context);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Why should I use it?</p>
+
+<blockquote><p>It’s pretty much my favorite animal. It’s like a lion and a tiger mixed… bred for its skills in magic. – Napoleon Dynamite</p></blockquote>
+
+<p>It’s simple and mildly opinionated in effort to guide you and your code into The Pit of Success. It’s easy to write single responsibility classes and use inversion of control and composition and convention over configuration and lots of other goodness. Try it out. Tell a friend.</p>
 ]]></content>
   </entry>
   

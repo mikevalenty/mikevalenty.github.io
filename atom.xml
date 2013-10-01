@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-09-30T20:17:00-07:00</updated>
+  <updated>2013-09-30T21:42:03-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -666,7 +666,7 @@
 
 <p>Here we’re using a custom <code>PerHostLifetimeManager</code>. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the <code>InjectionFactory</code> block to create one using the connection string associated with that tenant.</p>
 
-<p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> isn’t thread safe.</p>
+<p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> <a href="http://stackoverflow.com/questions/157933/whats-the-best-way-of-implementing-a-thread-safe-dictionary-in-net">isn’t thread safe</a>.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -2204,9 +2204,96 @@ by Joel Spolsky
 </ol>
 
 
-<p><img src="http://mikevalenty.github.io/images/posts/kip.jpg"></p>
+<p><img class="plain" src="http://mikevalenty.github.io/images/posts/kip.jpg"></p>
 
 <blockquote><p>…don’t be jealous that I’ve been chatting online with babes all day. Besides, we both know that I’m training to be a cage fighter. — Kip</p></blockquote>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Custom Model Binder in ASP.NET MVC]]></title>
+    <link href="http://mikevalenty.github.io/custom-model-binder-in-asp-dot-net-mvc/"/>
+    <updated>2009-12-31T14:59:00-08:00</updated>
+    <id>http://mikevalenty.github.io/custom-model-binder-in-asp-dot-net-mvc</id>
+    <content type="html"><![CDATA[<p>The default model binder or <code>DataAnnotationsModelBinder</code> in ASP.NET MVC works well for simple data structures that basically map properties directly to form elements, but it quickly breaks down in a real world application. Take this simple scenario:</p>
+
+<p><img class="plain" src="http://mikevalenty.github.io/images/posts/brimley.png"></p>
+
+<p>The built-in model binder can handle the easy fields like <code>FirstName</code>, <code>LastName</code>, and <code>Email</code>, but it doesn’t know how to deal with the <code>Roles</code>. This is where the custom model binder comes in:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UserModelBinder</span> <span class="p">:</span> <span class="n">IModelBinder</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IModelBinder</span> <span class="n">binder</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">UserModelBinder</span><span class="p">(</span><span class="n">IModelBinder</span> <span class="n">binder</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">binder</span> <span class="p">=</span> <span class="n">binder</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">object</span> <span class="nf">BindModel</span><span class="p">(</span><span class="n">ControllerContext</span> <span class="n">controllerContext</span><span class="p">,</span> <span class="p">...)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">user</span> <span class="p">=</span> <span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="n">binder</span><span class="p">.</span><span class="n">BindModel</span><span class="p">(</span><span class="n">controllerContext</span><span class="p">,</span> <span class="n">bindingContext</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">AddRoles</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">controllerContext</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">user</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">AddRoles</span><span class="p">(</span><span class="n">User</span> <span class="n">user</span><span class="p">,</span> <span class="n">ControllerContext</span> <span class="n">controllerContext</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">role</span> <span class="k">in</span> <span class="n">GetRoles</span><span class="p">(</span><span class="n">controllerContext</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">user</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">role</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">Role</span><span class="p">&gt;</span> <span class="n">GetRoles</span><span class="p">(</span><span class="n">ControllerContext</span> <span class="n">controllerContext</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">roles</span> <span class="p">=</span> <span class="n">controllerContext</span><span class="p">.</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Request</span><span class="p">[</span><span class="s">&quot;roles&quot;</span><span class="p">];</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">roles</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">yield</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">roleId</span> <span class="k">in</span> <span class="n">roles</span><span class="p">.</span><span class="n">Split</span><span class="p">(</span><span class="sc">&#39;,&#39;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">yield</span> <span class="nf">return</span> <span class="p">(</span><span class="n">Role</span><span class="p">)</span><span class="n">Convert</span><span class="p">.</span><span class="n">ToInt32</span><span class="p">(</span><span class="n">roleId</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And it gets wired-up in the <code>Global.asax</code> like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="kt">var</span> <span class="n">defaultBinder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">DataAnnotationsModelBinder</span><span class="p">();</span>
+</span><span class='line'><span class="n">ModelBinders</span><span class="p">.</span><span class="n">Binders</span><span class="p">.</span><span class="n">DefaultBinder</span> <span class="p">=</span> <span class="n">defaultBinder</span><span class="p">;</span>
+</span><span class='line'><span class="n">ModelBinders</span><span class="p">.</span><span class="n">Binders</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">User</span><span class="p">),</span> <span class="k">new</span> <span class="n">UserModelBinder</span><span class="p">(</span><span class="n">defaultBinder</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Because <code>UserModelBinder</code> is a decorator, it preserves the base functionality (like validation) of the default binder and only adds the part about mapping the roles. This is good stuff because it keeps construction of the model out of the controller. That’s the Single-Responsibility Principle in action.</p>
+
+<h2>Command Query Separation</h2>
+
+<p>The two functions <code>AddRoles</code>, and <code>GetRoles</code> are an example of command query separation (CQS). It would be easy to combine those two functions together and in fact that’s how it looked at first. So why bother separating them? Well it doesn’t really matter in this simple case, but it’s like how I tell my 3 year-old son to move his milk cup away from the edge of the table. I figure it’s a good habit that will prevent a few spills in the long run. The idea with CQS is there is a natural seam between finding objects and doing stuff with them. I buy that. I expect <code>GetRoles</code> to be more volatile than <code>AddRoles</code> or at least change for different reasons.</p>
 ]]></content>
   </entry>
   
