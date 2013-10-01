@@ -3,7 +3,7 @@ layout: post
 title: "Tamarack: Chain of Responsibility Framework for .NET"
 date: 2011-04-21 21:39
 comments: true
-xcategories: [Chain of Responsibility, Inversion of Control, Single Responsibility Principle]
+categories: [Chain of Responsibility, Inversion of Control, Single Responsibility Principle]
 ---
 
 The Chain of Responsibility is a key building block of extensible software.

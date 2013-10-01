@@ -143,7 +143,7 @@ Container
 
 Here we’re using a custom `PerHostLifetimeManager`. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the `InjectionFactory` block to create one using the connection string associated with that tenant.
 
-Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our `PerHostLifetimeManager` is thread safe. That’s pretty easy since Unity comes with a `SynchronizedLifetimeManager` base class that takes care of the fact that `Dictionary` isn’t thread safe.
+Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our `PerHostLifetimeManager` is thread safe. That’s pretty easy since Unity comes with a `SynchronizedLifetimeManager` base class that takes care of the fact that `Dictionary` [isn’t thread safe](http://stackoverflow.com/questions/157933/whats-the-best-way-of-implementing-a-thread-safe-dictionary-in-net).
 
 ``` c#
 public class PerHostLifetimeManager : SynchronizedLifetimeManager

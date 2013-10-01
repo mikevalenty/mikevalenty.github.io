@@ -108,7 +108,7 @@ This is cool for the following reasons:
 4. It’s easy to test.
 5. You can substitute a decorator for a subclass in most cases and in most cases it’s the right choice. You’re better off making the decorator your default choice and only settle for inheritance when you really need it.
 
-{% img /images/posts/kip.jpg %}
+{% img plain /images/posts/kip.jpg %}
 
 > …don’t be jealous that I’ve been chatting online with babes all day. Besides, we both know that I’m training to be a cage fighter. — Kip
 
