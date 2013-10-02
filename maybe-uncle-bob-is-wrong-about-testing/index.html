@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Automatic Deployment from TeamCity using WebDeploy - Agile at Work</title>
+  <title>Maybe Uncle Bob is Wrong About Testing - Agile at Work</title>
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to &hellip;">
+  <meta name="description" content="As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy">
+  <link rel="canonical" href="http://mikevalenty.github.io/maybe-uncle-bob-is-wrong-about-testing">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
@@ -69,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">Automatic Deployment From TeamCity Using WebDeploy</h1>
+      <h1 class="entry-title">Maybe Uncle Bob Is Wrong About Testing</h1>
     
     
       <p class="meta">
@@ -85,7 +85,7 @@
   
 
 
-<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
+<time datetime="2009-11-30T21:45:00-08:00" pubdate data-updated="true">Nov 30<span>th</span>, 2009</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -94,62 +94,33 @@
   </header>
 
 
-<div class="entry-content"><p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
+<div class="entry-content"><p>As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s known as a positive feedback loop, and this was how I spent the better part of last week.</p>
 
-<p><img class="plain" src="/images/posts/tcp1.jpg"></p>
+<p><img src="/images/posts/feedback2_thumb.png"></p>
 
-<ol>
-<li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
-<li><strong>Run integration tests</strong>  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.</li>
-<li><strong>Run acceptance tests</strong> – these tests are written in the Given, When, Then style. We write the tests in BehaveN, but we expect that a stakeholder could read them and verify the business rules are correct.</li>
-<li><strong>Deploy to CI and run UI tests</strong> – these are qunit and Selenium tests. They require the code to be deployed to a real web server before the tests run. That’s what this article is about.</li>
-<li><strong>Deploy to QA</strong> – once the automated UI tests have passed, we deploy to our QA server for manual testing.</li>
-</ol>
+<p><strong>Figure A.5</strong> Not enough time to test reduces the available time <em>Test-Driven Development: By Example by Kent Beck</em></p>
 
+<p>It didn’t start out that way. In fact the first few lines of code I wrote were tests. The problem was I could only get about an hour or two in each night and every day that passed we were leaving money on the table.</p>
 
-<p><strong>Step 1:</strong> <a href="http://weblogs.asp.net/scottgu/archive/2010/09/13/automating-deployment-with-microsoft-web-deploy.aspx">Install WebDeploy on the web server you want to deploy to.</a></p>
+<p>Since I didn’t have much time at night, I didn’t want to spend it writing tests. I just wanted to get the app done. All I needed to do was sync business listings from an affiliate with GarageCommerce.com, the project I’ve been working on for the last few months. There were only a handful of business rules to deal with and I thought I could just bang it out.</p>
 
-<p><strong>Step 2:</strong> <a href="http://blogs.msdn.com/b/webdevtools/archive/2009/05/04/web-deployment-web-config-transformation.aspx">Configure Web.config transforms.</a> This will enable you to change connection strings and whatnot based on your build configuration.</p>
+<p><img class="left" src="/images/posts/district9poster_thumb.jpg"></p>
 
-<p>Currently this is only supported for web applications, but since it’s built on top of MSBuild tasks, you can do the same thing to an <code>App.config</code> with a little extra work. Take a peak at <code>Microsoft.Web.Publishing.targets</code> (C:\Program Files\MSBuild\Microsoft\VisualStudio\v10.0\Web) to see how to use the build tasks.</p>
+<p>I know what you’re thinking. You already know where this is headed and you might as well just skip to the end. It’s like in that movie District 9. It started out pretty good with some edgy social commentary but by the end of the movie it just phoned in a cliché Hollywood plot. You know, like “fish out of water”, “buddy movie”, or “trading places” as was the case with District 9.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;TransformXml&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;MSDeploy&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
+<p>Anyway, I finished the app and since I only had a few tests I figured I should trace through things a few times to look for obvious problems. After doing that for a few minutes I was ready to press F5 and start working the kinks out. So after hours of zero feedback coding, I took a deep breath and the started the app for the first time.</p>
 
+<p>It promptly bombed out as expected. I worked through a handful of errors and then it was good to go. As I watched it run, I thought to myself that maybe Uncle Bob is wrong about testing and Spolsky isn’t such a douche bag after all. However after processing a couple hundred jobs, it started throwing crazy errors in a tight loop. Crap!</p>
 
-<p><strong>Step 3:</strong> Figure out the MSBuild command line arguments that work for your application. This took a bit of trial and error before landing on this:</p>
+<p>Fast forward a few hours and I’ve got a hunch as to what is causing the problem. The way I wired up the app, I was creating a single NHibernate session for the entire batch of jobs. I knew this could be trouble so I at least made a point to commit after each job and clear the session so it wouldn’t get bogged down with 10K+ entities. I knew the single session was smelly and the errors I was seeing prompted me to refactor.</p>
 
-<pre>
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln 
-  /p:Configuration=QA
-  /p:OutputPath=bin
-  /p:DeployOnBuild=True 
-  /p:DeployTarget=MSDeployPublish 
-  /p:MsDeployServiceUrl=https://myserver:8172/msdeploy.axd 
-  /p:username=***** 
-  /p:password=***** 
-  /p:AllowUntrustedCertificate=True 
-  /p:DeployIisAppPath=ci
-  /p:MSDeployPublishMethod=WMSVC
-</pre>
+<p><img class="plain" src="/images/posts/MASHtvshow11_thumb.jpg"></p>
 
+<p>This is where it got ugly. I needed to do a pretty major overhaul and I was mostly test-less. My blood pressure went way up with each change and the fact that I didn’t have tests just made me take larger steps with no safety net. I felt like a M.A.S.H. surgeon with guts all over the operating table. Part of me thought I should take a few steps back and regroup, but another part of me was reminded of this quote:</p>
 
-<p><strong>Step 4:</strong> Configure the Build Runner in TeamCity</p>
+<blockquote><p>If you’re going through hell, keep going. – Winston Churchill</p></blockquote>
 
-<p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
-
-<p><img class="plain" src="/images/posts/teamcity2.jpg"></p>
-
-<p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
-
-<p><img class="plain" src="/images/posts/dep1.jpg"></p>
-
-<p><img class="plain" src="/images/posts/snap1.jpg"></p>
-
-<p><strong>Step 6:</strong> Write some code.</p>
+<p>So I stuck with it and got ‘er done, but it wasn’t much fun. What did I take from this experience? No revelations really, just some common sense reinforcement. It’s like rediscovering that diet and exercise is the key to losing weight, except that I rediscovered that not having tests really sucks when you have to make changes.</p>
 </div>
 
 
@@ -172,15 +143,21 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
 
 
-<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
+<time datetime="2009-11-30T21:45:00-08:00" pubdate data-updated="true">Nov 30<span>th</span>, 2009</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/nhibernate/'>NHibernate</a>, <a class='category' href='/blog/categories/tdd/'>TDD</a>
+  
+</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/maybe-uncle-bob-is-wrong-about-testing/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/maybe-uncle-bob-is-wrong-about-testing/" >Tweet</a>
   
   
   
@@ -189,10 +166,8 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/hacker-artist-craftsman-or-engineer/" title="Previous Post: Hacker, Artist, Craftsman or Engineer?">&laquo; Hacker, Artist, Craftsman or Engineer?</a>
       
-      
-        <a class="basic-alignment right" href="/software-development-team-building-part-1/" title="Next Post: Software Development Team Building – Part 1">Software Development Team Building – Part 1 &raquo;</a>
+        <a class="basic-alignment right" href="/a-class-isnt-always-a-noun/" title="Next Post: A Class Isn’t Always a Noun">A Class Isn’t Always a Noun &raquo;</a>
       
     </p>
   </footer>
@@ -287,8 +262,8 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/';
-        var disqus_url = 'http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/';
+        var disqus_identifier = 'http://mikevalenty.github.io/maybe-uncle-bob-is-wrong-about-testing/';
+        var disqus_url = 'http://mikevalenty.github.io/maybe-uncle-bob-is-wrong-about-testing/';
         var disqus_script = 'embed.js';
       
     (function () {

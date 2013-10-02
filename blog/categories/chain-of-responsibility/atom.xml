@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Chain of Responsibility | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/chain-of-responsibility/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-01T20:44:09-07:00</updated>
+  <updated>2013-10-01T21:54:33-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -33,7 +33,7 @@
 </ol>
 
 
-<p><img src="/images/posts/pkgmgr31.png"></p>
+<p><img class="plain" src="/images/posts/pkgmgr31.png"></p>
 
 <p>How does it work?
 It’s pretty simple, there is just one interface to implement and it looks like this:</p>
@@ -522,6 +522,68 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 
 
 <p>Again, this is powerful because we didn’t have to pollute our code with logging statements, yet we see quality log entries with input, output and execution time. In addition to logging, we can attach performance counters to meaningful events, add exception policies to notify us when things go wrong, selectively add caching at run-time and lots more. To see it all in action, you can <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">download the source code</a> for the examples used in this article.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A Class Isn’t Always a Noun]]></title>
+    <link href="http://mikevalenty.github.io/a-class-isnt-always-a-noun/"/>
+    <updated>2009-12-04T12:45:00-08:00</updated>
+    <id>http://mikevalenty.github.io/a-class-isnt-always-a-noun</id>
+    <content type="html"><![CDATA[<p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
+
+<p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>
+
+<p><img src="/images/posts/yext1.png"></p>
+
+<p>I don’t expect you to understand how the app works, but you should at least get a feel right away for the things that are important. Knowing it’s a console app, you could find the entry point and quickly navigate to the meat and potatoes of the application.</p>
+
+<p>``` c#
+public class SyncListingJob : MarshalByRefObject, IJob
+{</p>
+
+<pre><code>private IServiceProvider locator;
+private YextListing listing;
+
+public SyncListingJob(IServiceProvider locator)
+{
+    this.locator = locator;
+}
+
+public void Init(YextListing listing)
+{
+    this.listing = listing;
+}
+
+[UnitOfWork]
+public void Execute()
+{
+    GuardAgainstNotInitialized();
+    SyncListing();
+}
+
+private void SyncListing()
+{
+    new LocatorChain&lt;Yextlisting&gt;(locator)
+        .AddNew&lt;RevertDiscontinuedListing&gt;()
+        .AddNew&lt;RefreshLinkedBusiness&gt;()
+        .AddNew&lt;CreateLinkToExistingBusiness&gt;()
+        .AddNew&lt;CreateNewBusinessAndLink&gt;()
+        .Process(listing);
+}
+
+private void GuardAgainstNotInitialized()
+{
+    if (listing == null) throw new Exception("Job not initialized!");
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>* <em>The <code>LocatorChain&lt;T&gt;</code> is an implementation of the chain of responsibility pattern.</em></p>
+
+<p>I do everything I can to push out all the noise and bring the behavior to the surface. Sometimes the right way to name a class is after a feature or behavior. I want my code to read like a DSL and making everything a noun just doesn’t cut it. The drivers for me are context and readability.</p>
 ]]></content>
   </entry>
   

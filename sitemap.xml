@@ -1,6 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://mikevalenty.github.io/maybe-uncle-bob-is-wrong-about-testing/</loc>
+        <lastmod>2013-10-01T21:53:55-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/a-class-isnt-always-a-noun/</loc>
+        <lastmod>2013-10-01T21:43:17-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/definition-of-enterprise-software/</loc>
+        <lastmod>2013-10-01T21:39:25-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://mikevalenty.github.io/where-does-it-hurt/</loc>
         <lastmod>2013-10-01T20:44:08-07:00</lastmod>
     </url>
@@ -40,7 +52,7 @@
         <loc>
             http://mikevalenty.github.io/automatic-deployment-from-teamcity-using-webdeploy/
         </loc>
-        <lastmod>2013-09-29T21:59:56-07:00</lastmod>
+        <lastmod>2013-10-01T21:33:15-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/software-development-team-building-part-1/</loc>
@@ -56,13 +68,13 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/a-custom-httpmodule-to-log-request-duration/</loc>
-        <lastmod>2013-09-29T15:14:07-07:00</lastmod>
+        <lastmod>2013-10-01T21:31:26-07:00</lastmod>
     </url>
     <url>
         <loc>
             http://mikevalenty.github.io/tamarack-chain-of-responsibility-framework-for-net/
         </loc>
-        <lastmod>2013-09-30T21:41:12-07:00</lastmod>
+        <lastmod>2013-10-01T21:33:53-07:00</lastmod>
     </url>
     <url>
         <loc>
@@ -86,7 +98,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-10-01T20:44:08-07:00</lastmod>
+        <lastmod>2013-10-01T21:53:55-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
@@ -94,7 +106,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-10-01T20:44:08-07:00</lastmod>
+        <lastmod>2013-10-01T21:53:55-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>
