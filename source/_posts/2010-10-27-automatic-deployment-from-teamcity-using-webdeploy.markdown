@@ -8,7 +8,7 @@ categories:
 
 A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.
 
-{% img /images/posts/tcp1.jpg %}
+{% img plain /images/posts/tcp1.jpg %}
 
 1. **Run unit tests** – these are fast running unit tests with no external dependencies. We use NUnit.
 2. **Run integration tests**  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.
@@ -47,12 +47,12 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
 Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:
 
-{% img /images/posts/teamcity2.jpg %}
+{% img plain /images/posts/teamcity2.jpg %}
 
 **Step 5:** Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.
 
-{% img /images/posts/dep1.jpg %}
+{% img plain /images/posts/dep1.jpg %}
 
-{% img /images/posts/snap1.jpg %}
+{% img plain /images/posts/snap1.jpg %}
 
 **Step 6:** Write some code.

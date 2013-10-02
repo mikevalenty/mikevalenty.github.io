@@ -74,4 +74,4 @@ For IIS7 though, you add it like this:
 
 Finally, it’s time to run the application and see the total request duration logged.
 
-{% img /images/posts/durationmodule.png %}
+{% img plain /images/posts/durationmodule.png %}

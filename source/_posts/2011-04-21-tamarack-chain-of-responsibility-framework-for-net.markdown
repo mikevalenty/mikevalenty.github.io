@@ -18,7 +18,7 @@ I’ve blogged about this pattern before so what’s new this time?
 2. The project is [hosted on github](https://github.com/mikevalenty/tamarack)
 3. There is a [NuGet package](http://nuget.org/List/Search?packageType=Packages&searchCategory=All+Categories&searchTerm=tamarack) for it
 
-{% img /images/posts/pkgmgr31.png %}
+{% img plain /images/posts/pkgmgr31.png %}
 
 How does it work?
 It’s pretty simple, there is just one interface to implement and it looks like this:
