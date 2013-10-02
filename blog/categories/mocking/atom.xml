@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Mocking | Agile at Work]]></title>
+  <link href="http://mikevalenty.github.io/blog/categories/mocking/atom.xml" rel="self"/>
+  <link href="http://mikevalenty.github.io/"/>
+  <updated>2013-10-02T06:50:53-07:00</updated>
+  <id>http://mikevalenty.github.io/</id>
+  <author>
+    <name><![CDATA[Michael Valenty]]></name>
+    <email><![CDATA[mike@valenty.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Moq Extension Methods for Unity]]></title>
+    <link href="http://mikevalenty.github.io/moq-extension-methods-for-unity/"/>
+    <updated>2009-10-31T06:21:00-07:00</updated>
+    <id>http://mikevalenty.github.io/moq-extension-methods-for-unity</id>
+    <content type="html"><![CDATA[<p>A few people have asked about the <code>RegisterMock</code> extension method used in another post. The usage looks like this:</p>
+
+<p>``` c#
+[Test]
+public void Should_delete_removed_image()
+{</p>
+
+<pre><code>container.RegisterMock&lt;IFileRepository&gt;()
+    .Setup(r =&gt; r.Delete(It.IsAny&lt;IFile&gt;()))
+    .Verifiable();
+
+container.RegisterMock&lt;IBusinessRepository&gt;()
+    .Setup(r =&gt; r.FindById(3))
+    .Returns(CreateBusinessWith(new BusinessImage { ImageId = 4 }));
+
+var controller = container.Resolve&lt;BusinessGalleryController&gt;();
+controller.Delete(3, 4);
+
+container.VerifyMockFor&lt;IFileRepository&gt;();
+</code></pre>
+
+<p>}
+```</p>
+
+<p>It’s just a few helper extensions for using <a href="http://code.google.com/p/moq/">Moq</a> with <a href="http://www.codeplex.com/unity/">Unity</a> that cut down on the noise in tests. My friend Keith came up with it, I just happen to blog about it first. Here it is:</p>
+
+<p>``` c#
+public static class MoqExtensions
+{</p>
+
+<pre><code>public static Mock&lt;T&gt; RegisterMock&lt;T&gt;(this IUnityContainer container) where T : class
+{
+    var mock = new Mock&lt;T&gt;();
+
+    container.RegisterInstance&lt;Mock&lt;T&gt;&gt;(mock);
+    container.RegisterInstance&lt;T&gt;(mock.Object);
+
+    return mock;
+}
+
+/// &lt;summary&gt;
+/// Use this to add additional setups for a mock that is already registered
+/// &lt;/summary&gt;
+public static Mock&lt;T&gt; ConfigureMockFor&lt;T&gt;(this IUnityContainer container) where T : class
+{
+    return container.Resolve&lt;Mock&lt;T&gt;&gt;();
+}
+
+public static void VerifyMockFor&lt;T&gt;(this IUnityContainer container) where T : class
+{
+    container.Resolve&lt;Mock&lt;T&gt;&gt;().VerifyAll();
+}
+</code></pre>
+
+<p>}
+```</p>
+]]></content>
+  </entry>
+  
+</feed>

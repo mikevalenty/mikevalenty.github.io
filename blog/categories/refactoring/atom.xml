@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Refactoring | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/refactoring/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-01T22:05:03-07:00</updated>
+  <updated>2013-10-02T06:50:53-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -118,6 +118,94 @@ public int Number {</p>
 ```</p>
 
 <p>The point is that this is an obvious scenario to consider when looking at such a special purpose object. All too often though, bits of logic are mixed together like 32 kindergarteners sitting next to each other on a rug during a lesson. The room is one fart or tickle away from erupting into total kaos. It’s roughly half teaching and half crowd control, only without the rubber bullets and pepper spray. Not surprisingly, overcrowded classrooms don’t work that well and over-ambitous functions don’t work that well either. Each little bit of logic needs some one on one with you. Give it a chance to be all it can be by pulling it aside and getting to know it a little better. You might be surprised.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Domain Driven Design in the Small]]></title>
+    <link href="http://mikevalenty.github.io/domain-driven-design-in-the-small/"/>
+    <updated>2009-08-08T06:24:00-07:00</updated>
+    <id>http://mikevalenty.github.io/domain-driven-design-in-the-small</id>
+    <content type="html"><![CDATA[<p>A few months ago we built a <a href="http://www.magentocommerce.com/">Magento</a> extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking. As part of the process, a contact record was created in the affiliate’s CRM account.</p>
+
+<p> <img src="/images/posts/SubmitYourIdea1.jpg"></p>
+
+<p>Recently, the stake holders came up with a twist that went something like this: If the order contains a gift card, add the contact to a specific folder in the CRM application. No big deal, we had a nicely abstracted <code>OrderGateway</code> interface and I was already envisioning a quick addition to the existing decorator chain.</p>
+
+<p>``` php
+class OrderWithGiftCardGateway extends OrderGatewayDecorator
+{</p>
+
+<pre><code>...
+
+public function createOrder(CreateOrderRequest $order)
+{
+    if ($this-&gt;containsGiftCard($order))
+    {
+        $this-&gt;addContactToFolder($order);
+    }
+
+    return parent::createOrder($order);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>I had a few minutiae questions like what happens with duplicates, etc. It took me nearly an hour to track down the right person and get real answers. During the conversation, a subtle comment was made that I almost missed.</p>
+
+<p>Stake holder: We should check with the product supplier to make sure the gift card sku I made up isn’t for a real product.</p>
+
+<p><strong>Me:</strong> Say what?</p>
+
+<p><strong>Stake holder:</strong> The gift card is not fulfilled by the product supplier, it’s fulfilled by the affiliate.</p>
+
+<p><strong>Me:</strong> %$@!&amp;, I’m glad we had this conversation.</p>
+
+<p>We talked about what it meant for the the affiliate to fulfill the product and basically the folder stuff was okay, but I recommended we remove the fake sku from the order before sending it through.</p>
+
+<p>``` php
+public function createOrder(CreateOrderRequest $order)
+{</p>
+
+<pre><code>if ($this-&gt;containsGiftCard($order))
+{
+    $this-&gt;addContactToFolder($order);
+    $this-&gt;removeGiftCardFromOrder($order);
+}
+
+return parent::createOrder($order);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>I didn’t have a buddy to pair with so I just grabbed Keith for a minute at the end of the day to walk through things. I recapped the stake holder discussion and we looked through the code. He pointed out I was missing the concept of fulfillment and that was hard earned knowledge that would be lost!</p>
+
+<p>``` php
+public function createOrder(CreateOrderRequest $order)
+{</p>
+
+<pre><code>if ($this-&gt;containsGiftCard($order))
+{
+    $this-&gt;sendToAffiliateForFulfillment($order);
+    $this-&gt;removeGiftCardFromOrder($order);
+}
+
+return parent::createOrder($order);
+</code></pre>
+
+<p>}
+```</p>
+
+<blockquote><p>That was huge. – Paris Hilton</p></blockquote>
+
+<iframe class="plain" width="640" height="360" src="http://mikevalenty.github.io//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+
+
+<p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
+
+<p>It tells an important story for the next guy looking at the code and it changes the role of the programmer from code monkey to business partner. Maybe you think I’m crazy, but this stuff matters to me.</p>
 ]]></content>
   </entry>
   

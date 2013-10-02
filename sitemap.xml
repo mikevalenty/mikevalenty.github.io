@@ -1,6 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>
+            http://mikevalenty.github.io/the-holy-trinity-of-web-2-0-application-monitoring/
+        </loc>
+        <lastmod>2013-10-02T06:49:33-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/domain-driven-design-in-the-small/</loc>
+        <lastmod>2013-10-02T06:36:37-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mikevalenty.github.io/moq-extension-methods-for-unity/</loc>
+        <lastmod>2013-10-02T06:24:33-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://mikevalenty.github.io/integration-testing-with-nhibernate/</loc>
         <lastmod>2013-10-01T22:05:01-07:00</lastmod>
     </url>
@@ -106,7 +120,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-10-01T22:05:01-07:00</lastmod>
+        <lastmod>2013-10-02T06:49:33-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
@@ -114,7 +128,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-10-01T22:05:01-07:00</lastmod>
+        <lastmod>2013-10-02T06:49:33-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>
