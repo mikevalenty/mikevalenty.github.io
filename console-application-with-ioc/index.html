@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Categories - Agile at Work</title>
+  <title>Console application with IoC - Agile at Work</title>
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="Categories Jul 28th, 2013 Decorator pattern [ 5 ] Integration testing [ 1 ] Nhibernate [ 5 ] Fluent interface [ 1 ] Inversion of control [ 7 ] Tdd &hellip;">
+  <meta name="description" content="I like to think of the Main method in a Console application like the Global.asax. Its single responsibility is to wire-up things to be run in a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mikevalenty.github.io/blog/categories">
+  <link rel="canonical" href="http://mikevalenty.github.io/console-application-with-ioc">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
@@ -65,71 +65,15 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Categories</h1>
-    <p class="meta">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-07-28T23:11:00-07:00" pubdate data-updated="true">Jul 28<span>th</span>, 2013</time></p>
-  </header>
-  
-  <ul>
-
-    <li><a href="/blog/categories/Decorator Pattern/">Decorator pattern</a> [ 5 ]</li>
-
-    <li><a href="/blog/categories/Integration Testing/">Integration testing</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/NHibernate/">Nhibernate</a> [ 5 ]</li>
-
-    <li><a href="/blog/categories/Fluent Interface/">Fluent interface</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Inversion of Control/">Inversion of control</a> [ 7 ]</li>
-
-    <li><a href="/blog/categories/TDD/">Tdd</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Chain of Responsibility/">Chain of responsibility</a> [ 3 ]</li>
-
-    <li><a href="/blog/categories/Domain Driven Design/">Domain driven design</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/AOP/">Aop</a> [ 2 ]</li>
-
-    <li><a href="/blog/categories/Enterprise Library/">Enterprise library</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Open Closed Principle/">Open closed principle</a> [ 5 ]</li>
-
-    <li><a href="/blog/categories/ASP.NET MVC/">Asp.net mvc</a> [ 4 ]</li>
-
-    <li><a href="/blog/categories/Command Query Separation/">Command query separation</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Single Responsibility Principle/">Single responsibility principle</a> [ 5 ]</li>
-
-    <li><a href="/blog/categories/Introduce Parameter Object/">Introduce parameter object</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Refactoring/">Refactoring</a> [ 1 ]</li>
-
-    <li><a href="/blog/categories/Unity/">Unity</a> [ 2 ]</li>
-
-    <li><a href="/blog/categories/Google Guice/">Google guice</a> [ 1 ]</li>
-
-</ul>
-
-
-  
-    <footer>
+    
+      <h1 class="entry-title">Console Application With IoC</h1>
+    
+    
       <p class="meta">
         
-        
 
 
 
@@ -141,12 +85,97 @@
   
 
 
-<time datetime="2013-07-28T23:11:00-07:00" pubdate data-updated="true">Jul 28<span>th</span>, 2013</time>
+<time datetime="2009-11-21T21:57:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2009</time>
+        
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>I like to think of the <code>Main</code> method in a Console application like the <code>Global.asax</code>. Its single responsibility is to wire-up things to be run in a console context. Each environment has unique configuration requirements. For example, when using NHiberate in a web application the lifetime of the <code>ISession</code> is attached to the <code>HttpRequest</code>, however in the context of a console application it may be a singleton or “per job” in a windows service. I like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">class</span> <span class="nc">Program</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">container</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">AddExtension</span><span class="p">(</span><span class="k">new</span> <span class="n">ConfigureForConsole</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">MyApplication</span><span class="p">&gt;()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Execute</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
       
-    </footer>
   
+
+<span class="byline author vcard">Posted by <span class="fn">Michael Valenty</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-11-21T21:57:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2009</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/fluent-interface/'>Fluent Interface</a>, <a class='category' href='/blog/categories/inversion-of-control/'>Inversion of Control</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/console-application-with-ioc/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/console-application-with-ioc/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/integration-testing-with-nhibernate/" title="Previous Post: Integration Testing with NHibernate">&laquo; Integration Testing with NHibernate</a>
+      
+      
+        <a class="basic-alignment right" href="/maybe-uncle-bob-is-wrong-about-testing/" title="Next Post: Maybe Uncle Bob is Wrong About Testing">Maybe Uncle Bob is Wrong About Testing &raquo;</a>
+      
+    </p>
+  </footer>
 </article>
 
   <section>
@@ -238,8 +267,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://mikevalenty.github.io/blog/categories/index.html';
-        var disqus_url = 'http://mikevalenty.github.io/blog/categories/index.html';
+        var disqus_identifier = 'http://mikevalenty.github.io/console-application-with-ioc/';
+        var disqus_url = 'http://mikevalenty.github.io/console-application-with-ioc/';
         var disqus_script = 'embed.js';
       
     (function () {

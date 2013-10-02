@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Fluent Interface | Agile at Work]]></title>
+  <link href="http://mikevalenty.github.io/blog/categories/fluent-interface/atom.xml" rel="self"/>
+  <link href="http://mikevalenty.github.io/"/>
+  <updated>2013-10-01T22:05:03-07:00</updated>
+  <id>http://mikevalenty.github.io/</id>
+  <author>
+    <name><![CDATA[Michael Valenty]]></name>
+    <email><![CDATA[mike@valenty.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Console application with IoC]]></title>
+    <link href="http://mikevalenty.github.io/console-application-with-ioc/"/>
+    <updated>2009-11-21T21:57:00-08:00</updated>
+    <id>http://mikevalenty.github.io/console-application-with-ioc</id>
+    <content type="html"><![CDATA[<p>I like to think of the <code>Main</code> method in a Console application like the <code>Global.asax</code>. Its single responsibility is to wire-up things to be run in a console context. Each environment has unique configuration requirements. For example, when using NHiberate in a web application the lifetime of the <code>ISession</code> is attached to the <code>HttpRequest</code>, however in the context of a console application it may be a singleton or “per job” in a windows service. I like this:</p>
+
+<p>``` c#
+class Program
+{</p>
+
+<pre><code>static void Main(string[] args)
+{
+    using (var container = new UnityContainer())
+    {
+        container
+            .AddExtension(new ConfigureForConsole(args))
+            .Resolve&lt;MyApplication&gt;()
+            .Execute();
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+]]></content>
+  </entry>
+  
+</feed>
