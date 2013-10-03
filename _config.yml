@@ -2,7 +2,7 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://mikevalenty.github.io
+url: http://www.agileatwork.com/
 title: Agile at Work
 subtitle: by Michael Valenty
 author: Michael Valenty
@@ -97,7 +97,7 @@ disqus_short_name: agileatwork
 disqus_show_comment_count: true
 
 # Google Analytics
-google_analytics_tracking_id:
+google_analytics_tracking_id: UA-2314490-2
 
 # Facebook Like
 facebook_like: false
