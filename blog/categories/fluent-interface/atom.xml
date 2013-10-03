@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Fluent Interface | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/fluent-interface/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T21:52:59-07:00</updated>
+  <updated>2013-10-02T22:01:22-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -38,6 +38,101 @@ class Program
 
 <p>}
 ```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[An Order Processing Pipeline in ASP.NET MVC]]></title>
+    <link href="http://mikevalenty.github.io/an-order-processing-pipeline-in-aspnet-mvc/"/>
+    <updated>2009-05-02T21:57:00-07:00</updated>
+    <id>http://mikevalenty.github.io/an-order-processing-pipeline-in-aspnet-mvc</id>
+    <content type="html"><![CDATA[<p>Lately, I can’t seem to shake the pipeline pattern. It keeps popping up in all my applications. It’s like when I think about buying a new car and then I start seeing them everywhere on road and think – have there always been that many out there?</p>
+
+<p>So, here it is in action. Below is a controller from an ASP.NET MVC application. The method accepts an order in the form of xml for provisioning products in our system.</p>
+
+<p>``` c#
+public ActionResult EnqueueOrders(string orderXml)
+{</p>
+
+<pre><code>var context = new OrderContext(orderXml);
+
+var pipeline = new FilterPipeline&lt;OrderContext&gt;()
+    .Add(new RewriteLegacyUsernameFeature(productFinder))
+    .Add(new ValidateOrderXml())
+    .Add(new ValidateReferenceCode(customerFinder))
+    .Add(new IgnoreOnException(new ValidateRemoteAccountUsernames(packageRepository)))
+    .Add(new IgnoreOnException(new ValidateRemoteAccountUniqueEmail(packageRepository)))
+    .Add(new EnqueueOrders(customerFacade)).When(new OrderHasNoErrors())
+    .Execute(context);
+
+var xml = BuildResponseFromOrderContext(context);
+
+return new XmlResult(xml);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Most of it is just validation logic, but there are a few meatier pieces. Take a look a the first filter – RewriteLegacyUsernameFeature. If you’ve ever published an API that accepts xml, then you’ve probably wanted to change your schema 5 minutes later. The pipeline is great way to deal with transforming legacy xml on the way in.</p>
+
+<p>Next is the implementation of the <code>FilterPipeline</code> which is essentially a chain of responsibility with a few convenience features.</p>
+
+<p>``` c#
+public class FilterPipeline<T> : IFilter<T>
+{</p>
+
+<pre><code>private IFilterLink&lt;T&gt; head;
+
+public void Execute(T input)
+{
+    head.Execute(input);
+}
+
+public IFilterConfiguration&lt;T&gt; Add(IFilterLink&lt;T&gt; link)
+{
+    var specificationLink = new SpecificationFilterLink&lt;T&gt;(link);
+
+    AppendToChain(specificationLink);
+
+    return specificationLink;
+}
+
+public IFilterConfiguration&lt;T&gt; Add(IFilter&lt;T&gt; filter)
+{
+    return Add(new FilterLinkAdapter&lt;T&gt;(filter));
+}
+
+public void AppendToChain(IFilterLink&lt;T&gt; link)
+{
+    if (head == null)
+    {
+        head = link;
+        return;
+    }
+
+    var successor = head;
+
+    while (successor.Successor != null)
+    {
+        successor = successor.Successor;
+    }
+
+    successor.Successor = link;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>You might be scratching your head and wondering what this business is with both <code>IFilter&lt;T&gt;</code> and <code>IFilterLink&lt;T&gt;</code>. <code>IFilter&lt;T&gt;</code> is just a simpler version of <code>IFilterLink&lt;T&gt;</code> that doesn’t require the implementer to deal with calling the next link in the chain. The subject will always pass through, no short-circuiting, hence the pipeline.</p>
+
+<p>My favorite part  is the <code>SpecificationFilterLink&lt;T&gt;</code> which is a decorator that uses a Specification to decide if the filter should be invoked. So you can do little readable snippets like:</p>
+
+<p><code>c#
+pipeline.Add(new EnqueueOrders(customerFacade)).When(new OrderHasNoErrors());
+</code></p>
+
+<p>Maybe this post will get it out of my system and I can move on to other solutions. It’s just so handy…</p>
 ]]></content>
   </entry>
   

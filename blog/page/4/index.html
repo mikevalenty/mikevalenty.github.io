@@ -964,6 +964,183 @@
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/an-order-processing-pipeline-in-aspnet-mvc/">An Order Processing Pipeline in ASP.NET MVC</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-05-02T21:57:00-07:00" pubdate data-updated="true">May 2<span>nd</span>, 2009</time>
+        
+         | <a href="/an-order-processing-pipeline-in-aspnet-mvc/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Lately, I can’t seem to shake the pipeline pattern. It keeps popping up in all my applications. It’s like when I think about buying a new car and then I start seeing them everywhere on road and think – have there always been that many out there?</p>
+
+<p>So, here it is in action. Below is a controller from an ASP.NET MVC application. The method accepts an order in the form of xml for provisioning products in our system.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">EnqueueOrders</span><span class="p">(</span><span class="kt">string</span> <span class="n">orderXml</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">context</span> <span class="p">=</span> <span class="k">new</span> <span class="n">OrderContext</span><span class="p">(</span><span class="n">orderXml</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">pipeline</span> <span class="p">=</span> <span class="k">new</span> <span class="n">FilterPipeline</span><span class="p">&lt;</span><span class="n">OrderContext</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">RewriteLegacyUsernameFeature</span><span class="p">(</span><span class="n">productFinder</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">ValidateOrderXml</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">ValidateReferenceCode</span><span class="p">(</span><span class="n">customerFinder</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">IgnoreOnException</span><span class="p">(</span><span class="k">new</span> <span class="n">ValidateRemoteAccountUsernames</span><span class="p">(</span><span class="n">packageRepository</span><span class="p">)))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">IgnoreOnException</span><span class="p">(</span><span class="k">new</span> <span class="n">ValidateRemoteAccountUniqueEmail</span><span class="p">(</span><span class="n">packageRepository</span><span class="p">)))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">EnqueueOrders</span><span class="p">(</span><span class="n">customerFacade</span><span class="p">)).</span><span class="n">When</span><span class="p">(</span><span class="k">new</span> <span class="n">OrderHasNoErrors</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">xml</span> <span class="p">=</span> <span class="n">BuildResponseFromOrderContext</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="k">new</span> <span class="nf">XmlResult</span><span class="p">(</span><span class="n">xml</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Most of it is just validation logic, but there are a few meatier pieces. Take a look a the first filter – RewriteLegacyUsernameFeature. If you’ve ever published an API that accepts xml, then you’ve probably wanted to change your schema 5 minutes later. The pipeline is great way to deal with transforming legacy xml on the way in.</p>
+
+<p>Next is the implementation of the <code>FilterPipeline</code> which is essentially a chain of responsibility with a few convenience features.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">FilterPipeline</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IFilter</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IFilterLink</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">head</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">(</span><span class="n">T</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">head</span><span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IFilterConfiguration</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">Add</span><span class="p">(</span><span class="n">IFilterLink</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">link</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">specificationLink</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SpecificationFilterLink</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">link</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">AppendToChain</span><span class="p">(</span><span class="n">specificationLink</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">specificationLink</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IFilterConfiguration</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">Add</span><span class="p">(</span><span class="n">IFilter</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">filter</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">FilterLinkAdapter</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">filter</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">AppendToChain</span><span class="p">(</span><span class="n">IFilterLink</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">link</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">head</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">head</span> <span class="p">=</span> <span class="n">link</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">successor</span> <span class="p">=</span> <span class="n">head</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">while</span> <span class="p">(</span><span class="n">successor</span><span class="p">.</span><span class="n">Successor</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">successor</span> <span class="p">=</span> <span class="n">successor</span><span class="p">.</span><span class="n">Successor</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">successor</span><span class="p">.</span><span class="n">Successor</span> <span class="p">=</span> <span class="n">link</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You might be scratching your head and wondering what this business is with both <code>IFilter&lt;T&gt;</code> and <code>IFilterLink&lt;T&gt;</code>. <code>IFilter&lt;T&gt;</code> is just a simpler version of <code>IFilterLink&lt;T&gt;</code> that doesn’t require the implementer to deal with calling the next link in the chain. The subject will always pass through, no short-circuiting, hence the pipeline.</p>
+
+<p>My favorite part  is the <code>SpecificationFilterLink&lt;T&gt;</code> which is a decorator that uses a Specification to decide if the filter should be invoked. So you can do little readable snippets like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">pipeline</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">EnqueueOrders</span><span class="p">(</span><span class="n">customerFacade</span><span class="p">)).</span><span class="n">When</span><span class="p">(</span><span class="k">new</span> <span class="n">OrderHasNoErrors</span><span class="p">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Maybe this post will get it out of my system and I can move on to other solutions. It’s just so handy…</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>

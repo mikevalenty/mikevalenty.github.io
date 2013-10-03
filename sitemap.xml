@@ -1,6 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://mikevalenty.github.io/an-order-processing-pipeline-in-aspnet-mvc/</loc>
+        <lastmod>2013-10-02T22:01:21-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://mikevalenty.github.io/unit-of-work-with-unity-and-aspnet-mvc/</loc>
         <lastmod>2013-10-02T21:48:39-07:00</lastmod>
     </url>
@@ -174,7 +178,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/archives/</loc>
-        <lastmod>2013-10-02T21:52:59-07:00</lastmod>
+        <lastmod>2013-10-02T22:01:21-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/blog/categories/</loc>
@@ -182,7 +186,7 @@
     </url>
     <url>
         <loc>http://mikevalenty.github.io/</loc>
-        <lastmod>2013-10-02T21:52:59-07:00</lastmod>
+        <lastmod>2013-10-02T22:01:21-07:00</lastmod>
     </url>
     <url>
         <loc>http://mikevalenty.github.io/reading-list/</loc>
