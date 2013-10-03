@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Unity | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/unity/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/unity/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <p>``` xml
@@ -202,9 +202,9 @@ public override bool OnLoad(object entity... object[] state, string[] propertyNa
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
     <updated>2011-05-14T13:09:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
     <content type="html"><![CDATA[<h3>The Mission:</h3>
 
 <p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
@@ -411,9 +411,9 @@ private string GetHost()
   
   <entry>
     <title type="html"><![CDATA[Moq Extension Methods for Unity]]></title>
-    <link href="http://www.agileatwork.com//moq-extension-methods-for-unity/"/>
+    <link href="http://www.agileatwork.com/moq-extension-methods-for-unity/"/>
     <updated>2009-10-31T06:21:00-07:00</updated>
-    <id>http://www.agileatwork.com//moq-extension-methods-for-unity</id>
+    <id>http://www.agileatwork.com/moq-extension-methods-for-unity</id>
     <content type="html"><![CDATA[<p>A few people have asked about the <code>RegisterMock</code> extension method used in another post. The usage looks like this:</p>
 
 <p>``` c#
@@ -475,9 +475,9 @@ public static void VerifyMockFor&lt;T&gt;(this IUnityContainer container) where 
   
   <entry>
     <title type="html"><![CDATA[Default Interceptor for Unity]]></title>
-    <link href="http://www.agileatwork.com//default-interceptor-for-unity/"/>
+    <link href="http://www.agileatwork.com/default-interceptor-for-unity/"/>
     <updated>2009-07-22T18:17:00-07:00</updated>
-    <id>http://www.agileatwork.com//default-interceptor-for-unity</id>
+    <id>http://www.agileatwork.com/default-interceptor-for-unity</id>
     <content type="html"><![CDATA[<blockquote><p>Default: the two sweetest words in the English language – Homer Simpson</p></blockquote>
 
 <p>Unity interception requires you to specify what kind of interceptor to use for each type you want to intercept. This can be a little painful, so I decided to take a stab at a container extension that will apply a default interceptor with optional matching rules.</p>
@@ -618,9 +618,9 @@ public bool Matches(Type typeToIntercept, Type typeOfInstance) {
   
   <entry>
     <title type="html"><![CDATA[Validation with Unity Interception]]></title>
-    <link href="http://www.agileatwork.com//validation-with-unity-interception/"/>
+    <link href="http://www.agileatwork.com/validation-with-unity-interception/"/>
     <updated>2009-07-18T18:20:00-07:00</updated>
-    <id>http://www.agileatwork.com//validation-with-unity-interception</id>
+    <id>http://www.agileatwork.com/validation-with-unity-interception</id>
     <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
 
 <p>This is how I want things to look:</p>

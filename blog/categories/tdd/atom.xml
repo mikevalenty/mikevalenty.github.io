@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: TDD | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/tdd/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/tdd/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Maybe Uncle Bob is Wrong About Testing]]></title>
-    <link href="http://www.agileatwork.com//maybe-uncle-bob-is-wrong-about-testing/"/>
+    <link href="http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing/"/>
     <updated>2009-11-30T21:45:00-08:00</updated>
-    <id>http://www.agileatwork.com//maybe-uncle-bob-is-wrong-about-testing</id>
+    <id>http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing</id>
     <content type="html"><![CDATA[<p>As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s known as a positive feedback loop, and this was how I spent the better part of last week.</p>
 
 <p><img src="/images/posts/feedback2_thumb.png"></p>
@@ -50,9 +50,9 @@
   
   <entry>
     <title type="html"><![CDATA[Auto-Mocking Unity Container Extension]]></title>
-    <link href="http://www.agileatwork.com//auto-mocking-unity-container-extension/"/>
+    <link href="http://www.agileatwork.com/auto-mocking-unity-container-extension/"/>
     <updated>2009-06-26T20:13:00-07:00</updated>
-    <id>http://www.agileatwork.com//auto-mocking-unity-container-extension</id>
+    <id>http://www.agileatwork.com/auto-mocking-unity-container-extension</id>
     <content type="html"><![CDATA[<p>Using a container for unit testing is a good way to insulate your tests from changes in object construction. Typically my first test will be something pretty boring just to get the process started. A few tests later, the real behavior comes out along with new dependencies. Rather than having to go back and add the dependencies to all the tests I’ve already written, I like to use a container to build up the object I’m testing.</p>
 
 <p>To streamline this process, I thought it would be handy to use a container extension to auto generate mocks for any required interface that wasn’t explicitly registered. The best way I can explain this is with code, so here it is:</p>
@@ -138,9 +138,9 @@ class AutoMockingBuilderStrategy : BuilderStrategy
   
   <entry>
     <title type="html"><![CDATA[Captcha and Inversion of Control]]></title>
-    <link href="http://www.agileatwork.com//captcha-and-inversion-of-control/"/>
+    <link href="http://www.agileatwork.com/captcha-and-inversion-of-control/"/>
     <updated>2009-06-14T20:44:00-07:00</updated>
-    <id>http://www.agileatwork.com//captcha-and-inversion-of-control</id>
+    <id>http://www.agileatwork.com/captcha-and-inversion-of-control</id>
     <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/lorenzoflip.jpg"></p>
 
 <p>I made a few tweaks to a captcha library I found here and basically wrapped their CaptchaImage object in a service interface to use in my application. Pretty easy stuff, but I didn’t get it right the first time.</p>
@@ -248,9 +248,9 @@ Container.RegisterType&lt;ICaptchaProvider, LifetimeManagedCaptchaProvider>(</p>
   
   <entry>
     <title type="html"><![CDATA[Don’t Eat a Donut on the Way Home From the Gym]]></title>
-    <link href="http://www.agileatwork.com//dont-eat-a-donut-on-the-way-home-from-the-gym/"/>
+    <link href="http://www.agileatwork.com/dont-eat-a-donut-on-the-way-home-from-the-gym/"/>
     <updated>2009-05-17T21:32:00-07:00</updated>
-    <id>http://www.agileatwork.com//dont-eat-a-donut-on-the-way-home-from-the-gym</id>
+    <id>http://www.agileatwork.com/dont-eat-a-donut-on-the-way-home-from-the-gym</id>
     <content type="html"><![CDATA[<p><img class="right" src="/images/posts/homer-donut-thumb.jpg"></p>
 
 <p>I must warn you, this post is about unit testing software, not donuts. With that said, I’ve been pondering the dilemma of how much time to spend writing unit tests and today I had a moment of clarity that I couldn’t help but share.</p>
@@ -269,9 +269,9 @@ Container.RegisterType&lt;ICaptchaProvider, LifetimeManagedCaptchaProvider>(</p>
   
   <entry>
     <title type="html"><![CDATA[5 Ways to Fail at Pair Programming]]></title>
-    <link href="http://www.agileatwork.com//5-ways-to-fail-at-pair-programming/"/>
+    <link href="http://www.agileatwork.com/5-ways-to-fail-at-pair-programming/"/>
     <updated>2009-05-10T21:37:00-07:00</updated>
-    <id>http://www.agileatwork.com//5-ways-to-fail-at-pair-programming</id>
+    <id>http://www.agileatwork.com/5-ways-to-fail-at-pair-programming</id>
     <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/shoes.jpg"></p>
 
 <p>The only hard part is convincing your boss that it’s not a colossal waste of time, right? Well that’s the first hurdle and yes it’s a doosie, but it’s just the price of admission. The real fun starts when you sit next to your partner and try to prove your boss wrong. After a year or so in the trenches, I’ve learned a thing or two on how to mess it up.</p>

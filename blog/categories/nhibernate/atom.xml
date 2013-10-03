@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: NHibernate | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/nhibernate/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/nhibernate/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <p>``` xml
@@ -202,9 +202,9 @@ public override bool OnLoad(object entity... object[] state, string[] propertyNa
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
     <updated>2011-05-14T13:09:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
     <content type="html"><![CDATA[<h3>The Mission:</h3>
 
 <p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
@@ -411,9 +411,9 @@ private string GetHost()
   
   <entry>
     <title type="html"><![CDATA[Refactoring: Introduce Parameter Object]]></title>
-    <link href="http://www.agileatwork.com//rafactoring-introduce-parameter-object/"/>
+    <link href="http://www.agileatwork.com/rafactoring-introduce-parameter-object/"/>
     <updated>2010-02-15T06:49:00-08:00</updated>
-    <id>http://www.agileatwork.com//rafactoring-introduce-parameter-object</id>
+    <id>http://www.agileatwork.com/rafactoring-introduce-parameter-object</id>
     <content type="html"><![CDATA[<p>Take a look at this function:</p>
 
 <p>``` c#
@@ -519,9 +519,9 @@ public int Number {</p>
   
   <entry>
     <title type="html"><![CDATA[Maybe Uncle Bob is Wrong About Testing]]></title>
-    <link href="http://www.agileatwork.com//maybe-uncle-bob-is-wrong-about-testing/"/>
+    <link href="http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing/"/>
     <updated>2009-11-30T21:45:00-08:00</updated>
-    <id>http://www.agileatwork.com//maybe-uncle-bob-is-wrong-about-testing</id>
+    <id>http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing</id>
     <content type="html"><![CDATA[<p>As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s known as a positive feedback loop, and this was how I spent the better part of last week.</p>
 
 <p><img src="/images/posts/feedback2_thumb.png"></p>
@@ -554,9 +554,9 @@ public int Number {</p>
   
   <entry>
     <title type="html"><![CDATA[Integration Testing with NHibernate]]></title>
-    <link href="http://www.agileatwork.com//integration-testing-with-nhibernate/"/>
+    <link href="http://www.agileatwork.com/integration-testing-with-nhibernate/"/>
     <updated>2009-11-06T21:59:00-08:00</updated>
-    <id>http://www.agileatwork.com//integration-testing-with-nhibernate</id>
+    <id>http://www.agileatwork.com/integration-testing-with-nhibernate</id>
     <content type="html"><![CDATA[<p>While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure my mapping works and that when I save an entity it goes to the database.</p>
 
 <p>``` c#

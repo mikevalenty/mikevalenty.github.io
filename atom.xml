@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Configuring Decorators with Google Guice]]></title>
-    <link href="http://www.agileatwork.com//configuring-decorators-with-google-guice/"/>
+    <link href="http://www.agileatwork.com/configuring-decorators-with-google-guice/"/>
     <updated>2012-02-20T07:11:00-08:00</updated>
-    <id>http://www.agileatwork.com//configuring-decorators-with-google-guice</id>
+    <id>http://www.agileatwork.com/configuring-decorators-with-google-guice</id>
     <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -152,9 +152,9 @@
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -427,9 +427,9 @@
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
     <updated>2011-05-14T13:09:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
     <content type="html"><![CDATA[<h3>The Mission:</h3>
 
 <p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
@@ -739,9 +739,9 @@
   
   <entry>
     <title type="html"><![CDATA[Tamarack: Chain of Responsibility Framework for .NET]]></title>
-    <link href="http://www.agileatwork.com//tamarack-chain-of-responsibility-framework-for-net/"/>
+    <link href="http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net/"/>
     <updated>2011-04-21T21:39:00-07:00</updated>
-    <id>http://www.agileatwork.com//tamarack-chain-of-responsibility-framework-for-net</id>
+    <id>http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net</id>
     <content type="html"><![CDATA[<p>The Chain of Responsibility is a key building block of extensible software.</p>
 
 <blockquote><p>Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. – Gang of Four</p></blockquote>
@@ -757,7 +757,7 @@
 </ol>
 
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/pkgmgr31.png"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/pkgmgr31.png"></p>
 
 <p>How does it work?
 It’s pretty simple, there is just one interface to implement and it looks like this:</p>
@@ -972,9 +972,9 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[A Custom HttpModule to Log Request Duration]]></title>
-    <link href="http://www.agileatwork.com//a-custom-httpmodule-to-log-request-duration/"/>
+    <link href="http://www.agileatwork.com/a-custom-httpmodule-to-log-request-duration/"/>
     <updated>2011-01-16T02:31:00-08:00</updated>
-    <id>http://www.agileatwork.com//a-custom-httpmodule-to-log-request-duration</id>
+    <id>http://www.agileatwork.com/a-custom-httpmodule-to-log-request-duration</id>
     <content type="html"><![CDATA[<p>My application has logging of fine-grained operations, but I want to see the duration of the entire web request. The idea is to start a <code>Stopwatch</code> on the <code>BeginRequest</code> event and then log the elapsed time on the <code>EndRequest</code> event. I started by modifying the <code>Global.asax</code> to wire this up, but quickly got turned off because I was violating the Open-Closed Principle. I really just want to bolt-in this behavior while I’m profiling the application and then turn it off when the kinks are worked out. IIS has a pretty slick extension point for this sort of thing that let’s you hook into the request lifecycle events.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1094,15 +1094,15 @@ It’s pretty simple, there is just one interface to implement and it looks like
 
 <p>Finally, it’s time to run the application and see the total request duration logged.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/durationmodule.png"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/durationmodule.png"></p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[A Proper Closure in C#]]></title>
-    <link href="http://www.agileatwork.com//a-proper-closure-in-csharp/"/>
+    <link href="http://www.agileatwork.com/a-proper-closure-in-csharp/"/>
     <updated>2010-12-18T20:46:00-08:00</updated>
-    <id>http://www.agileatwork.com//a-proper-closure-in-csharp</id>
+    <id>http://www.agileatwork.com/a-proper-closure-in-csharp</id>
     <content type="html"><![CDATA[<p>You’ve seen code like this:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1209,9 +1209,9 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[Refactoring C# Style]]></title>
-    <link href="http://www.agileatwork.com//refactoring-c-style/"/>
+    <link href="http://www.agileatwork.com/refactoring-c-style/"/>
     <updated>2010-11-27T09:51:00-08:00</updated>
-    <id>http://www.agileatwork.com//refactoring-c-style</id>
+    <id>http://www.agileatwork.com/refactoring-c-style</id>
     <content type="html"><![CDATA[<p>Take a look a this function.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1477,9 +1477,9 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[Software Development Team Building – Part 1]]></title>
-    <link href="http://www.agileatwork.com//software-development-team-building-part-1/"/>
+    <link href="http://www.agileatwork.com/software-development-team-building-part-1/"/>
     <updated>2010-11-13T17:26:00-08:00</updated>
-    <id>http://www.agileatwork.com//software-development-team-building-part-1</id>
+    <id>http://www.agileatwork.com/software-development-team-building-part-1</id>
     <content type="html"><![CDATA[<p>The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season because when playoffs start, it’s like watching a different sport. To win the coveted Stanley Cup, a team must battle through four grueling best-of-seven series, and when it’s all over, it’s not about a bad call by the referee or a fluke fumble or broken tackle. It’s not even about a hot goal-tender or superstar forward. It’s about the whole team digging deep and banding together to create a whole greater than the sum of its parts.</p>
 
 <p>If that wasn’t true, you could simply put all the best players on one team and watch them dominate. Russia tried it in the 2010 Winter Olympics and only walked away with the bronze medal. A successful team has an identity that transcends individuals. If you watch hockey, you’ll hear teams described as up-tempo, finesse, defensive or gritty and hard-hitting. One isn’t better than another, it really depends on what your core strengths are and then getting buy-in from everyone on the team.</p>
@@ -1540,12 +1540,12 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[Automatic Deployment from TeamCity using WebDeploy]]></title>
-    <link href="http://www.agileatwork.com//automatic-deployment-from-teamcity-using-webdeploy/"/>
+    <link href="http://www.agileatwork.com/automatic-deployment-from-teamcity-using-webdeploy/"/>
     <updated>2010-10-27T11:07:00-07:00</updated>
-    <id>http://www.agileatwork.com//automatic-deployment-from-teamcity-using-webdeploy</id>
+    <id>http://www.agileatwork.com/automatic-deployment-from-teamcity-using-webdeploy</id>
     <content type="html"><![CDATA[<p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/tcp1.jpg"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/tcp1.jpg"></p>
 
 <ol>
 <li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
@@ -1590,13 +1590,13 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
 <p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/teamcity2.jpg"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/teamcity2.jpg"></p>
 
 <p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/dep1.jpg"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/dep1.jpg"></p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/snap1.jpg"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/snap1.jpg"></p>
 
 <p><strong>Step 6:</strong> Write some code.</p>
 ]]></content>
@@ -1604,9 +1604,9 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
   <entry>
     <title type="html"><![CDATA[Hacker, Artist, Craftsman or Engineer?]]></title>
-    <link href="http://www.agileatwork.com//hacker-artist-craftsman-or-engineer/"/>
+    <link href="http://www.agileatwork.com/hacker-artist-craftsman-or-engineer/"/>
     <updated>2010-10-10T09:44:00-07:00</updated>
-    <id>http://www.agileatwork.com//hacker-artist-craftsman-or-engineer</id>
+    <id>http://www.agileatwork.com/hacker-artist-craftsman-or-engineer</id>
     <content type="html"><![CDATA[<p>I recently read the book <a href="http://www.codersatwork.com/">Coders at Work</a> on <a href="http://blargh.tommymontgomery.com/">tmont’s</a> recommendation. It was a good read, and at 500+ pages you can repurpose it as a monitor stand when you’re finished reading it.</p>
 
 <blockquote><p>Based on nearly eighty hours of conversations with fifteen all-time great programmers and computer scientists, the Q&amp;A interviews in Coders at Work provide a multifaceted view into how great programmers learn to program, how they practice their craft, and what they think about the future of programming.</p></blockquote>
@@ -1653,12 +1653,12 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
   <entry>
     <title type="html"><![CDATA[Don't Say Singleton]]></title>
-    <link href="http://www.agileatwork.com//dont-say-singleton/"/>
+    <link href="http://www.agileatwork.com/dont-say-singleton/"/>
     <updated>2010-09-18T22:10:00-07:00</updated>
-    <id>http://www.agileatwork.com//dont-say-singleton</id>
+    <id>http://www.agileatwork.com/dont-say-singleton</id>
     <content type="html"><![CDATA[<p>I was in junior high around the time that Master of Puppets was released followed by <em>…And Justice For All</em>. Maybe it’s nostalgia, but those two albums were not only the best Metallica albums, they were perhaps the greatest albums of the entire genre. Something happened though and I don’t mean grunge.</p>
 
-<p><img src="http://www.agileatwork.com//images/posts/grunge_thumb.jpg"></p>
+<p><img src="http://www.agileatwork.com/images/posts/grunge_thumb.jpg"></p>
 
 <p>Metallica eventually succumbed to their own success and tried to crank out albums more accessible to wider audiences. This tension between music with something to say and music that appeals to the masses has been the bane of the industry since the invention of the radio.</p>
 
@@ -1806,12 +1806,12 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
   <entry>
     <title type="html"><![CDATA[My Favorite Interview Question]]></title>
-    <link href="http://www.agileatwork.com//my-favorite-interview-question/"/>
+    <link href="http://www.agileatwork.com/my-favorite-interview-question/"/>
     <updated>2010-09-04T08:12:00-07:00</updated>
-    <id>http://www.agileatwork.com//my-favorite-interview-question</id>
+    <id>http://www.agileatwork.com/my-favorite-interview-question</id>
     <content type="html"><![CDATA[<p>Lately I’ve been wrapping up interviews with the question “What makes software maintainable?” I usually catch a glimpse that says “hmm… I’ve never really thought about maintainability” followed by a response to the question “What makes software good?”, which I didn’t actually ask, but most programmers have thought enough about to give an on the spot answer. The bland responses inevitably involve documentation (fail) and maybe something about consistency (meh).</p>
 
-<p><img src="http://www.agileatwork.com//images/posts/trump_thumb.jpg"></p>
+<p><img src="http://www.agileatwork.com/images/posts/trump_thumb.jpg"></p>
 
 <p>The underlying question I’m asking is a question you should ask yourself every time you write a line of line of code. That question is “What are you optimizing?” Most programmers have mentally hard-coded the term optimize to mean efficient use of memory and cpu, however it’s a horribly myopic definition. In fact, it’s just plain wrong unless you’re writing an iPhone game or maybe you work at Google and saving a few cpu cycles translates to kilowatts of power and possibly saving a small rain forest.</p>
 
@@ -1819,7 +1819,7 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
 <blockquote><p>In computer science, program optimization or software optimization is the process of modifying a software system to make some aspect of it work more efficiently or use fewer resources.[1] In general, a computer program may be optimized so that it executes more rapidly, or is capable of operating with less memory storage or other resources, or draw less power. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(computer_science)</p></blockquote>
 
-<p><img src="http://www.agileatwork.com//images/posts/conserve_thumb1.jpg"></p>
+<p><img src="http://www.agileatwork.com/images/posts/conserve_thumb1.jpg"></p>
 
 <p>It’s not wrong, but it reinforces the notion that less is more and the precious resources are physical resources like memory and cpu. Is it better to have fewer files in your project, fewer dlls in your bin directory, or use fewer semicolons? I recently debugged a chain of jQuery statements that was 430 characters long (un-minified) and used one semicolon. Is that optimized?</p>
 
@@ -1833,9 +1833,9 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
   <entry>
     <title type="html"><![CDATA[Refactoring: Introduce Parameter Object]]></title>
-    <link href="http://www.agileatwork.com//rafactoring-introduce-parameter-object/"/>
+    <link href="http://www.agileatwork.com/rafactoring-introduce-parameter-object/"/>
     <updated>2010-02-15T06:49:00-08:00</updated>
-    <id>http://www.agileatwork.com//rafactoring-introduce-parameter-object</id>
+    <id>http://www.agileatwork.com/rafactoring-introduce-parameter-object</id>
     <content type="html"><![CDATA[<p>Take a look at this function:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1977,9 +1977,9 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
   <entry>
     <title type="html"><![CDATA[The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Interfaces (No Excuses!)]]></title>
-    <link href="http://www.agileatwork.com//the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/"/>
+    <link href="http://www.agileatwork.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/"/>
     <updated>2010-01-13T22:24:00-08:00</updated>
-    <id>http://www.agileatwork.com//the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses</id>
+    <id>http://www.agileatwork.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses</id>
     <content type="html"><![CDATA[<p><span style="font-size: 70%">
 The title of this article was inspired by <a href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!) </a>
 by Joel Spolsky
@@ -1987,7 +1987,7 @@ by Joel Spolsky
 
 <p>I recently saw this question on stackoverflow:</p>
 
-<p><img src="http://www.agileatwork.com//images/posts/quest.png"></p>
+<p><img src="http://www.agileatwork.com/images/posts/quest.png"></p>
 
 <p>There were good points on both sides, but the majority of responses were from closet interface haters succumbing to the mob effect to say &ldquo;me too&rdquo;. On the other side of the argument, many took cover behind regurgitated responses like interfaces are for mocking dependencies in unit tests and because people that write books say you should use them. So how is it that scores of professional software developers don’t understand or can’t communicate why and how to use the most fundamental of object-oriented language features? Perhaps there is a clue in the details of the original question:</p>
 
@@ -2046,9 +2046,9 @@ by Joel Spolsky
   
   <entry>
     <title type="html"><![CDATA[Inheritance is Evil: The Epic Fail of the DataAnnotationsModelBinder]]></title>
-    <link href="http://www.agileatwork.com//inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/"/>
+    <link href="http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/"/>
     <updated>2010-01-04T06:52:00-08:00</updated>
-    <id>http://www.agileatwork.com//inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
+    <id>http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
     <content type="html"><![CDATA[<p>The <code>DataAnnotationsModelBinder</code> is a pretty neat little class that enforces validation attributes on models like this one:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -2128,7 +2128,7 @@ by Joel Spolsky
 
 <p>That’s pretty cool, but now I’ve lost my validation! This my friend is the evil of inheritance and the epic fail of the <code>DataAnnotationsModelBinder</code>. So what’s wrong with inheritance, isn’t that what OOP is all about? The short answer is no (the long answer is also no.)</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/petervenkmanghostbusters.jpg"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/petervenkmanghostbusters.jpg"></p>
 
 <blockquote><p>Human sacrifice, dogs and cats living together… mass hysteria! — Dr. Peter Venkman</p></blockquote>
 
@@ -2136,10 +2136,10 @@ by Joel Spolsky
 
 <p>The more tragic flaw however is the new subclass brings with it all the baggage and opinion of the inheritance chain. Why does a model that enforces validation attributes care how the model is constructed? The answer is it shouldn’t, and to add insult to injury, the better design is actually easier to implement. Listen closely and you may hear the wise whispers of our forefathers…</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/ward.jpg" title="Ward Cunningham" >
-<img class="plain" src="http://www.agileatwork.com//images/posts/martin.jpg" title="Marting Fowler" >
-<img class="plain" src="http://www.agileatwork.com//images/posts/kent.jpg" title="Kent Beck" >
-<img class="plain" src="http://www.agileatwork.com//images/posts/robert.jpg" title="Robert Martin" ></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/ward.jpg" title="Ward Cunningham" >
+<img class="plain" src="http://www.agileatwork.com/images/posts/martin.jpg" title="Marting Fowler" >
+<img class="plain" src="http://www.agileatwork.com/images/posts/kent.jpg" title="Kent Beck" >
+<img class="plain" src="http://www.agileatwork.com/images/posts/robert.jpg" title="Robert Martin" ></p>
 
 <blockquote><p>Use the decorator pattern.</p></blockquote>
 
@@ -2204,7 +2204,7 @@ by Joel Spolsky
 </ol>
 
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/kip.jpg"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/kip.jpg"></p>
 
 <blockquote><p>…don’t be jealous that I’ve been chatting online with babes all day. Besides, we both know that I’m training to be a cage fighter. — Kip</p></blockquote>
 ]]></content>
@@ -2212,12 +2212,12 @@ by Joel Spolsky
   
   <entry>
     <title type="html"><![CDATA[Custom Model Binder in ASP.NET MVC]]></title>
-    <link href="http://www.agileatwork.com//custom-model-binder-in-asp-dot-net-mvc/"/>
+    <link href="http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc/"/>
     <updated>2009-12-31T14:59:00-08:00</updated>
-    <id>http://www.agileatwork.com//custom-model-binder-in-asp-dot-net-mvc</id>
+    <id>http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc</id>
     <content type="html"><![CDATA[<p>The default model binder or <code>DataAnnotationsModelBinder</code> in ASP.NET MVC works well for simple data structures that basically map properties directly to form elements, but it quickly breaks down in a real world application. Take this simple scenario:</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/brimley.png"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/brimley.png"></p>
 
 <p>The built-in model binder can handle the easy fields like <code>FirstName</code>, <code>LastName</code>, and <code>Email</code>, but it doesn’t know how to deal with the <code>Roles</code>. This is where the custom model binder comes in:</p>
 
@@ -2299,9 +2299,9 @@ by Joel Spolsky
   
   <entry>
     <title type="html"><![CDATA[Where Does it Hurt?]]></title>
-    <link href="http://www.agileatwork.com//where-does-it-hurt/"/>
+    <link href="http://www.agileatwork.com/where-does-it-hurt/"/>
     <updated>2009-12-26T20:30:00-08:00</updated>
-    <id>http://www.agileatwork.com//where-does-it-hurt</id>
+    <id>http://www.agileatwork.com/where-does-it-hurt</id>
     <content type="html"><![CDATA[<p>Notes from my Brown Bag Learning Forum Presentation. <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">Download the source code</a>, or just sit back and relax.</p>
 
 <h3>GoF Patterns:</h3>
@@ -2331,7 +2331,7 @@ by Joel Spolsky
 
 <p>The Scenario: Implement captcha as the first step in some business process, like a registration form.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/captcha2.png"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/captcha2.png"></p>
 
 <p>That’s pretty easy, I don’t need anything fancy to do that.</p>
 
@@ -2810,9 +2810,9 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   
   <entry>
     <title type="html"><![CDATA[Definition of Enterprise Software]]></title>
-    <link href="http://www.agileatwork.com//definition-of-enterprise-software/"/>
+    <link href="http://www.agileatwork.com/definition-of-enterprise-software/"/>
     <updated>2009-12-06T12:41:00-08:00</updated>
-    <id>http://www.agileatwork.com//definition-of-enterprise-software</id>
+    <id>http://www.agileatwork.com/definition-of-enterprise-software</id>
     <content type="html"><![CDATA[<p>The difference between Enterprise software and regular software is like the difference between a start-up and a public company. Enterprise software has lots of bureaucracy and red tape (indirection and configuration) to support transparency and top-down policy. You pay a price up front to create all these layers and well-defined communication channels between departments, but once the whole thing is up and running, it’s powerful.</p>
 
 <p>Big companies can throw time and money at problems to produce activity diagrams, advisory boards and flow charts. Sure there’s bloat, but you need that kind of oversight to enforce corporate policy. Similarly, enterprise software can extravagantly use cpu cycles, disk space and memory, but this is a fair price to pay when complexity is king. Enterprise software must be concerned with things like service level agreements and government regulations. So how do you do that?</p>
@@ -2823,7 +2823,7 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 
 <p>I’ll share an experience I had this weekend. I was about to deploy a new application and I thought it would be cool to use a performance counter to watch throughput. Within about 20 minutes I was able to add a performance counter by only modifying the <code>App.config</code> and this was the result:</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/perfmon3.png"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/perfmon3.png"></p>
 
 <p>This was possible because of IoC among other things. The app is composed of many small pieces and you’d be hard pressed to find the <code>new</code> keyword where it matters. <code>SyncListingJob</code> was already being built-up by Unity Container, so I was able take advantage of an off-the-shelf performance monitor aspect in the Enterprise Library 4.1 Policy Injection Application Block and wire it in via the <code>App.config</code>.</p>
 ]]></content>
@@ -2831,14 +2831,14 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   
   <entry>
     <title type="html"><![CDATA[A Class Isn’t Always a Noun]]></title>
-    <link href="http://www.agileatwork.com//a-class-isnt-always-a-noun/"/>
+    <link href="http://www.agileatwork.com/a-class-isnt-always-a-noun/"/>
     <updated>2009-12-04T12:45:00-08:00</updated>
-    <id>http://www.agileatwork.com//a-class-isnt-always-a-noun</id>
+    <id>http://www.agileatwork.com/a-class-isnt-always-a-noun</id>
     <content type="html"><![CDATA[<p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
 
 <p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>
 
-<p><img src="http://www.agileatwork.com//images/posts/yext1.png"></p>
+<p><img src="http://www.agileatwork.com/images/posts/yext1.png"></p>
 
 <p>I don’t expect you to understand how the app works, but you should at least get a feel right away for the things that are important. Knowing it’s a console app, you could find the entry point and quickly navigate to the meat and potatoes of the application.</p>
 
@@ -2927,12 +2927,12 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   
   <entry>
     <title type="html"><![CDATA[Maybe Uncle Bob is Wrong About Testing]]></title>
-    <link href="http://www.agileatwork.com//maybe-uncle-bob-is-wrong-about-testing/"/>
+    <link href="http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing/"/>
     <updated>2009-11-30T21:45:00-08:00</updated>
-    <id>http://www.agileatwork.com//maybe-uncle-bob-is-wrong-about-testing</id>
+    <id>http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing</id>
     <content type="html"><![CDATA[<p>As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s known as a positive feedback loop, and this was how I spent the better part of last week.</p>
 
-<p><img src="http://www.agileatwork.com//images/posts/feedback2_thumb.png"></p>
+<p><img src="http://www.agileatwork.com/images/posts/feedback2_thumb.png"></p>
 
 <p><strong>Figure A.5</strong> Not enough time to test reduces the available time <em>Test-Driven Development: By Example by Kent Beck</em></p>
 
@@ -2940,7 +2940,7 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 
 <p>Since I didn’t have much time at night, I didn’t want to spend it writing tests. I just wanted to get the app done. All I needed to do was sync business listings from an affiliate with GarageCommerce.com, the project I’ve been working on for the last few months. There were only a handful of business rules to deal with and I thought I could just bang it out.</p>
 
-<p><img class="left" src="http://www.agileatwork.com//images/posts/district9poster_thumb.jpg"></p>
+<p><img class="left" src="http://www.agileatwork.com/images/posts/district9poster_thumb.jpg"></p>
 
 <p>I know what you’re thinking. You already know where this is headed and you might as well just skip to the end. It’s like in that movie District 9. It started out pretty good with some edgy social commentary but by the end of the movie it just phoned in a cliché Hollywood plot. You know, like “fish out of water”, “buddy movie”, or “trading places” as was the case with District 9.</p>
 
@@ -2950,7 +2950,7 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 
 <p>Fast forward a few hours and I’ve got a hunch as to what is causing the problem. The way I wired up the app, I was creating a single NHibernate session for the entire batch of jobs. I knew this could be trouble so I at least made a point to commit after each job and clear the session so it wouldn’t get bogged down with 10K+ entities. I knew the single session was smelly and the errors I was seeing prompted me to refactor.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com//images/posts/MASHtvshow11_thumb.jpg"></p>
+<p><img class="plain" src="http://www.agileatwork.com/images/posts/MASHtvshow11_thumb.jpg"></p>
 
 <p>This is where it got ugly. I needed to do a pretty major overhaul and I was mostly test-less. My blood pressure went way up with each change and the fact that I didn’t have tests just made me take larger steps with no safety net. I felt like a M.A.S.H. surgeon with guts all over the operating table. Part of me thought I should take a few steps back and regroup, but another part of me was reminded of this quote:</p>
 

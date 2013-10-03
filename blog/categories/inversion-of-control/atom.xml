@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Inversion of Control | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/inversion-of-control/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/inversion-of-control/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Configuring Decorators with Google Guice]]></title>
-    <link href="http://www.agileatwork.com//configuring-decorators-with-google-guice/"/>
+    <link href="http://www.agileatwork.com/configuring-decorators-with-google-guice/"/>
     <updated>2012-02-20T07:11:00-08:00</updated>
-    <id>http://www.agileatwork.com//configuring-decorators-with-google-guice</id>
+    <id>http://www.agileatwork.com/configuring-decorators-with-google-guice</id>
     <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
 
 <p>``` java
@@ -122,9 +122,9 @@ bind(CreditCardProcessor.class)
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <p>``` xml
@@ -309,9 +309,9 @@ public override bool OnLoad(object entity... object[] state, string[] propertyNa
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
     <updated>2011-05-14T13:09:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
     <content type="html"><![CDATA[<h3>The Mission:</h3>
 
 <p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
@@ -518,9 +518,9 @@ private string GetHost()
   
   <entry>
     <title type="html"><![CDATA[Tamarack: Chain of Responsibility Framework for .NET]]></title>
-    <link href="http://www.agileatwork.com//tamarack-chain-of-responsibility-framework-for-net/"/>
+    <link href="http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net/"/>
     <updated>2011-04-21T21:39:00-07:00</updated>
-    <id>http://www.agileatwork.com//tamarack-chain-of-responsibility-framework-for-net</id>
+    <id>http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net</id>
     <content type="html"><![CDATA[<p>The Chain of Responsibility is a key building block of extensible software.</p>
 
 <blockquote><p>Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. – Gang of Four</p></blockquote>
@@ -694,9 +694,9 @@ public bool Execute(LoginContext context, Func&lt;LoginContext, bool&gt; execute
   
   <entry>
     <title type="html"><![CDATA[Where Does it Hurt?]]></title>
-    <link href="http://www.agileatwork.com//where-does-it-hurt/"/>
+    <link href="http://www.agileatwork.com/where-does-it-hurt/"/>
     <updated>2009-12-26T20:30:00-08:00</updated>
-    <id>http://www.agileatwork.com//where-does-it-hurt</id>
+    <id>http://www.agileatwork.com/where-does-it-hurt</id>
     <content type="html"><![CDATA[<p>Notes from my Brown Bag Learning Forum Presentation. <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">Download the source code</a>, or just sit back and relax.</p>
 
 <h3>GoF Patterns:</h3>

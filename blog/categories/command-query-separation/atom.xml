@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Command Query Separation | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/command-query-separation/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/command-query-separation/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Custom Model Binder in ASP.NET MVC]]></title>
-    <link href="http://www.agileatwork.com//custom-model-binder-in-asp-dot-net-mvc/"/>
+    <link href="http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc/"/>
     <updated>2009-12-31T14:59:00-08:00</updated>
-    <id>http://www.agileatwork.com//custom-model-binder-in-asp-dot-net-mvc</id>
+    <id>http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc</id>
     <content type="html"><![CDATA[<p>The default model binder or <code>DataAnnotationsModelBinder</code> in ASP.NET MVC works well for simple data structures that basically map properties directly to form elements, but it quickly breaks down in a real world application. Take this simple scenario:</p>
 
 <p><img class="plain" src="/images/posts/brimley.png"></p>

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: ASP.NET MVC | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/asp-dot-net-mvc/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/asp-dot-net-mvc/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <p>``` xml
@@ -202,9 +202,9 @@ public override bool OnLoad(object entity... object[] state, string[] propertyNa
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
-    <link href="http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
     <updated>2011-05-14T13:09:00-07:00</updated>
-    <id>http://www.agileatwork.com//bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
     <content type="html"><![CDATA[<h3>The Mission:</h3>
 
 <p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
@@ -411,9 +411,9 @@ private string GetHost()
   
   <entry>
     <title type="html"><![CDATA[Inheritance is Evil: The Epic Fail of the DataAnnotationsModelBinder]]></title>
-    <link href="http://www.agileatwork.com//inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/"/>
+    <link href="http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/"/>
     <updated>2010-01-04T06:52:00-08:00</updated>
-    <id>http://www.agileatwork.com//inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
+    <id>http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
     <content type="html"><![CDATA[<p>The <code>DataAnnotationsModelBinder</code> is a pretty neat little class that enforces validation attributes on models like this one:</p>
 
 <p>``` c#
@@ -542,9 +542,9 @@ new BetterDataAnnotationsModelBinder(productModelBinder));
   
   <entry>
     <title type="html"><![CDATA[Custom Model Binder in ASP.NET MVC]]></title>
-    <link href="http://www.agileatwork.com//custom-model-binder-in-asp-dot-net-mvc/"/>
+    <link href="http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc/"/>
     <updated>2009-12-31T14:59:00-08:00</updated>
-    <id>http://www.agileatwork.com//custom-model-binder-in-asp-dot-net-mvc</id>
+    <id>http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc</id>
     <content type="html"><![CDATA[<p>The default model binder or <code>DataAnnotationsModelBinder</code> in ASP.NET MVC works well for simple data structures that basically map properties directly to form elements, but it quickly breaks down in a real world application. Take this simple scenario:</p>
 
 <p><img class="plain" src="/images/posts/brimley.png"></p>
@@ -602,9 +602,9 @@ ModelBinders.Binders.Add(typeof(User), new UserModelBinder(defaultBinder));
   
   <entry>
     <title type="html"><![CDATA[Unit of Work with Unity and ASP.NET MVC]]></title>
-    <link href="http://www.agileatwork.com//unit-of-work-with-unity-and-aspnet-mvc/"/>
+    <link href="http://www.agileatwork.com/unit-of-work-with-unity-and-aspnet-mvc/"/>
     <updated>2009-05-09T21:42:00-07:00</updated>
-    <id>http://www.agileatwork.com//unit-of-work-with-unity-and-aspnet-mvc</id>
+    <id>http://www.agileatwork.com/unit-of-work-with-unity-and-aspnet-mvc</id>
     <content type="html"><![CDATA[<p>I was recently asked how I get the context of  “this” in the UoW relating to the current page request.</p>
 
 <p><img class="plain" src="/images/posts/howididit-thumb.jpg"></p>

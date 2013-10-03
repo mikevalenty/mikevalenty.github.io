@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Chain of Responsibility | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/chain-of-responsibility/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/chain-of-responsibility/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Tamarack: Chain of Responsibility Framework for .NET]]></title>
-    <link href="http://www.agileatwork.com//tamarack-chain-of-responsibility-framework-for-net/"/>
+    <link href="http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net/"/>
     <updated>2011-04-21T21:39:00-07:00</updated>
-    <id>http://www.agileatwork.com//tamarack-chain-of-responsibility-framework-for-net</id>
+    <id>http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net</id>
     <content type="html"><![CDATA[<p>The Chain of Responsibility is a key building block of extensible software.</p>
 
 <blockquote><p>Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. – Gang of Four</p></blockquote>
@@ -191,9 +191,9 @@ public bool Execute(LoginContext context, Func&lt;LoginContext, bool&gt; execute
   
   <entry>
     <title type="html"><![CDATA[Where Does it Hurt?]]></title>
-    <link href="http://www.agileatwork.com//where-does-it-hurt/"/>
+    <link href="http://www.agileatwork.com/where-does-it-hurt/"/>
     <updated>2009-12-26T20:30:00-08:00</updated>
-    <id>http://www.agileatwork.com//where-does-it-hurt</id>
+    <id>http://www.agileatwork.com/where-does-it-hurt</id>
     <content type="html"><![CDATA[<p>Notes from my Brown Bag Learning Forum Presentation. <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">Download the source code</a>, or just sit back and relax.</p>
 
 <h3>GoF Patterns:</h3>
@@ -527,9 +527,9 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   
   <entry>
     <title type="html"><![CDATA[A Class Isn’t Always a Noun]]></title>
-    <link href="http://www.agileatwork.com//a-class-isnt-always-a-noun/"/>
+    <link href="http://www.agileatwork.com/a-class-isnt-always-a-noun/"/>
     <updated>2009-12-04T12:45:00-08:00</updated>
-    <id>http://www.agileatwork.com//a-class-isnt-always-a-noun</id>
+    <id>http://www.agileatwork.com/a-class-isnt-always-a-noun</id>
     <content type="html"><![CDATA[<p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
 
 <p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>

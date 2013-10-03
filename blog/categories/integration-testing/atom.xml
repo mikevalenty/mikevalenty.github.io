@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Integration Testing | Agile at Work]]></title>
-  <link href="http://www.agileatwork.com//blog/categories/integration-testing/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com//"/>
-  <updated>2013-10-02T22:49:43-07:00</updated>
-  <id>http://www.agileatwork.com//</id>
+  <link href="http://www.agileatwork.com/blog/categories/integration-testing/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-02T23:08:01-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Integration Testing with NHibernate]]></title>
-    <link href="http://www.agileatwork.com//integration-testing-with-nhibernate/"/>
+    <link href="http://www.agileatwork.com/integration-testing-with-nhibernate/"/>
     <updated>2009-11-06T21:59:00-08:00</updated>
-    <id>http://www.agileatwork.com//integration-testing-with-nhibernate</id>
+    <id>http://www.agileatwork.com/integration-testing-with-nhibernate</id>
     <content type="html"><![CDATA[<p>While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure my mapping works and that when I save an entity it goes to the database.</p>
 
 <p>``` c#
