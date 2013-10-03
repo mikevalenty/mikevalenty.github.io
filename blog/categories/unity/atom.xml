@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Unity | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/unity/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T06:50:53-07:00</updated>
+  <updated>2013-10-02T18:25:28-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -470,6 +470,307 @@ public static void VerifyMockFor&lt;T&gt;(this IUnityContainer container) where 
 
 <p>}
 ```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Default Interceptor for Unity]]></title>
+    <link href="http://mikevalenty.github.io/default-interceptor-for-unity/"/>
+    <updated>2009-07-22T18:17:00-07:00</updated>
+    <id>http://mikevalenty.github.io/default-interceptor-for-unity</id>
+    <content type="html"><![CDATA[<blockquote><p>Default: the two sweetest words in the English language – Homer Simpson</p></blockquote>
+
+<p>Unity interception requires you to specify what kind of interceptor to use for each type you want to intercept. This can be a little painful, so I decided to take a stab at a container extension that will apply a default interceptor with optional matching rules.</p>
+
+<p>This is how I want it to look:</p>
+
+<p>``` c#
+container</p>
+
+<pre><code>.AddNewExtension&lt;InterceptOnRegister&gt;()
+.Configure&lt;InterceptOnRegister&gt;()
+.SetDefaultInterceptor&lt;TransparentProxyInterceptor&gt;()
+.AddMatchingRule(new AssemblyNameStartsWith("MyCompany"));
+</code></pre>
+
+<p>```</p>
+
+<p>The basic idea here is to subscribe to the register events and configure interception if it meets our criteria. By default it will match everything and apply <code>TransparentProxyInterceptor</code>, but as you can see from the snippet above, you can explicitly supply another interceptor and matching rules.</p>
+
+<p>Here it is:</p>
+
+<p>``` c#
+public class InterceptOnRegister : UnityContainerExtension {</p>
+
+<pre><code>private IInstanceInterceptor interceptor;
+private readonly IList&lt;IInterceptRule&gt; rules;
+
+public InterceptOnRegister() {
+    interceptor = new TransparentProxyInterceptor();
+    rules = new List&lt;IInterceptRule&gt; {
+        new NotUnityInterceptionAssembly(),
+        new DoesNotHaveGenericMethods() };
+}
+
+public InterceptOnRegister AddMatchingRule(IInterceptRule rule) {
+    rules.Add(rule);
+    return this;
+}
+
+public InterceptOnRegister AddNewMatchingRule&lt;T&gt;() where T : IInterceptRule, new() {
+    rules.Add(new T());
+    return this;
+}
+
+public InterceptOnRegister SetDefaultInterceptor&lt;T&gt;() where T : IInstanceInterceptor, new() {
+    interceptor = new T();
+    return this;
+}
+
+protected override void Initialize() {
+    AddInterceptionExtensionIfNotExists();
+
+    Context.Registering +=
+        (sender, e) =&gt; SetInterceptorFor(e.TypeFrom, e.TypeTo ?? e.TypeFrom);
+}
+
+private void AddInterceptionExtensionIfNotExists() {
+    if (Container.Configure&lt;Interception&gt;() == null) {
+        Container.AddNewExtension&lt;Interception&gt;();
+    }
+}
+
+private void SetInterceptorFor(Type typeToIntercept, Type typeOfInstance) {
+    if (!AllMatchingRulesApply(typeToIntercept, typeOfInstance)) {
+        return;
+    }
+
+    if (interceptor.CanIntercept(typeOfInstance)) {
+        Container
+            .Configure&lt;Interception&gt;()
+            .SetDefaultInterceptorFor(typeOfInstance, interceptor);
+    } else if (interceptor.CanIntercept(typeToIntercept)) {
+        Container
+            .Configure&lt;Interception&gt;()
+            .SetDefaultInterceptorFor(typeToIntercept, interceptor);
+    }
+}
+
+private bool AllMatchingRulesApply(Type typeToIntercept, Type typeOfInstance) {
+    foreach (var rule in rules) {
+        if (!rule.Matches(typeToIntercept, typeOfInstance)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>And you’ll need this stuff too:</p>
+
+<p>``` c#
+public interface IInterceptRule {</p>
+
+<pre><code>bool Matches(Type typeToIntercept, Type typeOfInstance);
+</code></pre>
+
+<p>}</p>
+
+<p>public class NotUnityInterceptionAssembly : IInterceptRule {</p>
+
+<pre><code>public bool Matches(Type typeToIntercept, Type typeOfInstance) {
+    return !typeToIntercept.Assembly.Equals(typeof(Interception).Assembly);
+}
+</code></pre>
+
+<p>}</p>
+
+<p>public class DoesNotHaveGenericMethods : IInterceptRule {</p>
+
+<pre><code>public bool Matches(Type typeToIntercept, Type typeOfInstance) {
+    return typeOfInstance.GetMethods().Count(m =&gt; m.IsGenericMethod) == 0;
+}
+</code></pre>
+
+<p>}</p>
+
+<p>public class AssemblyNameStartsWith : IInterceptRule {</p>
+
+<pre><code>private string match;
+
+public AssemblyNameStartsWith(string match) {
+    this.match = match;
+}
+
+public bool Matches(Type typeToIntercept, Type typeOfInstance) {
+    return typeOfInstance.Assembly.FullName.StartsWith(match);
+}
+</code></pre>
+
+<p>}
+```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Validation with Unity Interception]]></title>
+    <link href="http://mikevalenty.github.io/validation-with-unity-interception/"/>
+    <updated>2009-07-18T18:20:00-07:00</updated>
+    <id>http://mikevalenty.github.io/validation-with-unity-interception</id>
+    <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
+
+<p>This is how I want things to look:</p>
+
+<p>``` c#
+public class UpdateUserRequest
+{</p>
+
+<pre><code>[AuthorizedUserPublisherRequired]
+public int UserId { get; set; }
+
+[Required("Name is required")]
+public string Name { get; set; }
+
+[ValidZipCodeRequired("Invalid zip code")]
+public string ZipCode { get; set; }
+</code></pre>
+
+<p>}</p>
+
+<p>public interface IUserService
+{</p>
+
+<pre><code>void Update(UpdateUserRequest request);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>There are validation frameworks out there that will do this, so what’s my beef? Well, first of all I want to inject the validators with dependencies to implement the juicier rules. And second, I’m treating validation as a core concern so I don’t want a dependency on a framework like Enterprise Library. I had several questions like:</p>
+
+<ol>
+<li>How do I get dependencies into the validators?</li>
+<li>How do I get <code>ValidZipCodeRequired</code> to fire with the value of the <code>ZipCode</code> property</li>
+<li>How do I initiate this on <code>userService.Update()</code>?</li>
+</ol>
+
+
+<p>Let’s take a look at building up the validators.</p>
+
+<p>``` c#
+public class ValidZipCodeRequiredAttribute : ValidatorAttribute
+{</p>
+
+<pre><code>public override IValidator CreateValidator(IValidatorFactory factory)
+{
+    return new factory.Create&lt;ValidZipCodeRequiredValidator&gt;();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>This allows me to make a <code>UnityValidatorFactory</code> that can supply all my dependencies. Now how about this business of running the <code>ValidZipCodeRequiredValidator</code> with the value of the <code>ZipCode</code> property? For that I made a composite validator that loops through each property and runs the annotated validator against it’s property value.</p>
+
+<p>``` c#
+public class CompositeValidator<T> : IValidator<T>
+{</p>
+
+<pre><code>private IValidatorFactory factory;
+
+public CompositeValidator(IValidatorFactory factory)
+{
+    this.factory = factory;
+}
+
+public IEnumerable&lt;RuleException&gt; Validate(T subject)
+{
+    List&lt;RuleException&gt; exceptions = new List&lt;RuleException&gt;();
+
+    foreach (PropertyInfo property in typeof(T).GetProperties())
+    {
+        foreach (var validator in GetValidatorsFor(property))
+        {
+            exceptions.AddRange(validator.Validate(property.GetValue(subject, null)));
+        }
+    }
+
+    return exceptions;
+}
+
+private IEnumerable&lt;IValidator&gt; GetValidatorsFor(ICustomAttributeProvider provider)
+{
+    foreach (ValidatorAttribute attribute
+        in provider.GetCustomAttributes(typeof(ValidatorAttribute), true))
+    {
+        yield return attribute.CreateValidator(factory);
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Now I just need to run the <code>CompositeValidator</code> on <code>userService.Update()</code>. For that I use Unity Interception:</p>
+
+<p>``` c#
+public class ValidationCallHandler : ICallHandler
+{</p>
+
+<pre><code>private IValidator validator;
+
+public ValidationCallHandler(IValidator validator)
+{
+    this.validator = validator;
+}
+
+public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
+{
+    var ruleExceptions = ValidateEachArgument(input.Arguments);
+
+    if (ruleExceptions.Count() &gt; 0)
+    {
+        throw new ValidationException(ruleExceptions);
+    }
+
+    return getNext()(input, getNext);
+}
+
+private IEnumerable&lt;RuleException&gt; ValidateEachArgument(IParameterCollection arguments)
+{
+    var ruleExceptions = new List&lt;RuleException&gt;();
+
+    foreach (var arg in arguments)
+    {
+        ruleExceptions.AddRange(validator.Validate(arg));
+    }
+
+    return ruleExceptions;
+}
+
+public int Order { get; set; }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Phew, we’re almost done. The only thing left is to apply this validator in configuration so I can keep the Unity reference out of my core domain. That looks like this:</p>
+
+<p>``` c#
+container.AddNewExtension<Interception>()</p>
+
+<pre><code>.Configure&lt;Interception&gt;()
+.SetInterceptorFor&lt;IUserService&gt;(new InterfaceInterceptor())
+.AddPolicy("UserServiceValidationPolicy")
+.AddCallHandler&lt;ValidationCallHandler&gt;()
+.AddMatchingRule&lt;AlwaysApplyMatchingRule&gt;();
+</code></pre>
+
+<p>```</p>
 ]]></content>
   </entry>
   
