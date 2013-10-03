@@ -4,7 +4,7 @@
   <title><![CDATA[Category: AOP | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/aop/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T18:25:28-07:00</updated>
+  <updated>2013-10-02T21:52:59-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -668,6 +668,149 @@ container.AddNewExtension<Interception>()</p>
 </code></pre>
 
 <p>```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[What Happens When You Actually Use AOP for Logging?]]></title>
+    <link href="http://mikevalenty.github.io/what-happens-when-you-actually-use-aop-for-logging/"/>
+    <updated>2009-07-05T20:10:00-07:00</updated>
+    <id>http://mikevalenty.github.io/what-happens-when-you-actually-use-aop-for-logging</id>
+    <content type="html"><![CDATA[<p>Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s something everyone can relate to. Well, what happens when you actually use it for logging?</p>
+
+<p>I can tell you what happened to me last week. Things were going great until it came time to port our credit card charging program from the stone age to .NET. It occurred to me that our fancy AOP logging would unknowingly log decrypted credit cards!</p>
+
+<p> <img class="plain" src="/images/posts/credit_cards1.jpg"></p>
+
+<p>An obvious solution was to do a regex on log messages and mask credit card numbers – and that’s pretty much what we did, but I didn’t want to perform a regex on every message when I knew only a tiny percentage would contain sensitive data. The solution of course, was to fight fire with fire and use more AOP.</p>
+
+<p>This is how I wanted it to look:</p>
+
+<p>``` c#
+public interface IPayPalGateway
+{</p>
+
+<pre><code>[MaskCredCardForLogging]
+string Submit(string request, string id);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>This way I could specifically mark an interface that I knew would accept sensitive data and apply an appropriate filter to it. The log filtering is implemented as a decorator to a log4net-like ILogger interface.</p>
+
+<p>``` c#
+[TestFixture]
+public class LoggerWithFilterFixture
+{</p>
+
+<pre><code>[Test]
+public void Should_apply_filter_to_message()
+{
+    var logger = new InterceptingLogger();
+
+    var loggerWithFilter = new LoggerWithFilter(logger, new AppendBangToMessage());
+
+    loggerWithFilter.Debug("This is a message");
+
+    Assert.AreEqual("This is a message!", logger.LastMessage);
+}
+</code></pre>
+
+<p>}</p>
+
+<p>public class AppendBangToMessage : ILogFilter
+{</p>
+
+<pre><code>public string Filter(string message)
+{
+    return message + "!";
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>The decorator is then applied in the call handler by looking for custom attributes of type LogFilterAttribute like this:</p>
+
+<p>``` c#
+public class LoggerCallHandler : ICallHandler
+{</p>
+
+<pre><code>public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
+{
+    ILogger logger = GetLogger(input);
+
+    if (logger.IsDebugEnabled)
+    {
+        logger.Debug(CreateLogMessage(input));
+    }
+
+    Stopwatch stopWatch = Stopwatch.StartNew();
+    IMethodReturn result = getNext()(input, getNext);
+    stopWatch.Stop();
+
+    if (logger.IsDebugEnabled)
+    {
+        logger.Debug(CreateLogMessage(input, result, stopWatch));
+    }
+
+    return result; 
+}
+
+...
+
+public ILogger GetLogger(IMethodInvocation input)
+{
+    var logger = CreateLogger(input);
+
+    var filter = CreateLogFilter(input);
+
+    return new LoggerWithFilter(logger, filter);
+}
+
+private ILogFilter CreateLogFilter(IMethodInvocation input)
+{
+    var composite = new CompositeLogFilter();
+
+    foreach (LogFilterAttribute attribute
+        in input.MethodBase.GetCustomAttributes(typeof(LogFilterAttribute), true))
+    {
+        composite.Add(attribute.CreateLogFilter());
+    }
+
+    return composite;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>I’ll spare you the actual credit card masking logic:</p>
+
+<p>``` c#
+public class MaskCreditCardForLoggingAttribute : LogFilterAttribute
+{</p>
+
+<pre><code>public override ILogFilter CreateLogFilter()
+{
+    return new CreditCardMaskingLogFilter();
+}
+</code></pre>
+
+<p>}</p>
+
+<p>public class CreditCardMaskingLogFilter : ILogFilter
+{</p>
+
+<pre><code>public string Filter(string message)
+{
+    ...
+}
+</code></pre>
+
+<p>}
+```</p>
 ]]></content>
   </entry>
   

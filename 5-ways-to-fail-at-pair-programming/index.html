@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>5 Ways to Fail at Pair Programming - Agile at Work</title>
+  <meta name="author" content="Michael Valenty">
+
+  
+  <meta name="description" content="The only hard part is convincing your boss that it’s not a colossal waste of time, right? Well that’s the first hurdle and yes it’s a doosie, but it &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://mikevalenty.github.io/5-ways-to-fail-at-pair-programming">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Agile at Work</a></h1>
+  
+    <h2>by Michael Valenty</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:mikevalenty.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">5 Ways to Fail at Pair Programming</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-05-10T21:37:00-07:00" pubdate data-updated="true">May 10<span>th</span>, 2009</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><img class="plain" src="/images/posts/shoes.jpg"></p>
+
+<p>The only hard part is convincing your boss that it’s not a colossal waste of time, right? Well that’s the first hurdle and yes it’s a doosie, but it’s just the price of admission. The real fun starts when you sit next to your partner and try to prove your boss wrong. After a year or so in the trenches, I’ve learned a thing or two on how to mess it up.</p>
+
+<h3>5. Researching new technology</h3>
+
+<p>“Click on that link, no wait scroll up, over there, wait I wasn’t done reading that…” That’s not pair programming, that’s insanity. Recently we were working on a project that involved a custom Firefox browser skin. Neither of us had experience with browser skins, so there was a lot of Googling and tutorial reading. As soon as we caught ourselves reading blogs and whatnot, we would split up for 15 minutes and then compare notes.</p>
+
+<h3>4. Getting your environment going</h3>
+
+<p>“Hey buddy, are you ready to start pairing on that project? Let’s see, now where is the source code for the project we’re working on… Hmm, this doesn’t compile – I think I need to install the latest version of that library.” Kill me now.</p>
+
+<h3>3. Paralysis</h3>
+
+<p><img class="plain right" src="/images/posts/FrightenedMan400.jpg"></p>
+
+<p>One of my favorite authors, Kurt Vonnegut would write clever things like “The man looked… guilty isn’t the right word, but it’s the first one that comes to mind.”</p>
+
+<p>With pair programming, you can’t just sit there because you don’t know where to start or you can’t think of the right variable name. Just type something. You have to get the problem solving out of your head and into a medium that two people can have a conversation about it. Maybe people are afraid to type something in front of a peer if it’s not perfect. Borrow a technique from Kurt Vonnegut and as you are type, just say “I don’t want the code to look like this…” and write some awful switch case statement.</p>
+
+<p>Once there is something on the screen, you and your partner are instantly aligned and solving the same problem. Now you can discuss factories and polymorphism and all kinds of heady solutions.</p>
+
+<h3>2. Not doing TDD</h3>
+
+<p>Have you ever watched an artist paint a picture and thought to yourself “what the heck is that”. Then with the next brush stroke you realize you’re looking at the profile of someone’s face. Well watching someone write code can be horribly worse than that.</p>
+
+<p>Pair programming is a conversation, not a seminar or window into someone’s brain. The best way to keep things at a conversational level is to work top down which is exactly what TDD forces you to do. You must consider your code from the client perspective and challenge yourself to keep your code on purpose.</p>
+
+<p>Even more importantly, TDD gives you and your buddy an “out” at regular intervals. You write a test, you make a test pass. Either way, you have many small victories over the course of a few hours and you can switch pairs at well defined feel-good stopping points.</p>
+
+<h3>1. Not using a timer</h3>
+
+<p><img class="plain left" src="/images/posts/pprobot.jpg"></p>
+
+<p>I used to work with a guy that was always competing with something. A mutual friend at the office was doing the 3-day breast cancer walk. If anyone in the office donated money, he would up his donation $1 higher. On the softball team, his jersey number was #1. When we started playing ping-pong at lunch, he bought a $600 ping-pong robot to practice with at home. So when he started using a timer while programming I just figured it was good old Paul racing against time.</p>
+
+<p>Then I paired with him on a project. Right after wanting to strangle him for not having his environment ready, we set his timer for 30 minutes and got going. When the timer went off, we stopped mid keystroke and switched seats. This did a few things. First, it kept Paul engaged the whole time because he knew he would be in the hot seat in a few minutes, and I can be a bit of a bully so it was easier for me to back off knowing I’d get my chance soon enough. One of the more surprising benefits, however, was simply the fact that we would sit for a minute and agree exactly what we were doing before starting the timer which really got us in gear and drastically cut down on tangents.</p>
+
+<p>Using a timer creates a magical dynamic that I cannot do justice with words. It’s like TDD, it’s not about the tests – it’s about the code you write to make it testable. You have to try it. Period.</p>
+
+<blockquote><p>If you can do a half-assed job of anything, you’re a one-eyed man in a kingdom of the blind. – Kurt Vonnegut</p></blockquote>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Michael Valenty</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-05-10T21:37:00-07:00" pubdate data-updated="true">May 10<span>th</span>, 2009</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/pair-programming/'>Pair Programming</a>, <a class='category' href='/blog/categories/tdd/'>TDD</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/5-ways-to-fail-at-pair-programming/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/5-ways-to-fail-at-pair-programming/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/unit-of-work-with-unity-and-aspnet-mvc/" title="Previous Post: Unit of Work with Unity and ASP.NET MVC">&laquo; Unit of Work with Unity and ASP.NET MVC</a>
+      
+      
+        <a class="basic-alignment right" href="/dont-eat-a-donut-on-the-way-home-from-the-gym/" title="Next Post: Don’t Eat a Donut on the Way Home From the Gym">Don’t Eat a Donut on the Way Home From the Gym &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
+      </li>
+    
+      <li class="post">
+        <a href="/tamarack-chain-of-responsibility-framework-for-net/">Tamarack: Chain of Responsibility Framework for .NET</a>
+      </li>
+    
+      <li class="post">
+        <a href="/a-custom-httpmodule-to-log-request-duration/">A Custom HttpModule to Log Request Duration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/mikevalenty">@mikevalenty</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'mikevalenty',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Michael Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://mikevalenty.github.io/5-ways-to-fail-at-pair-programming/';
+        var disqus_url = 'http://mikevalenty.github.io/5-ways-to-fail-at-pair-programming/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

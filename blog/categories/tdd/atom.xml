@@ -4,7 +4,7 @@
   <title><![CDATA[Category: TDD | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/tdd/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T18:25:28-07:00</updated>
+  <updated>2013-10-02T21:52:59-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -45,6 +45,274 @@
 <blockquote><p>If you’re going through hell, keep going. – Winston Churchill</p></blockquote>
 
 <p>So I stuck with it and got ‘er done, but it wasn’t much fun. What did I take from this experience? No revelations really, just some common sense reinforcement. It’s like rediscovering that diet and exercise is the key to losing weight, except that I rediscovered that not having tests really sucks when you have to make changes.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Auto-Mocking Unity Container Extension]]></title>
+    <link href="http://mikevalenty.github.io/auto-mocking-unity-container-extension/"/>
+    <updated>2009-06-26T20:13:00-07:00</updated>
+    <id>http://mikevalenty.github.io/auto-mocking-unity-container-extension</id>
+    <content type="html"><![CDATA[<p>Using a container for unit testing is a good way to insulate your tests from changes in object construction. Typically my first test will be something pretty boring just to get the process started. A few tests later, the real behavior comes out along with new dependencies. Rather than having to go back and add the dependencies to all the tests I’ve already written, I like to use a container to build up the object I’m testing.</p>
+
+<p>To streamline this process, I thought it would be handy to use a container extension to auto generate mocks for any required interface that wasn’t explicitly registered. The best way I can explain this is with code, so here it is:</p>
+
+<p>``` c#
+[SetUp]
+public void SetUp()
+{</p>
+
+<pre><code>container = new UnityContainer()
+    .AddNewExtension&lt;AutoMockingContainerExtension&gt;();
+</code></pre>
+
+<p>}</p>
+
+<p>[Test]
+public void Should_be_really_easy_to_test()
+{</p>
+
+<pre><code>container
+    .RegisterMock&lt;IDependencyThatNeedsExplicitMocking&gt;()
+    .Setup(d =&gt; d.MyMethod(It.IsAny&lt;int&gt;()))
+    .Returns("I want to specify the return value");
+
+var service = container.Resolve&lt;ServiceWithThreeDependencies&gt;();
+var result = service.DoSomething();
+
+Assert.That(result, Is.EqualTo("I didn't have to mock the other 2 dependencies!"));
+</code></pre>
+
+<p>}
+```</p>
+
+<p>It really reduces the noise level in tests and lets you focus on the interesting parts of your application. Here’s the code for the container extension:</p>
+
+<p><img src="/images/posts/luigi1.jpg"></p>
+
+<p>``` c#
+public class AutoMockingContainerExtension : UnityContainerExtension
+{</p>
+
+<pre><code>protected override void Initialize()
+{
+    var strategy = new AutoMockingBuilderStrategy(Container);
+
+    Context.Strategies.Add(strategy, UnityBuildStage.PreCreation);
+}
+
+class AutoMockingBuilderStrategy : BuilderStrategy
+{
+    private readonly IUnityContainer container;
+
+    public AutoMockingBuilderStrategy(IUnityContainer container)
+    {
+        this.container = container;
+    }
+
+    public override void PreBuildUp(IBuilderContext context)
+    {
+        var key = context.OriginalBuildKey;
+
+        if (key.Type.IsInterface &amp;&amp; !container.IsRegistered(key.Type))
+        {
+            context.Existing = CreateDynamicMock(key.Type);
+        }
+    }
+
+    private static object CreateDynamicMock(Type type)
+    {
+        var genericMockType = typeof(Mock&lt;&gt;).MakeGenericType(type);
+        var mock = (Mock)Activator.CreateInstance(genericMockType);
+        return mock.Object;
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>In case you’re wondering about <code>container.RegisterMock&lt;&gt;</code>, it’s just extension method that you can read about <a href="/moq-extension-methods-for-unity/">here</a>.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Captcha and Inversion of Control]]></title>
+    <link href="http://mikevalenty.github.io/captcha-and-inversion-of-control/"/>
+    <updated>2009-06-14T20:44:00-07:00</updated>
+    <id>http://mikevalenty.github.io/captcha-and-inversion-of-control</id>
+    <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/lorenzoflip.jpg"></p>
+
+<p>I made a few tweaks to a captcha library I found here and basically wrapped their CaptchaImage object in a service interface to use in my application. Pretty easy stuff, but I didn’t get it right the first time.</p>
+
+<p>What’s wrong with this class?</p>
+
+<p>``` c#
+public class HttpContextCacheCaptchaProvider : ICaptchaProvider
+{</p>
+
+<pre><code>private const string httpContextCacheKey = "4D795A45-8015-475C-A6C4-765B09EB9955";
+private ICaptchaImageFactory factory;
+private HttpContextBase context;
+
+public HttpContextCacheCaptchaProvider(ICaptchaImageFactory factory, HttpContextBase context)
+{
+    this.factory = factory;
+    this.context = context;
+}
+
+public void Render(Stream stream)
+{
+    CaptchaImage captchaImage = factory.Create();
+
+    context.Cache[httpContextCacheKey] = captchaImage.Text; // hint
+
+    using (Bitmap bitmap = captchaImage.RenderImage())
+    {
+        bitmap.Save(stream, ImageFormat.Jpeg);
+    }
+}
+
+public bool Verify(string text)
+{
+    string captchaText = (string)context.Cache[httpContextCacheKey]; // hint
+
+    if (text == null || captchaText == null)
+        return false;
+    else
+        return text.ToLower().Equals(captchaText.ToLower());
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Perhaps your nose can lead you in the right direction. The smell is hard to test, and it’s hard to test because it requires mocking the <code>HttpContextBase</code>. You might say “no problem, I can blast out a stub with Moq in no time” but you’re missing the real problem. That would be like taking aspirin for a brain tumor.</p>
+
+<p><img class="plain" src="/images/posts/arnold.jpg"></p>
+
+<blockquote><p>It’s not a tumor</p></blockquote>
+
+<p>The real problem is this class is violating the Single Responsibility Principle (SRP) by doing more than one thing. I don’t mean the two methods <code>Render()</code> and <code>Verify()</code>, those are a cohesive unit operating on the same data. The other thing is lifetime management. Look how simple the class gets when you invert control and take out the notion of lifetime management:</p>
+
+<p>``` c#
+[Serializable]
+public class LifetimeManagedCaptchaProvider : ICaptchaProvider
+{</p>
+
+<pre><code>private ICaptchaImageFactory factory;
+private string captchaText;
+
+public LifetimeManagedCaptchaProvider(ICaptchaImageFactory factory)
+{
+    this.factory = factory;
+}
+
+public void Render(Stream stream)
+{
+    CaptchaImage captchaImage = factory.Create();
+
+    captchaText = captchaImage.Text;
+
+    using (Bitmap bitmap = captchaImage.RenderImage())
+    {
+        bitmap.Save(stream, ImageFormat.Jpeg);
+    }
+}
+
+public bool Verify(string text)
+{
+    if (text == null || captchaText == null)
+        return false;
+    else
+        return text.ToLower().Equals(captchaText.ToLower());
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Now this class is a breeze to test and all you have to do is register it like this:</p>
+
+<p>``` c#
+Container.RegisterType&lt;ICaptchaProvider, LifetimeManagedCaptchaProvider>(</p>
+
+<pre><code>new HttpSessionStateLifetimeManager());
+</code></pre>
+
+<p>```</p>
+
+<p>The moral of the story is let your IoC container do things it’s good at.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Don’t Eat a Donut on the Way Home From the Gym]]></title>
+    <link href="http://mikevalenty.github.io/dont-eat-a-donut-on-the-way-home-from-the-gym/"/>
+    <updated>2009-05-17T21:32:00-07:00</updated>
+    <id>http://mikevalenty.github.io/dont-eat-a-donut-on-the-way-home-from-the-gym</id>
+    <content type="html"><![CDATA[<p><img class="right" src="/images/posts/homer-donut-thumb.jpg"></p>
+
+<p>I must warn you, this post is about unit testing software, not donuts. With that said, I’ve been pondering the dilemma of how much time to spend writing unit tests and today I had a moment of clarity that I couldn’t help but share.</p>
+
+<p>I was pairing with a coworker on Friday and we were both feeling a bit unproductive because we had spent so much time writing unit tests for a relatively small bit of code. In fact we spent more time writing tests than we spent writing the code to make the tests pass. To make matters worse, we spent more time refactoring the unit tests than we did refactoring the code that made the tests pass. We were pining over the readability of the tests as if the test were more important than the code and that left me with an uneasy feeling over the weekend.</p>
+
+<p>Today I found a bit of inner peace as I embraced the the notion that the tests are more important than the code that makes them pass. Think about that for a moment. The challenge in writing software is not the implementation. Syntax, structures and algorithms are the easy parts. The real hard earned knowledge won through experience comes in the form of specifications; Understanding the intricate complexities and desired behavior of your software in the wild.</p>
+
+<p>Writing software can be like swimming in the ocean when a thick fog rolls in. The mechanics of swimming are learned easily, but the real challenge is knowing which direction to swim so that you get back to the shore before you run out of energy. After a day of programming, the real asset is not the implementation of your feature, it’ s the increased understanding of your problem domain. This understanding is captured in the form of executable requirements.</p>
+
+<p>When there is a bug in your system, chances are it’s a bug in your understanding of how your system should behave under a particular set of conditions. Burying an innocuous if statement in the middle of some method deep in the stack is a horrible way to reap the reward of day spent spelunking through code. It’s like eating a donut on the way home from the gym.</p>
+
+<p>The legacy you leave is the the unit test, it tells the story of the hard fought knowledge and the readability of your test is more important than the readability of your implementation. Tell the next developer what’s important through an executable specification that reads like one.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[5 Ways to Fail at Pair Programming]]></title>
+    <link href="http://mikevalenty.github.io/5-ways-to-fail-at-pair-programming/"/>
+    <updated>2009-05-10T21:37:00-07:00</updated>
+    <id>http://mikevalenty.github.io/5-ways-to-fail-at-pair-programming</id>
+    <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/shoes.jpg"></p>
+
+<p>The only hard part is convincing your boss that it’s not a colossal waste of time, right? Well that’s the first hurdle and yes it’s a doosie, but it’s just the price of admission. The real fun starts when you sit next to your partner and try to prove your boss wrong. After a year or so in the trenches, I’ve learned a thing or two on how to mess it up.</p>
+
+<h3>5. Researching new technology</h3>
+
+<p>“Click on that link, no wait scroll up, over there, wait I wasn’t done reading that…” That’s not pair programming, that’s insanity. Recently we were working on a project that involved a custom Firefox browser skin. Neither of us had experience with browser skins, so there was a lot of Googling and tutorial reading. As soon as we caught ourselves reading blogs and whatnot, we would split up for 15 minutes and then compare notes.</p>
+
+<h3>4. Getting your environment going</h3>
+
+<p>“Hey buddy, are you ready to start pairing on that project? Let’s see, now where is the source code for the project we’re working on… Hmm, this doesn’t compile – I think I need to install the latest version of that library.” Kill me now.</p>
+
+<h3>3. Paralysis</h3>
+
+<p><img class="plain right" src="/images/posts/FrightenedMan400.jpg"></p>
+
+<p>One of my favorite authors, Kurt Vonnegut would write clever things like “The man looked… guilty isn’t the right word, but it’s the first one that comes to mind.”</p>
+
+<p>With pair programming, you can’t just sit there because you don’t know where to start or you can’t think of the right variable name. Just type something. You have to get the problem solving out of your head and into a medium that two people can have a conversation about it. Maybe people are afraid to type something in front of a peer if it’s not perfect. Borrow a technique from Kurt Vonnegut and as you are type, just say “I don’t want the code to look like this…” and write some awful switch case statement.</p>
+
+<p>Once there is something on the screen, you and your partner are instantly aligned and solving the same problem. Now you can discuss factories and polymorphism and all kinds of heady solutions.</p>
+
+<h3>2. Not doing TDD</h3>
+
+<p>Have you ever watched an artist paint a picture and thought to yourself “what the heck is that”. Then with the next brush stroke you realize you’re looking at the profile of someone’s face. Well watching someone write code can be horribly worse than that.</p>
+
+<p>Pair programming is a conversation, not a seminar or window into someone’s brain. The best way to keep things at a conversational level is to work top down which is exactly what TDD forces you to do. You must consider your code from the client perspective and challenge yourself to keep your code on purpose.</p>
+
+<p>Even more importantly, TDD gives you and your buddy an “out” at regular intervals. You write a test, you make a test pass. Either way, you have many small victories over the course of a few hours and you can switch pairs at well defined feel-good stopping points.</p>
+
+<h3>1. Not using a timer</h3>
+
+<p><img class="plain left" src="/images/posts/pprobot.jpg"></p>
+
+<p>I used to work with a guy that was always competing with something. A mutual friend at the office was doing the 3-day breast cancer walk. If anyone in the office donated money, he would up his donation $1 higher. On the softball team, his jersey number was #1. When we started playing ping-pong at lunch, he bought a $600 ping-pong robot to practice with at home. So when he started using a timer while programming I just figured it was good old Paul racing against time.</p>
+
+<p>Then I paired with him on a project. Right after wanting to strangle him for not having his environment ready, we set his timer for 30 minutes and got going. When the timer went off, we stopped mid keystroke and switched seats. This did a few things. First, it kept Paul engaged the whole time because he knew he would be in the hot seat in a few minutes, and I can be a bit of a bully so it was easier for me to back off knowing I’d get my chance soon enough. One of the more surprising benefits, however, was simply the fact that we would sit for a minute and agree exactly what we were doing before starting the timer which really got us in gear and drastically cut down on tangents.</p>
+
+<p>Using a timer creates a magical dynamic that I cannot do justice with words. It’s like TDD, it’s not about the tests – it’s about the code you write to make it testable. You have to try it. Period.</p>
+
+<blockquote><p>If you can do a half-assed job of anything, you’re a one-eyed man in a kingdom of the blind. – Kurt Vonnegut</p></blockquote>
 ]]></content>
   </entry>
   

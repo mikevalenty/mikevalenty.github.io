@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Definition of Done - Agile at Work</title>
+  <meta name="author" content="Michael Valenty">
+
+  
+  <meta name="description" content="If you don’t know where you are going, you will wind up somewhere else. – Yogi Berra When asked how a project is going, most programmers will offer &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://mikevalenty.github.io/definition-of-done">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Agile at Work</a></h1>
+  
+    <h2>by Michael Valenty</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:mikevalenty.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Definition of Done</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-05-30T21:09:00-07:00" pubdate data-updated="true">May 30<span>th</span>, 2009</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><blockquote><p>If you don’t know where you are going, you will wind up somewhere else. – Yogi Berra</p></blockquote>
+
+<p>When asked how a project is going, most programmers will offer one of two discreet responses. It’s either “I just started looking at the code” or “I’m done, I just need to clean up a few things.” Upon further investigation, I have found that done means the hard part has been figured out and there is usually an IDE output window or a funky test web page running on localhost that can demonstrate this status.</p>
+
+<p>The problem is that the hard part is really the fun part, and the actual hart part is the “…I just need to clean up a few things.” So, to remind me and the rest of the team what done means, we have the following definition posted prominently on the wall.</p>
+
+<h3>1) Unit Tested</h3>
+
+<p>This doesn’t need much of an explanation, but having a formal definition posted on the wall is a good reminder for a team new to unit testing.</p>
+
+<p>Unit testing by itself is important, but the real boost comes from using a CI server. We use TeamCity for our .NET projects and phpUnderControl for php projects.</p>
+
+<h3>2) Acceptance Tested</h3>
+
+<p>For our team, acceptance testing means that we deploy our new code to a demo server and write Selenium tests for it. We export the selenium tests as phpUnit fixtures that CruiseControl will run whenever our svn repository is updated. Before the selenium tests are run, we need to update our demo server, so we have CruiseControl call <code>http://ourdemoserver.com/svn-update.php</code> first.</p>
+
+<h3>3) Packaged For Deployment</h3>
+
+<p>For our .NET projects, we use a homegrown tool for packaging and deploying. It can stop/start IIS register/unregister COM+ objects and rollback across a farm. For php projects, we simply hand roll a zip file and use some lightweight scripts to unpack the files on the server with rollback ability.</p>
+
+<h3>4) No Increased Technical Debt</h3>
+
+<p>I ask myself if this code is going to be an asset that makes us stronger and able to respond more quickly to future business opportunities, or is it going to be a fragile liability that I will need to carefully tip-toe around 30 seconds after it’s deployed.</p>
+
+<p>Just like a parent thinks their kid is the cutest kid ever, it can be hard to look at your own work when you’ve got your head wrapped around it and come to terms with the fact that you’re about to deploy some legacy code. I usually grab a coworker and walk through things while paying close attention to the <a href="http://www.osnews.com/story/19266/WTFs_m">only valid measurement of code quality</a>.</p>
+
+<p><img src="/images/posts/wtfm.jpg"></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Michael Valenty</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-05-30T21:09:00-07:00" pubdate data-updated="true">May 30<span>th</span>, 2009</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/acceptance-testing/'>Acceptance Testing</a>, <a class='category' href='/blog/categories/continuous-integration/'>Continuous Integration</a>, <a class='category' href='/blog/categories/technical-debt/'>Technical Debt</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://mikevalenty.github.io/definition-of-done/" data-via="mikevalenty" data-counturl="http://mikevalenty.github.io/definition-of-done/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/lunch-n-learn-videos/" title="Previous Post: Lunch-n-Learn Videos">&laquo; Lunch-n-Learn Videos</a>
+      
+      
+        <a class="basic-alignment right" href="/testing-unity-container-configuration/" title="Next Post: Testing Unity Container Configuration">Testing Unity Container Configuration &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
+      </li>
+    
+      <li class="post">
+        <a href="/tamarack-chain-of-responsibility-framework-for-net/">Tamarack: Chain of Responsibility Framework for .NET</a>
+      </li>
+    
+      <li class="post">
+        <a href="/a-custom-httpmodule-to-log-request-duration/">A Custom HttpModule to Log Request Duration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/mikevalenty">@mikevalenty</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'mikevalenty',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Michael Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://mikevalenty.github.io/definition-of-done/';
+        var disqus_url = 'http://mikevalenty.github.io/definition-of-done/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Domain Driven Design | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/domain-driven-design/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T18:25:28-07:00</updated>
+  <updated>2013-10-02T21:52:59-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -160,6 +160,218 @@ return parent::createOrder($order);
 <p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
 
 <p>It tells an important story for the next guy looking at the code and it changes the role of the programmer from code monkey to business partner. Maybe you think I’m crazy, but this stuff matters to me.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[This Could Have Been a Stored Procedure]]></title>
+    <link href="http://mikevalenty.github.io/this-could-have-been-a-stored-procedure/"/>
+    <updated>2009-06-11T20:56:00-07:00</updated>
+    <id>http://mikevalenty.github.io/this-could-have-been-a-stored-procedure</id>
+    <content type="html"><![CDATA[<p><img class="plain right" src="/images/posts/domaindrivendesignbookcover.jpg"></p>
+
+<p>I read <a href="http://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215">Domain Driven Design</a> about a year and a half ago and when I got to the part about the specification pattern, I thought it was really cool and I couldn’t wait to try it out. Maybe the pattern gods were listening or maybe I was unknowingly using <a href="http://www.thesecret.tv/">the secret</a>. Either way, it was pretty much the next morning that I went to work and had the perfect project dropped in my lap.</p>
+
+<p>Our phone system routes live phone calls to doctor’s offices and the project was to bill the doctor if the call met the following criteria:</p>
+
+<ol>
+<li>Caller is a new patient (pressed “1” instead of “2” in response to a voice prompt)</li>
+<li>A live call was connected for more than 20 seconds or message longer than 10 seconds was recorded.</li>
+<li>The doctor has not already been billed for this caller.</li>
+<li>The call is not from a known list of test numbers.</li>
+</ol>
+
+
+<p>The application subscribes to an event stream of new call records and runs them through this composite specification to determine if the call is billable.</p>
+
+<p>``` c#
+public bool IsBillable(CallRecord call)
+{</p>
+
+<pre><code>ISpecification&lt;CallRecord&gt; billableCallSpecification = new NewPatient()
+    .And(new MinLengthLiveCall(liveCallSeconds).Or(new MinLengthMessage(messageSeconds))
+    .And(new RepeatCall(referralFinder).Not())
+    .And(new TestCall(testNumbers).Not()));
+
+return billableCallSpecification.IsSatisfiedBy(call);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>I have to admit that I was already an hour into Query Analyzer blasting through another monster stored procedure when I caught myself. Not just the criteria logic either, I mean bypassing all the event stream hooha and basically just writing the whole enchilada as one gnarly stored procedure that would run as a job. That was a close one!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Unit of Work with Unity and ASP.NET MVC]]></title>
+    <link href="http://mikevalenty.github.io/unit-of-work-with-unity-and-aspnet-mvc/"/>
+    <updated>2009-05-09T21:42:00-07:00</updated>
+    <id>http://mikevalenty.github.io/unit-of-work-with-unity-and-aspnet-mvc</id>
+    <content type="html"><![CDATA[<p>I was recently asked how I get the context of  “this” in the UoW relating to the current page request.</p>
+
+<p><img class="plain" src="/images/posts/howididit-thumb.jpg"></p>
+
+<p>Before I get into the guts, I would like to provide a little context. My application has 20+ databases scattered across 4 machines.</p>
+
+<p><code>c#
+IRepository&lt;Customer&gt; customerRepository; // customer database on server 1
+IRepository&lt;Package&gt;  packageRepository; // customer database on server 1
+IRepository&lt;Contact&gt;  contactRepository; // contact database on server 2
+</code></p>
+
+<p>So, I might ask for a <code>Customer</code> object and a <code>Package</code> object and I want to get the same <code>ISession</code> for both and if I ask for the same Customer twice, I want to get the one from the 1st level cache (I’m using NHibernate). If I ask for a Contact object, I will get a different ISession. All opened sessions are managed by my UoW. So, when the page request is complete, I call <code>UoW.Commit</code> and all sessions are committed.</p>
+
+<p>The “magic” if you will, happens in the global.asax. I was nosing around in Rhino.Commons for inspiration and adapted a technique I saw there. This is how it looks:</p>
+
+<p>``` c#
+public class GlobalApplication : HttpApplication
+{</p>
+
+<pre><code>private static IUnityContainer container;
+
+public GlobalApplication()
+{
+    BeginRequest += new EventHandler(GlobalApplication_BeginRequest);
+    EndRequest += new EventHandler(GlobalApplication_EndRequest);
+}
+
+protected void Application_Start(object sender, EventArgs e)
+{
+    RegisterRoutes(RouteTable.Routes);
+
+    container = new UnityContainer();
+    container.AddNewExtension&lt;PolicyInjectorContainerExtension&gt;();
+    container.AddNewExtension&lt;HttpRequestLifetimeCoreContainerExtension&gt;();
+    container.AddNewExtension&lt;WebMvcContainerExtension&gt;();
+
+    ControllerBuilder.Current.SetControllerFactory(new UnityControllerFactory(container));
+}
+
+void GlobalApplication_BeginRequest(object sender, EventArgs e)
+{
+    var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
+    unitOfWork.Start();
+}
+
+void GlobalApplication_EndRequest(object sender, EventArgs e)
+{
+    var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
+    unitOfWork.Commit();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>I register the UoW with an <code>HttpRequestLifetimeManager</code> so I get a new instance for each request.</p>
+
+<p>``` c#
+Container.RegisterType&lt;IUnitOfWork<ISession>,</p>
+
+<pre><code>NHibernateUnitOfWork&gt;(new HttpRequestLifetimeManager());
+</code></pre>
+
+<p>```</p>
+
+<p>My <code>NHibernateRepository</code> gets injected with the UoW for the current <code>HttpRequest</code> and when the request is complete, the <code>global.asax</code> commits the whole thing.</p>
+
+<p>``` c#
+public class NHibernateRepository<T> : IRepository<T>
+{</p>
+
+<pre><code>protected ISession session;
+
+public NHibernateRepository(IUnitOfWork&lt;ISession&gt; unitOfWork)
+{
+    session = unitOfWork.GetContextFor&lt;T&gt;();
+}
+
+...
+
+public virtual void Save(T obj)
+{
+    session.Save(obj);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Now, this is all the context of an ASP.NET MVC Controller, but I have a similar issue for other (non-web) services. In that context I am using AOP and decorating a particular method with <code>[UnitOfWork]</code>, which looks like:</p>
+
+<p>``` c#
+public class UnitOfWorkCallHander : ICallHandler
+{</p>
+
+<pre><code>private IUnitOfWork&lt;ISession&gt; unitOfWork;
+
+public UnitOfWorkCallHander(IUnitOfWork&lt;ISession&gt; unitOfWork)
+{
+    this.unitOfWork = unitOfWork;
+}
+
+public int Order { get; set; }
+
+public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
+{
+    unitOfWork.Start();
+
+    try
+    {
+        return getNext()(input, getNext);
+    }
+    finally
+    {
+        unitOfWork.Commit();
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>In that context I use a <code>PerThreadLifetimeManager</code> for the <code>NHibernateUnitOfWork</code>, and code ends up looking like:</p>
+
+<p>``` c#
+[UnitOfWork]
+public void Process(Job job)
+{</p>
+
+<pre><code>...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>You know, there is really no reason why you couldn’t do the same thing in the MVC context. You could basically ditch the <code>global.asax</code> event hooha and just annotate the Controller task:</p>
+
+<p>``` c#
+[UnitOfWork]
+public ActionResult ControllerTaskThatRequiresUoW()
+{</p>
+
+<pre><code>...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>It’s more explicit than using the <code>global.asax</code> technique and it would allow you to specify different UoW behavior on each controller task:</p>
+
+<p>``` c#
+[UnitOfWork(IsolationLevel.ReadCommitted]
+public ActionResult SomeTaskThatShouldNotReadUncommitedData()
+{
+}</p>
+
+<p>[UnitOfWork(IsolationLevel.ReadUncommitted)]
+public ActionResult AnotherTaskWithDifferentRequirements()
+{
+}
+```</p>
+
+<p>I’d like to try this out next time I get back into ASP.NET MVC, the global.asax event technique felt a little too magical and I don’t think Uncle Bob would approve.</p>
 ]]></content>
   </entry>
   

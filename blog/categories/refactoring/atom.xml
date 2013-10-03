@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Refactoring | Agile at Work]]></title>
   <link href="http://mikevalenty.github.io/blog/categories/refactoring/atom.xml" rel="self"/>
   <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T18:25:28-07:00</updated>
+  <updated>2013-10-02T21:52:59-07:00</updated>
   <id>http://mikevalenty.github.io/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -206,6 +206,19 @@ return parent::createOrder($order);
 <p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
 
 <p>It tells an important story for the next guy looking at the code and it changes the role of the programmer from code monkey to business partner. Maybe you think I’m crazy, but this stuff matters to me.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Martinizing is Not Refactoring]]></title>
+    <link href="http://mikevalenty.github.io/martinizing-is-not-refactoring/"/>
+    <updated>2009-05-24T21:30:00-07:00</updated>
+    <id>http://mikevalenty.github.io/martinizing-is-not-refactoring</id>
+    <content type="html"><![CDATA[<p>A friend of mine, Keith, used the term martinizing (as in <a href="http://www.objectmentor.com/omTeam/martin_r.html">Uncle Bob</a>) for the process of <a href="http://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882">cleaning code</a>. The term has taken on a very specific meaning and it’s worth a few words.</p>
+
+<p>Martinizing is similar to refactoring in that it does not change the observable behavior of the code, but the goal is different. When I refactor, I am changing the design, usually in an effort to add a new feature in an <a href="http://c2.com/cgi/wiki?OpenClosedPrinciple">open closed</a> manner.</p>
+
+<p>When I martinize, I am telling a story. The most important story being the desired behavior, but also a story of the hard earned knowledge acquired along the way. If I spend hours distilling some business concept. I want to leave a trail for the next guy to understand that a simple property assignment or conditional statement isn’t so simple. And of course the perfect way to punctuate that message is with a well written unit test.</p>
 ]]></content>
   </entry>
   
