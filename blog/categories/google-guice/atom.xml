@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Google Guice | Agile at Work]]></title>
-  <link href="http://mikevalenty.github.io/blog/categories/google-guice/atom.xml" rel="self"/>
-  <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T22:31:48-07:00</updated>
-  <id>http://mikevalenty.github.io/</id>
+  <link href="http://www.agileatwork.com//blog/categories/google-guice/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com//"/>
+  <updated>2013-10-02T22:49:43-07:00</updated>
+  <id>http://www.agileatwork.com//</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Configuring Decorators with Google Guice]]></title>
-    <link href="http://mikevalenty.github.io/configuring-decorators-with-google-guice/"/>
+    <link href="http://www.agileatwork.com//configuring-decorators-with-google-guice/"/>
     <updated>2012-02-20T07:11:00-08:00</updated>
-    <id>http://mikevalenty.github.io/configuring-decorators-with-google-guice</id>
+    <id>http://www.agileatwork.com//configuring-decorators-with-google-guice</id>
     <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
 
 <p>``` java

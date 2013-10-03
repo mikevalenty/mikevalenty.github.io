@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Fluent Interface | Agile at Work]]></title>
-  <link href="http://mikevalenty.github.io/blog/categories/fluent-interface/atom.xml" rel="self"/>
-  <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T22:31:48-07:00</updated>
-  <id>http://mikevalenty.github.io/</id>
+  <link href="http://www.agileatwork.com//blog/categories/fluent-interface/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com//"/>
+  <updated>2013-10-02T22:49:43-07:00</updated>
+  <id>http://www.agileatwork.com//</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Console application with IoC]]></title>
-    <link href="http://mikevalenty.github.io/console-application-with-ioc/"/>
+    <link href="http://www.agileatwork.com//console-application-with-ioc/"/>
     <updated>2009-11-21T21:57:00-08:00</updated>
-    <id>http://mikevalenty.github.io/console-application-with-ioc</id>
+    <id>http://www.agileatwork.com//console-application-with-ioc</id>
     <content type="html"><![CDATA[<p>I like to think of the <code>Main</code> method in a Console application like the <code>Global.asax</code>. Its single responsibility is to wire-up things to be run in a console context. Each environment has unique configuration requirements. For example, when using NHiberate in a web application the lifetime of the <code>ISession</code> is attached to the <code>HttpRequest</code>, however in the context of a console application it may be a singleton or “per job” in a windows service. I like this:</p>
 
 <p>``` c#
@@ -43,9 +43,9 @@ class Program
   
   <entry>
     <title type="html"><![CDATA[An Order Processing Pipeline in ASP.NET MVC]]></title>
-    <link href="http://mikevalenty.github.io/an-order-processing-pipeline-in-aspnet-mvc/"/>
+    <link href="http://www.agileatwork.com//an-order-processing-pipeline-in-aspnet-mvc/"/>
     <updated>2009-05-02T21:57:00-07:00</updated>
-    <id>http://mikevalenty.github.io/an-order-processing-pipeline-in-aspnet-mvc</id>
+    <id>http://www.agileatwork.com//an-order-processing-pipeline-in-aspnet-mvc</id>
     <content type="html"><![CDATA[<p>Lately, I can’t seem to shake the pipeline pattern. It keeps popping up in all my applications. It’s like when I think about buying a new car and then I start seeing them everywhere on road and think – have there always been that many out there?</p>
 
 <p>So, here it is in action. Below is a controller from an ASP.NET MVC application. The method accepts an order in the form of xml for provisioning products in our system.</p>

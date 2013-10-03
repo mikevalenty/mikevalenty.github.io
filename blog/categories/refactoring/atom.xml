@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Refactoring | Agile at Work]]></title>
-  <link href="http://mikevalenty.github.io/blog/categories/refactoring/atom.xml" rel="self"/>
-  <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T22:31:48-07:00</updated>
-  <id>http://mikevalenty.github.io/</id>
+  <link href="http://www.agileatwork.com//blog/categories/refactoring/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com//"/>
+  <updated>2013-10-02T22:49:43-07:00</updated>
+  <id>http://www.agileatwork.com//</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Refactoring: Introduce Parameter Object]]></title>
-    <link href="http://mikevalenty.github.io/rafactoring-introduce-parameter-object/"/>
+    <link href="http://www.agileatwork.com//rafactoring-introduce-parameter-object/"/>
     <updated>2010-02-15T06:49:00-08:00</updated>
-    <id>http://mikevalenty.github.io/rafactoring-introduce-parameter-object</id>
+    <id>http://www.agileatwork.com//rafactoring-introduce-parameter-object</id>
     <content type="html"><![CDATA[<p>Take a look at this function:</p>
 
 <p>``` c#
@@ -123,9 +123,9 @@ public int Number {</p>
   
   <entry>
     <title type="html"><![CDATA[Domain Driven Design in the Small]]></title>
-    <link href="http://mikevalenty.github.io/domain-driven-design-in-the-small/"/>
+    <link href="http://www.agileatwork.com//domain-driven-design-in-the-small/"/>
     <updated>2009-08-08T06:24:00-07:00</updated>
-    <id>http://mikevalenty.github.io/domain-driven-design-in-the-small</id>
+    <id>http://www.agileatwork.com//domain-driven-design-in-the-small</id>
     <content type="html"><![CDATA[<p>A few months ago we built a <a href="http://www.magentocommerce.com/">Magento</a> extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking. As part of the process, a contact record was created in the affiliate’s CRM account.</p>
 
 <p> <img src="/images/posts/SubmitYourIdea1.jpg"></p>
@@ -200,7 +200,7 @@ return parent::createOrder($order);
 
 <blockquote><p>That was huge. – Paris Hilton</p></blockquote>
 
-<iframe class="plain" width="640" height="360" src="http://mikevalenty.github.io//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+<iframe class="plain" width="640" height="360" src="http://www.agileatwork.com///www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
 
 
 <p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
@@ -211,9 +211,9 @@ return parent::createOrder($order);
   
   <entry>
     <title type="html"><![CDATA[Martinizing is Not Refactoring]]></title>
-    <link href="http://mikevalenty.github.io/martinizing-is-not-refactoring/"/>
+    <link href="http://www.agileatwork.com//martinizing-is-not-refactoring/"/>
     <updated>2009-05-24T21:30:00-07:00</updated>
-    <id>http://mikevalenty.github.io/martinizing-is-not-refactoring</id>
+    <id>http://www.agileatwork.com//martinizing-is-not-refactoring</id>
     <content type="html"><![CDATA[<p>A friend of mine, Keith, used the term martinizing (as in <a href="http://www.objectmentor.com/omTeam/martin_r.html">Uncle Bob</a>) for the process of <a href="http://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882">cleaning code</a>. The term has taken on a very specific meaning and it’s worth a few words.</p>
 
 <p>Martinizing is similar to refactoring in that it does not change the observable behavior of the code, but the goal is different. When I refactor, I am changing the design, usually in an effort to add a new feature in an <a href="http://c2.com/cgi/wiki?OpenClosedPrinciple">open closed</a> manner.</p>

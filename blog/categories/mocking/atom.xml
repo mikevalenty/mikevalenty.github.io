@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Mocking | Agile at Work]]></title>
-  <link href="http://mikevalenty.github.io/blog/categories/mocking/atom.xml" rel="self"/>
-  <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T22:31:48-07:00</updated>
-  <id>http://mikevalenty.github.io/</id>
+  <link href="http://www.agileatwork.com//blog/categories/mocking/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com//"/>
+  <updated>2013-10-02T22:49:43-07:00</updated>
+  <id>http://www.agileatwork.com//</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Moq Extension Methods for Unity]]></title>
-    <link href="http://mikevalenty.github.io/moq-extension-methods-for-unity/"/>
+    <link href="http://www.agileatwork.com//moq-extension-methods-for-unity/"/>
     <updated>2009-10-31T06:21:00-07:00</updated>
-    <id>http://mikevalenty.github.io/moq-extension-methods-for-unity</id>
+    <id>http://www.agileatwork.com//moq-extension-methods-for-unity</id>
     <content type="html"><![CDATA[<p>A few people have asked about the <code>RegisterMock</code> extension method used in another post. The usage looks like this:</p>
 
 <p>``` c#

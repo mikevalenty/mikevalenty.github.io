@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Validation | Agile at Work]]></title>
-  <link href="http://mikevalenty.github.io/blog/categories/validation/atom.xml" rel="self"/>
-  <link href="http://mikevalenty.github.io/"/>
-  <updated>2013-10-02T22:31:48-07:00</updated>
-  <id>http://mikevalenty.github.io/</id>
+  <link href="http://www.agileatwork.com//blog/categories/validation/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com//"/>
+  <updated>2013-10-02T22:49:43-07:00</updated>
+  <id>http://www.agileatwork.com//</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Validation with Unity Interception]]></title>
-    <link href="http://mikevalenty.github.io/validation-with-unity-interception/"/>
+    <link href="http://www.agileatwork.com//validation-with-unity-interception/"/>
     <updated>2009-07-18T18:20:00-07:00</updated>
-    <id>http://mikevalenty.github.io/validation-with-unity-interception</id>
+    <id>http://www.agileatwork.com//validation-with-unity-interception</id>
     <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
 
 <p>This is how I want things to look:</p>
