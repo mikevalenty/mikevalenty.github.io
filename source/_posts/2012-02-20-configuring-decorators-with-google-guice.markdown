@@ -38,7 +38,7 @@ public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
   }
 ```
 
-I’m not going to rant about how extends is evil and that you’re better off with a decorator because I’ve already done that, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements `CreditCardProcessor`. Looking at the Guice documentation, you would likely think the answer is to do this:
+I’m not going to rant about how extends is evil and that you’re better off with a decorator because [I’ve already done that](/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/), and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements `CreditCardProcessor`. Looking at the Guice documentation, you would likely think the answer is to do this:
 
 ``` java
 public class RealBillingService implements BillingService {
@@ -58,9 +58,9 @@ public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
   }
 ```
 
-That’s wrong though. The `CreditCardProcessor` isn’t a thing, it’s a seam and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the `CreditCardProcessor` abstraction could get assembled differently for any number of reasons. Maybe your application supports multi-tenancy and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.
+That’s wrong though. The `CreditCardProcessor` isn’t a _thing_, it’s a _seam_ and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the `CreditCardProcessor` abstraction could get assembled differently for any number of reasons. Maybe your application supports [multi-tenancy](/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/) and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.
 
-While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. Chances are the original author of Guice and the person writing the documentation for binding annotations aren’t the same person so it’s understandable that a detail like this could get lost in the shuffle. The correct way to use binding annotations and not undermine the point of injecting your dependencies in the first place is like so:
+While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. The better way to use binding annotations and not undermine the point of injecting your dependencies is like so:
 
 ``` java
 public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
@@ -87,4 +87,4 @@ public class ConfigureCreditCardProcessor extends AbstractModule {
 }
 ```
 
-Did you catch the difference? It’s subtle, but the devil is in the details. In this last example, the DoubleChargeCreditCardProcessor doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.
+The difference is subtle, but the devil is in the details. In this last example, the `DoubleChargeCreditCardProcessor` doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.
