@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2013-10-02T23:08:01-07:00</updated>
+  <updated>2013-10-05T16:14:04-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -12,6 +12,131 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Appreciating Algorithm Complexity]]></title>
+    <link href="http://www.agileatwork.com/appreciating-algorithm-complexity/"/>
+    <updated>2013-10-05T12:52:00-07:00</updated>
+    <id>http://www.agileatwork.com/appreciating-algorithm-complexity</id>
+    <content type="html"><![CDATA[<p><a href="https://www.coursera.org/course/algo">Algorithms: Design and Analysis, Part 1</a> is a free online course from Standford offered through <a href="https://www.coursera.org/">Coursera.org</a>. An assignment that stuck with me was implementing an algorithm for counting inversions. Counting inversions is a way to quantify similarity of two ordered lists. The canonical example described in the lectures was comparing lists of favorite movies.</p>
+
+<p>I banged out a naive implementation using nested loops that I could use for comparison to make sure I was implementing the real algorithm correctly.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="kt">long</span> <span class="nf">countQuadratic</span><span class="o">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">a</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">a</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">a</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">a</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">&gt;</span> <span class="n">a</span><span class="o">[</span><span class="n">j</span><span class="o">])</span>
+</span><span class='line'>                <span class="n">count</span><span class="o">++;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">count</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The algorithm described in lecture is a divide and conquer algorithm based on a variation of <a href="http://en.wikipedia.org/wiki/Merge_sort">merge sort</a>, and as you might expect from its lineage, runs in <code>O(nlog(n))</code> time.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="kt">long</span> <span class="nf">countLinearithmic</span><span class="o">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">a</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// REDACTED</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">countLeft</span> <span class="o">=</span> <span class="n">countLinearithmic</span><span class="o">(</span><span class="n">left</span><span class="o">);</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">countRight</span> <span class="o">=</span> <span class="n">countLinearithmic</span><span class="o">(</span><span class="n">right</span><span class="o">);</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">countSplit</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">a</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">k</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// REDACTED</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">countLeft</span> <span class="o">+</span> <span class="n">countRight</span> <span class="o">+</span> <span class="n">countSplit</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>* The guts of the implementation are not shown per the <a href="https://www.coursera.org/about/honorcode">Coursera honor code</a>.</em></p>
+
+<p>The assignment was to run this algorithm on a list of 100,000 integers and report the number of inversions. I ran both implementations as a sanity check.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Test</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">should_count_inversions_in_text_file</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span><span class="o">[]</span> <span class="n">a</span> <span class="o">=</span> <span class="n">FileUtil</span><span class="o">.</span><span class="na">parseInts</span><span class="o">(</span><span class="s">&quot;Inversions.txt&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">assertThat</span><span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="na">length</span><span class="o">,</span> <span class="n">is</span><span class="o">(</span><span class="mi">100000</span><span class="o">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">start1</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">count1</span> <span class="o">=</span> <span class="n">countQuadratic</span><span class="o">(</span><span class="n">a</span><span class="o">);</span> <span class="c1">// O(n^2)</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">duration1</span> <span class="o">=</span> <span class="n">start1</span> <span class="o">-</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">println</span><span class="o">(</span><span class="s">&quot;countQuadratic: &quot;</span> <span class="o">+</span> <span class="n">duration1</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">start2</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">count2</span> <span class="o">=</span> <span class="n">countLinearithmic</span><span class="o">(</span><span class="n">a</span><span class="o">);</span> <span class="c1">// O(nlog(n))</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">duration2</span> <span class="o">=</span> <span class="n">start2</span> <span class="o">-</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">println</span><span class="o">(</span><span class="s">&quot;countLinearithmic: &quot;</span> <span class="o">+</span> <span class="n">duration2</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">assertThat</span><span class="o">(</span><span class="n">count1</span><span class="o">,</span> <span class="n">is</span><span class="o">(</span><span class="n">equalTo</span><span class="o">(</span><span class="n">count2</span><span class="o">)));</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p> It&rsquo;s one thing to crunch numbers on a calulator or plot graphs to gain an intuition for algorithm complexity, but it&rsquo;s quite a bit more meaningful to wait for 15 seconds while a 2.7GHz quad-core Intel Core i7 grinds through ~5 Billion comparisions <code>O(n^2)</code> versus a mere 140 ms to zip through 1.6 Million comparisons using an <code>O(nlog(n))</code> implementation.</p>
+
+<blockquote><p>Yeah, science!</p></blockquote>
+
+<iframe width="560" height="315" src="http://www.agileatwork.com//www.youtube.com/embed/eQR1r1KTjaE" frameborder="0" allowfullscreen></iframe>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Configuring Decorators with Google Guice]]></title>
@@ -2922,41 +3047,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 <p>* <em>The <code>LocatorChain&lt;T&gt;</code> is an implementation of the chain of responsibility pattern.</em></p>
 
 <p>I do everything I can to push out all the noise and bring the behavior to the surface. Sometimes the right way to name a class is after a feature or behavior. I want my code to read like a DSL and making everything a noun just doesn’t cut it. The drivers for me are context and readability.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Maybe Uncle Bob is Wrong About Testing]]></title>
-    <link href="http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing/"/>
-    <updated>2009-11-30T21:45:00-08:00</updated>
-    <id>http://www.agileatwork.com/maybe-uncle-bob-is-wrong-about-testing</id>
-    <content type="html"><![CDATA[<p>As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s known as a positive feedback loop, and this was how I spent the better part of last week.</p>
-
-<p><img src="http://www.agileatwork.com/images/posts/feedback2_thumb.png"></p>
-
-<p><strong>Figure A.5</strong> Not enough time to test reduces the available time <em>Test-Driven Development: By Example by Kent Beck</em></p>
-
-<p>It didn’t start out that way. In fact the first few lines of code I wrote were tests. The problem was I could only get about an hour or two in each night and every day that passed we were leaving money on the table.</p>
-
-<p>Since I didn’t have much time at night, I didn’t want to spend it writing tests. I just wanted to get the app done. All I needed to do was sync business listings from an affiliate with GarageCommerce.com, the project I’ve been working on for the last few months. There were only a handful of business rules to deal with and I thought I could just bang it out.</p>
-
-<p><img class="left" src="http://www.agileatwork.com/images/posts/district9poster_thumb.jpg"></p>
-
-<p>I know what you’re thinking. You already know where this is headed and you might as well just skip to the end. It’s like in that movie District 9. It started out pretty good with some edgy social commentary but by the end of the movie it just phoned in a cliché Hollywood plot. You know, like “fish out of water”, “buddy movie”, or “trading places” as was the case with District 9.</p>
-
-<p>Anyway, I finished the app and since I only had a few tests I figured I should trace through things a few times to look for obvious problems. After doing that for a few minutes I was ready to press F5 and start working the kinks out. So after hours of zero feedback coding, I took a deep breath and the started the app for the first time.</p>
-
-<p>It promptly bombed out as expected. I worked through a handful of errors and then it was good to go. As I watched it run, I thought to myself that maybe Uncle Bob is wrong about testing and Spolsky isn’t such a douche bag after all. However after processing a couple hundred jobs, it started throwing crazy errors in a tight loop. Crap!</p>
-
-<p>Fast forward a few hours and I’ve got a hunch as to what is causing the problem. The way I wired up the app, I was creating a single NHibernate session for the entire batch of jobs. I knew this could be trouble so I at least made a point to commit after each job and clear the session so it wouldn’t get bogged down with 10K+ entities. I knew the single session was smelly and the errors I was seeing prompted me to refactor.</p>
-
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/MASHtvshow11_thumb.jpg"></p>
-
-<p>This is where it got ugly. I needed to do a pretty major overhaul and I was mostly test-less. My blood pressure went way up with each change and the fact that I didn’t have tests just made me take larger steps with no safety net. I felt like a M.A.S.H. surgeon with guts all over the operating table. Part of me thought I should take a few steps back and regroup, but another part of me was reminded of this quote:</p>
-
-<blockquote><p>If you’re going through hell, keep going. – Winston Churchill</p></blockquote>
-
-<p>So I stuck with it and got ‘er done, but it wasn’t much fun. What did I take from this experience? No revelations really, just some common sense reinforcement. It’s like rediscovering that diet and exercise is the key to losing weight, except that I rediscovered that not having tests really sucks when you have to make changes.</p>
 ]]></content>
   </entry>
   

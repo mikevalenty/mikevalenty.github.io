@@ -9,7 +9,7 @@
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="I read Domain Driven Design about a year and a half ago and when I got to the part about the specification pattern, I thought it was really cool and &hellip;">
+  <meta name="description" content="I made a few tweaks to a captcha library I found here and basically wrapped their CaptchaImage object in a service interface to use in my &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,203 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/captcha-and-inversion-of-control/">Captcha and Inversion of Control</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-06-14T20:44:00-07:00" pubdate data-updated="true">Jun 14<span>th</span>, 2009</time>
+        
+         | <a href="/captcha-and-inversion-of-control/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img class="plain" src="/images/posts/lorenzoflip.jpg"></p>
+
+<p>I made a few tweaks to a captcha library I found here and basically wrapped their CaptchaImage object in a service interface to use in my application. Pretty easy stuff, but I didn’t get it right the first time.</p>
+
+<p>What’s wrong with this class?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">HttpContextCacheCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">httpContextCacheKey</span> <span class="p">=</span> <span class="s">&quot;4D795A45-8015-475C-A6C4-765B09EB9955&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">HttpContextCacheCaptchaProvider</span><span class="p">(</span><span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">,</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">context</span> <span class="p">=</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">CaptchaImage</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">context</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">httpContextCacheKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span> <span class="c1">// hint</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">string</span> <span class="n">captchaText</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">context</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">httpContextCacheKey</span><span class="p">];</span> <span class="c1">// hint</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">ToLower</span><span class="p">().</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">ToLower</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Perhaps your nose can lead you in the right direction. The smell is hard to test, and it’s hard to test because it requires mocking the <code>HttpContextBase</code>. You might say “no problem, I can blast out a stub with Moq in no time” but you’re missing the real problem. That would be like taking aspirin for a brain tumor.</p>
+
+<p><img class="plain" src="/images/posts/arnold.jpg"></p>
+
+<blockquote><p>It’s not a tumor</p></blockquote>
+
+<p>The real problem is this class is violating the Single Responsibility Principle (SRP) by doing more than one thing. I don’t mean the two methods <code>Render()</code> and <code>Verify()</code>, those are a cohesive unit operating on the same data. The other thing is lifetime management. Look how simple the class gets when you invert control and take out the notion of lifetime management:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Serializable]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LifetimeManagedCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="n">captchaText</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">LifetimeManagedCaptchaProvider</span><span class="p">(</span><span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">CaptchaImage</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">captchaText</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">ToLower</span><span class="p">().</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">ToLower</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now this class is a breeze to test and all you have to do is register it like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ICaptchaProvider</span><span class="p">,</span> <span class="n">LifetimeManagedCaptchaProvider</span><span class="p">&gt;(</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nf">HttpSessionStateLifetimeManager</span><span class="p">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The moral of the story is let your IoC container do things it’s good at.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1168,6 +1365,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
+      </li>
+    
+      <li class="post">
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
       </li>
     
@@ -1181,10 +1382,6 @@
     
       <li class="post">
         <a href="/tamarack-chain-of-responsibility-framework-for-net/">Tamarack: Chain of Responsibility Framework for .NET</a>
-      </li>
-    
-      <li class="post">
-        <a href="/a-custom-httpmodule-to-log-request-duration/">A Custom HttpModule to Log Request Duration</a>
       </li>
     
   </ul>
