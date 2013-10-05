@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2013-10-05T16:14:04-07:00</updated>
+  <updated>2013-10-05T16:31:03-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -187,7 +187,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because I’ve already done that, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
+<p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because <a href="http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/">I’ve already done that</a>, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -221,9 +221,9 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a thing, it’s a seam and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports multi-tenancy and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
+<p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a <em>thing</em>, it’s a <em>seam</em> and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports <a href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">multi-tenancy</a> and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
 
-<p>While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. Chances are the original author of Guice and the person writing the documentation for binding annotations aren’t the same person so it’s understandable that a detail like this could get lost in the shuffle. The correct way to use binding annotations and not undermine the point of injecting your dependencies in the first place is like so:</p>
+<p>While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. The better way to use binding annotations and not undermine the point of injecting your dependencies is like so:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -271,7 +271,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Did you catch the difference? It’s subtle, but the devil is in the details. In this last example, the DoubleChargeCreditCardProcessor doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.</p>
+<p>The difference is subtle, but the devil is in the details. In this last example, the <code>DoubleChargeCreditCardProcessor</code> doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.</p>
 ]]></content>
   </entry>
   
