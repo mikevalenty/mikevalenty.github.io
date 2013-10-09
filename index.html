@@ -9,7 +9,7 @@
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="Algorithms: Design and Analysis, Part 1 is a free online course from Standford offered through Coursera.org. An assignment that stuck with me was &hellip;">
+  <meta name="description" content="Given a url like http://www.google.com/?q=tld+uk, extract the root domain. In this case, it would be google.com. Sounds easy, right? Well it is, but &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,99 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-06T17:05:00-07:00" pubdate data-updated="true">Oct 6<span>th</span>, 2013</time>
+        
+         | <a href="/extracting-root-domain-from-a-url/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Given a url like <code>http://www.google.com/?q=tld+uk</code>, extract the <em>root domain</em>. In this case, it would be <code>google.com</code>. Sounds easy, right? Well it is, but <code>http://www.google.com.br/</code> is also legit. Okay, so recursion to the rescue!</p>
+
+<p>Not so fast&hellip;</p>
+
+<pre>
+.ac.uk
+.co.uk
+.gov.uk
+.parliament.uk
+.police.uk
+...
+.metro.tokyo.jp
+.city.(cityname).(prefecturename).jp
+...
+</pre>
+
+
+<blockquote><p><a href="http://en.wikipedia.org/wiki/.uk">http://en.wikipedia.org/wiki/.uk</a></br><a href="http://en.wikipedia.org/wiki/.jp">http://en.wikipedia.org/wiki/.jp</a></p></blockquote>
+
+<p>Doh! Surely <a href="http://en.wikipedia.org/wiki/Parliament_(band)">George Clinton</a> is not happy about this and neither am I because it means I&rsquo;m stuck doing a lookup against a list of arbitrary domains.</p>
+
+<p>Using <code>java.net.URI</code> takes care of extracting the host, so the interesting part is parsing the host into a list of chunks that decrease in number of segments.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">test</span><span class="o">(</span><span class="s">&quot;should split host into chunks of decreasing parts&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">chunks</span> <span class="k">=</span> <span class="n">splitIntoChunks</span><span class="o">(</span><span class="s">&quot;www.google.com.br&quot;</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">chunks</span><span class="o">.</span><span class="n">toList</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="s">&quot;www.google.com.br&quot;</span><span class="o">,</span> <span class="s">&quot;google.com.br&quot;</span><span class="o">,</span> <span class="s">&quot;com.br&quot;</span><span class="o">,</span> <span class="s">&quot;br&quot;</span><span class="o">))</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>An implementation of <code>splitIntoChunks</code> isn&rsquo;t terribly exciting, but probably a good interview question. How about an implementation that doesn&rsquo;t mutate state? Sounds fun, but why make this more difficult? It&rsquo;s not because I want to run <em>this</em> bit of code on mutliple cores or distributed across machines, but because it challenges me to change the way I think about simple problems so that solving more complicated problems using functional idioms feels more natural. After all, when something is painful, you should do it more often. You know, like push ups and deployments.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">def</span> <span class="n">splitIntoChunks</span><span class="o">(</span><span class="n">host</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">parts</span> <span class="k">=</span> <span class="n">host</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="sc">&#39;.&#39;</span><span class="o">).</span><span class="n">toList</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">parts</span><span class="o">.</span><span class="n">dropRight</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">scanRight</span><span class="o">(</span><span class="n">parts</span><span class="o">.</span><span class="n">last</span><span class="o">)</span> <span class="o">{(</span><span class="n">acc</span><span class="o">,</span> <span class="n">p</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">s</span><span class="s">&quot;$acc.$p&quot;</span><span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala ftw.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -429,7 +522,7 @@
   </header>
 
 
-  <div class="entry-content"><p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
+  <div class="entry-content"><p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add <code>tenant_id</code> to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -529,7 +622,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Second, we have to set the tenant_id when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
+<p>Second, we have to set the <code>tenant_id</code> when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1990,99 +2083,6 @@ It’s pretty simple, there is just one interface to implement and it looks like
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/automatic-deployment-from-teamcity-using-webdeploy/">Automatic Deployment From TeamCity Using WebDeploy</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
-        
-         | <a href="/automatic-deployment-from-teamcity-using-webdeploy/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
-
-<p><img class="plain" src="/images/posts/tcp1.jpg"></p>
-
-<ol>
-<li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
-<li><strong>Run integration tests</strong>  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.</li>
-<li><strong>Run acceptance tests</strong> – these tests are written in the Given, When, Then style. We write the tests in BehaveN, but we expect that a stakeholder could read them and verify the business rules are correct.</li>
-<li><strong>Deploy to CI and run UI tests</strong> – these are qunit and Selenium tests. They require the code to be deployed to a real web server before the tests run. That’s what this article is about.</li>
-<li><strong>Deploy to QA</strong> – once the automated UI tests have passed, we deploy to our QA server for manual testing.</li>
-</ol>
-
-
-<p><strong>Step 1:</strong> <a href="http://weblogs.asp.net/scottgu/archive/2010/09/13/automating-deployment-with-microsoft-web-deploy.aspx">Install WebDeploy on the web server you want to deploy to.</a></p>
-
-<p><strong>Step 2:</strong> <a href="http://blogs.msdn.com/b/webdevtools/archive/2009/05/04/web-deployment-web-config-transformation.aspx">Configure Web.config transforms.</a> This will enable you to change connection strings and whatnot based on your build configuration.</p>
-
-<p>Currently this is only supported for web applications, but since it’s built on top of MSBuild tasks, you can do the same thing to an <code>App.config</code> with a little extra work. Take a peak at <code>Microsoft.Web.Publishing.targets</code> (C:\Program Files\MSBuild\Microsoft\VisualStudio\v10.0\Web) to see how to use the build tasks.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;TransformXml&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;MSDeploy&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Step 3:</strong> Figure out the MSBuild command line arguments that work for your application. This took a bit of trial and error before landing on this:</p>
-
-<pre>
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln 
-  /p:Configuration=QA
-  /p:OutputPath=bin
-  /p:DeployOnBuild=True 
-  /p:DeployTarget=MSDeployPublish 
-  /p:MsDeployServiceUrl=https://myserver:8172/msdeploy.axd 
-  /p:username=***** 
-  /p:password=***** 
-  /p:AllowUntrustedCertificate=True 
-  /p:DeployIisAppPath=ci
-  /p:MSDeployPublishMethod=WMSVC
-</pre>
-
-
-<p><strong>Step 4:</strong> Configure the Build Runner in TeamCity</p>
-
-<p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
-
-<p><img class="plain" src="/images/posts/teamcity2.jpg"></p>
-
-<p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
-
-<p><img class="plain" src="/images/posts/dep1.jpg"></p>
-
-<p><img class="plain" src="/images/posts/snap1.jpg"></p>
-
-<p><strong>Step 6:</strong> Write some code.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2098,6 +2098,10 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
+      </li>
+    
+      <li class="post">
         <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
@@ -2111,10 +2115,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     
       <li class="post">
         <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
-      </li>
-    
-      <li class="post">
-        <a href="/tamarack-chain-of-responsibility-framework-for-net/">Tamarack: Chain of Responsibility Framework for .NET</a>
       </li>
     
   </ul>

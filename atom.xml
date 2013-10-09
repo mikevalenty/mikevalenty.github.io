@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2013-10-05T16:31:03-07:00</updated>
+  <updated>2013-10-08T19:57:46-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -12,6 +12,70 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Extracting root domain from a url]]></title>
+    <link href="http://www.agileatwork.com/extracting-root-domain-from-a-url/"/>
+    <updated>2013-10-06T17:05:00-07:00</updated>
+    <id>http://www.agileatwork.com/extracting-root-domain-from-a-url</id>
+    <content type="html"><![CDATA[<p>Given a url like <code>http://www.google.com/?q=tld+uk</code>, extract the <em>root domain</em>. In this case, it would be <code>google.com</code>. Sounds easy, right? Well it is, but <code>http://www.google.com.br/</code> is also legit. Okay, so recursion to the rescue!</p>
+
+<p>Not so fast&hellip;</p>
+
+<pre>
+.ac.uk
+.co.uk
+.gov.uk
+.parliament.uk
+.police.uk
+...
+.metro.tokyo.jp
+.city.(cityname).(prefecturename).jp
+...
+</pre>
+
+
+<blockquote><p><a href="http://en.wikipedia.org/wiki/.uk">http://en.wikipedia.org/wiki/.uk</a></br><a href="http://en.wikipedia.org/wiki/.jp">http://en.wikipedia.org/wiki/.jp</a></p></blockquote>
+
+<p>Doh! Surely <a href="http://en.wikipedia.org/wiki/Parliament_(band)">George Clinton</a> is not happy about this and neither am I because it means I&rsquo;m stuck doing a lookup against a list of arbitrary domains.</p>
+
+<p>Using <code>java.net.URI</code> takes care of extracting the host, so the interesting part is parsing the host into a list of chunks that decrease in number of segments.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">test</span><span class="o">(</span><span class="s">&quot;should split host into chunks of decreasing parts&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">chunks</span> <span class="k">=</span> <span class="n">splitIntoChunks</span><span class="o">(</span><span class="s">&quot;www.google.com.br&quot;</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">chunks</span><span class="o">.</span><span class="n">toList</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="s">&quot;www.google.com.br&quot;</span><span class="o">,</span> <span class="s">&quot;google.com.br&quot;</span><span class="o">,</span> <span class="s">&quot;com.br&quot;</span><span class="o">,</span> <span class="s">&quot;br&quot;</span><span class="o">))</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>An implementation of <code>splitIntoChunks</code> isn&rsquo;t terribly exciting, but probably a good interview question. How about an implementation that doesn&rsquo;t mutate state? Sounds fun, but why make this more difficult? It&rsquo;s not because I want to run <em>this</em> bit of code on mutliple cores or distributed across machines, but because it challenges me to change the way I think about simple problems so that solving more complicated problems using functional idioms feels more natural. After all, when something is painful, you should do it more often. You know, like push ups and deployments.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">def</span> <span class="n">splitIntoChunks</span><span class="o">(</span><span class="n">host</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">parts</span> <span class="k">=</span> <span class="n">host</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="sc">&#39;.&#39;</span><span class="o">).</span><span class="n">toList</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">parts</span><span class="o">.</span><span class="n">dropRight</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">scanRight</span><span class="o">(</span><span class="n">parts</span><span class="o">.</span><span class="n">last</span><span class="o">)</span> <span class="o">{(</span><span class="n">acc</span><span class="o">,</span> <span class="n">p</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">s</span><span class="s">&quot;$acc.$p&quot;</span><span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala ftw.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Appreciating Algorithm Complexity]]></title>
@@ -280,7 +344,7 @@
     <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
     <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
-    <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
+    <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add <code>tenant_id</code> to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -380,7 +444,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Second, we have to set the tenant_id when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
+<p>Second, we have to set the <code>tenant_id</code> when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -2951,102 +3015,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 <p><img class="plain" src="http://www.agileatwork.com/images/posts/perfmon3.png"></p>
 
 <p>This was possible because of IoC among other things. The app is composed of many small pieces and you’d be hard pressed to find the <code>new</code> keyword where it matters. <code>SyncListingJob</code> was already being built-up by Unity Container, so I was able take advantage of an off-the-shelf performance monitor aspect in the Enterprise Library 4.1 Policy Injection Application Block and wire it in via the <code>App.config</code>.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A Class Isn’t Always a Noun]]></title>
-    <link href="http://www.agileatwork.com/a-class-isnt-always-a-noun/"/>
-    <updated>2009-12-04T12:45:00-08:00</updated>
-    <id>http://www.agileatwork.com/a-class-isnt-always-a-noun</id>
-    <content type="html"><![CDATA[<p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
-
-<p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>
-
-<p><img src="http://www.agileatwork.com/images/posts/yext1.png"></p>
-
-<p>I don’t expect you to understand how the app works, but you should at least get a feel right away for the things that are important. Knowing it’s a console app, you could find the entry point and quickly navigate to the meat and potatoes of the application.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SyncListingJob</span> <span class="p">:</span> <span class="n">MarshalByRefObject</span><span class="p">,</span> <span class="n">IJob</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">YextListing</span> <span class="n">listing</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">SyncListingJob</span><span class="p">(</span><span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">locator</span> <span class="p">=</span> <span class="n">locator</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Init</span><span class="p">(</span><span class="n">YextListing</span> <span class="n">listing</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">listing</span> <span class="p">=</span> <span class="n">listing</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [UnitOfWork]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">GuardAgainstNotInitialized</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">SyncListing</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">SyncListing</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">new</span> <span class="n">LocatorChain</span><span class="p">&lt;</span><span class="n">Yextlisting</span><span class="p">&gt;(</span><span class="n">locator</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RevertDiscontinuedListing</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RefreshLinkedBusiness</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateLinkToExistingBusiness</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateNewBusinessAndLink</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Process</span><span class="p">(</span><span class="n">listing</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">GuardAgainstNotInitialized</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">listing</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">Exception</span><span class="p">(</span><span class="s">&quot;Job not initialized!&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>* <em>The <code>LocatorChain&lt;T&gt;</code> is an implementation of the chain of responsibility pattern.</em></p>
-
-<p>I do everything I can to push out all the noise and bring the behavior to the surface. Sometimes the right way to name a class is after a feature or behavior. I want my code to read like a DSL and making everything a noun just doesn’t cut it. The drivers for me are context and readability.</p>
 ]]></content>
   </entry>
   

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Scala | Agile at Work]]></title>
+  <link href="http://www.agileatwork.com/blog/categories/scala/atom.xml" rel="self"/>
+  <link href="http://www.agileatwork.com/"/>
+  <updated>2013-10-08T19:57:46-07:00</updated>
+  <id>http://www.agileatwork.com/</id>
+  <author>
+    <name><![CDATA[Michael Valenty]]></name>
+    <email><![CDATA[mike@valenty.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Extracting root domain from a url]]></title>
+    <link href="http://www.agileatwork.com/extracting-root-domain-from-a-url/"/>
+    <updated>2013-10-06T17:05:00-07:00</updated>
+    <id>http://www.agileatwork.com/extracting-root-domain-from-a-url</id>
+    <content type="html"><![CDATA[<p>Given a url like <code>http://www.google.com/?q=tld+uk</code>, extract the <em>root domain</em>. In this case, it would be <code>google.com</code>. Sounds easy, right? Well it is, but <code>http://www.google.com.br/</code> is also legit. Okay, so recursion to the rescue!</p>
+
+<p>Not so fast&hellip;</p>
+
+<pre>
+.ac.uk
+.co.uk
+.gov.uk
+.parliament.uk
+.police.uk
+...
+.metro.tokyo.jp
+.city.(cityname).(prefecturename).jp
+...
+</pre>
+
+
+<blockquote><p><a href="http://en.wikipedia.org/wiki/.uk">http://en.wikipedia.org/wiki/.uk</a></br><a href="http://en.wikipedia.org/wiki/.jp">http://en.wikipedia.org/wiki/.jp</a></p></blockquote>
+
+<p>Doh! Surely <a href="http://en.wikipedia.org/wiki/Parliament_(band)">George Clinton</a> is not happy about this and neither am I because it means I&rsquo;m stuck doing a lookup against a list of arbitrary domains.</p>
+
+<p>Using <code>java.net.URI</code> takes care of extracting the host, so the interesting part is parsing the host into a list of chunks that decrease in number of segments.</p>
+
+<p>``` scala
+test(&ldquo;should split host into chunks of decreasing parts&rdquo;) {</p>
+
+<p>  val chunks = splitIntoChunks(&ldquo;www.google.com.br&rdquo;)</p>
+
+<p>  chunks.toList should equal(List(&ldquo;www.google.com.br&rdquo;, &ldquo;google.com.br&rdquo;, &ldquo;com.br&rdquo;, &ldquo;br&rdquo;))
+}
+```</p>
+
+<p>An implementation of <code>splitIntoChunks</code> isn&rsquo;t terribly exciting, but probably a good interview question. How about an implementation that doesn&rsquo;t mutate state? Sounds fun, but why make this more difficult? It&rsquo;s not because I want to run <em>this</em> bit of code on mutliple cores or distributed across machines, but because it challenges me to change the way I think about simple problems so that solving more complicated problems using functional idioms feels more natural. After all, when something is painful, you should do it more often. You know, like push ups and deployments.</p>
+
+<p>``` scala
+def splitIntoChunks(host: String): List[String] = {</p>
+
+<p>  val parts = host.split(&lsquo;.&rsquo;).toList</p>
+
+<p>  parts.dropRight(1).scanRight(parts.last) {(acc, p) => s"$acc.$p"}
+}
+```</p>
+
+<p>Scala ftw.</p>
+]]></content>
+  </entry>
+  
+</feed>
