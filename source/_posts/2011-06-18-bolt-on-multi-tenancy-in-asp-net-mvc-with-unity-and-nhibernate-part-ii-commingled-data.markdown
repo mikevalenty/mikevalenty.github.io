@@ -6,7 +6,7 @@ comments: true
 categories: [ASP.NET MVC, Inversion of Control, NHibernate, Open Closed Principle, Unity]
 ---
 
-Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add tenant_id to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:
+Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add `tenant_id` to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:
 
 ``` xml
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
@@ -67,7 +67,7 @@ Container
 
 ```
 
-Second, we have to set the tenant_id when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.
+Second, we have to set the `tenant_id` when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.
 
 ``` c#
 public class User

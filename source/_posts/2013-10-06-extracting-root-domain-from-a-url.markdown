@@ -4,7 +4,7 @@ title: "Extracting root domain from a url"
 date: 2013-10-06 17:05
 comments: true
 categories: [Scala]
-published: false
+published: true
 ---
 
 Given a url like `http://www.google.com/?q=tld+uk`, extract the _root domain_. In this case, it would be `google.com`. Sounds easy, right? Well it is, but `http://www.google.com.br/` is also legit. Okay, so recursion to the rescue!
