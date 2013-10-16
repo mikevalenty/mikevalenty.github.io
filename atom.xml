@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2013-10-16T08:59:28-07:00</updated>
+  <updated>2013-10-16T14:16:48-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -18,7 +18,7 @@
     <link href="http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/"/>
     <updated>2013-10-15T22:49:00-07:00</updated>
     <id>http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter</id>
-    <content type="html"><![CDATA[<p>Doing a join in hadoop with Java is painful. A one-liner in Pig Latin can easily explode into hundreds of lines of Java. However, the additional control in Java can yield significant performance gains and simplify complex logic that is difficult to express in Pig Latin.</p>
+    <content type="html"><![CDATA[<p>Doing a join in hadoop with Java is painful. A one-liner in <a href="http://pig.apache.org/">Pig Latin</a> can easily explode into hundreds of lines of Java. However, the additional control in Java can yield significant performance gains and simplify complex logic that is difficult to express in Pig Latin.</p>
 
 <p>In my case, the left side of the join contained about 100K records while the right side was closer to 1B. Emitting all join keys from the mapper means that all 1B records from the right side of the join are shuffled, sorted and sent to a reducer. The reducer then ends up discarding most of join keys that don&rsquo;t match the left side.</p>
 
