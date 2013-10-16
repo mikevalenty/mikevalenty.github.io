@@ -1,0 +1,463 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Hadoop MapReduce Join Optimization with a Bloom Filter - Agile at Work</title>
+  <meta name="author" content="Michael Valenty">
+
+  
+  <meta name="description" content="Doing a join in hadoop with Java is painful. A one-liner in Pig Latin can easily explode into hundreds of lines of Java. However, the additional &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-2314490-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Agile at Work</a></h1>
+  
+    <h2>by Michael Valenty</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.agileatwork.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Hadoop MapReduce Join Optimization With a Bloom Filter</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-15T22:49:00-07:00" pubdate data-updated="true">Oct 15<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Doing a join in hadoop with Java is painful. A one-liner in Pig Latin can easily explode into hundreds of lines of Java. However, the additional control in Java can yield significant performance gains and simplify complex logic that is difficult to express in Pig Latin.</p>
+
+<p>In my case, the left side of the join contained about 100K records while the right side was closer to 1B. Emitting all join keys from the mapper means that all 1B records from the right side of the join are shuffled, sorted and sent to a reducer. The reducer then ends up discarding most of join keys that don&rsquo;t match the left side.</p>
+
+<p>Any best practices guide will tell you to push more work into the mapper. In the case of a join, that means dropping records in the mapper that will end up getting dropped by the reducer anyway. In order to do that, the mapper needs to know if a particular join key exists on the left hand side.</p>
+
+<p>An easy way to accomplish this is to put the smaller dataset into the <code>DistributedCache</code> and then load all the join keys into a <code>HashSet</code> that the mapper can do a lookup against.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">for</span> <span class="o">(</span><span class="n">FileStatus</span> <span class="n">status</span> <span class="o">:</span> <span class="n">fileSystem</span><span class="o">.</span><span class="na">globStatus</span><span class="o">(</span><span class="n">theSmallSideOfTheJoin</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">DistributedCache</span><span class="o">.</span><span class="na">addCacheFile</span><span class="o">(</span><span class="n">status</span><span class="o">.</span><span class="na">getPath</span><span class="o">().</span><span class="na">toUri</span><span class="o">(),</span> <span class="n">job</span><span class="o">.</span><span class="na">getConfiguration</span><span class="o">());</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">setup</span><span class="o">(</span><span class="n">Mapper</span><span class="o">.</span><span class="na">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">buildJoinKeyHashMap</span><span class="o">(</span><span class="n">context</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">map</span><span class="o">(</span><span class="n">LongWritable</span> <span class="n">key</span><span class="o">,</span> <span class="n">Text</span> <span class="n">value</span><span class="o">,</span> <span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">joinKeys</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">joinKey</span><span class="o">))</span>
+</span><span class='line'>      <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">context</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">outKey</span><span class="o">,</span> <span class="n">outVal</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This totally works, but consumes enough memory that I was occassionally getting <code>java.lang.OutOfMemoryError: Java heap space</code> from the mappers. Enter the <a href="http://en.wikipedia.org/wiki/Bloom_filter">Bloom filter</a>.</p>
+
+<blockquote><p>A Bloom filter is a space-efficient probabilistic data structure that is used to test whether an element is a member of a set. False positive matches are possible, but false negatives are not. Elements can be added to the set, but not removed. The more elements that are added to the set, the larger the probability of false positives. -Wikipedia</p></blockquote>
+
+<p>I hadn&rsquo;t heard of a Bloom filter before taking <a href="https://www.coursera.org/course/algo">Algorithms: Design and Analysis, Part 1</a>. If not for the course, I&rsquo;m pretty sure I would have skimmed over the innocuous reference while pilfering around the hadoop <a href="http://hadoop.apache.org/docs/current/api/org/apache/hadoop/util/bloom/BloomFilter.html">documentation</a>. Fortunately, recent exposure made the term jump out at me and I quickly recognized it was exactly what I was looking for.</p>
+
+<p>When I took the course, I thought the Bloom filter was an interesting idea that I wasn&rsquo;t likely to use anytime soon because I haven&rsquo;t needed one yet and I&rsquo;ve been programming professionally for more than a few years. But you don&rsquo;t know what you don&rsquo;t know, right? It&rsquo;s like thinking about buying a car you didn&rsquo;t notice before and now seeing it everywhere.</p>
+
+<h3>Configuration</h3>
+
+<p>The documentation is thin, with little more than variable names to glean meaning from.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="nf">BloomFilter</span><span class="o">(</span><span class="kt">int</span> <span class="n">vectorSize</span><span class="o">,</span>
+</span><span class='line'>                   <span class="kt">int</span> <span class="n">nbHash</span><span class="o">,</span>
+</span><span class='line'>                   <span class="kt">int</span> <span class="n">hashType</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>vectorSize</code> &ndash; The vector size of this filter.</li>
+<li><code>nbHash</code> &ndash; The number of hash function to consider.</li>
+<li><code>hashType</code> &ndash; type of the hashing function (see Hash).</li>
+</ul>
+
+
+<p>I know what you&rsquo;re thinking. What could be more helpful than <em>The vector size of this filter</em> as a description for <code>vectorSize</code>? Well, the basic idea is there&rsquo;s a trade-off between space, speed and probability of a false positive. Here&rsquo;s how I think about it:</p>
+
+<ul>
+<li><code>vectorSize</code> &ndash; The amount of memory used to store hash keys. Larger values are less likey to yield false positives. If the value is too large, you might as well use a <code>HashSet</code>.</li>
+<li><code>nbHash</code> &ndash; The number of times to hash the key. Larger numbers are less likely to yeild false positives at the expense of additional computation effort. Expect deminishing returns on larger values.</li>
+<li><code>hashType</code> &ndash; type of the hashing function (see Hash). The Hash documentation was reasonable so I&rsquo;m not going to add anything.</li>
+</ul>
+
+
+<p>I used trial and error to figure out numbers that were good for my constraints.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BloomFilterTests</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">BloomFilter</span> <span class="n">bloomFilter</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">knownKey</span> <span class="o">=</span> <span class="n">newGuid</span><span class="o">();</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">numberOfKeys</span> <span class="o">=</span> <span class="mi">500000</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@BeforeClass</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">before</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">bloomFilter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BloomFilter</span><span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="n">Hash</span><span class="o">.</span><span class="na">MURMUR_HASH</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">));</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Test</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">should_contain_known_key</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">),</span> <span class="n">is</span><span class="o">(</span><span class="kc">true</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Test</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">false_positive_probability_should_be_low</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()))</span>
+</span><span class='line'>                <span class="n">count</span><span class="o">++;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">onePercent</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="o">.</span><span class="mi">0005</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">count</span><span class="o">,</span> <span class="n">is</span><span class="o">(</span><span class="n">lessThan</span><span class="o">(</span><span class="n">onePercent</span><span class="o">)));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">newGuid</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">UUID</span><span class="o">.</span><span class="na">randomUUID</span><span class="o">().</span><span class="na">toString</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Key</span> <span class="nf">newKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">Key</span><span class="o">(</span><span class="n">key</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">hasKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">bloomFilter</span><span class="o">.</span><span class="na">membershipTest</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">key</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When you have your numbers worked out, simply swap out the <code>HashMap</code> with the <code>BloomFilter</code> and then blog about it.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Michael Valenty</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-15T22:49:00-07:00" pubdate data-updated="true">Oct 15<span>th</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/" data-via="mikevalenty" data-counturl="http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/extracting-root-domain-from-a-url/" title="Previous Post: Extracting root domain from a url">&laquo; Extracting root domain from a url</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
+      </li>
+    
+      <li class="post">
+        <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
+      </li>
+    
+      <li class="post">
+        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
+      </li>
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/mikevalenty">@mikevalenty</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'mikevalenty',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Michael Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/';
+        var disqus_url = 'http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

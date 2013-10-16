@@ -9,7 +9,7 @@
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="Using a container for unit testing is a good way to insulate your tests from changes in object construction. Typically my first test will be &hellip;">
+  <meta name="description" content="Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,250 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/what-happens-when-you-actually-use-aop-for-logging/">What Happens When You Actually Use AOP for Logging?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-07-05T20:10:00-07:00" pubdate data-updated="true">Jul 5<span>th</span>, 2009</time>
+        
+         | <a href="/what-happens-when-you-actually-use-aop-for-logging/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s something everyone can relate to. Well, what happens when you actually use it for logging?</p>
+
+<p>I can tell you what happened to me last week. Things were going great until it came time to port our credit card charging program from the stone age to .NET. It occurred to me that our fancy AOP logging would unknowingly log decrypted credit cards!</p>
+
+<p> <img class="plain" src="/images/posts/credit_cards1.jpg"></p>
+
+<p>An obvious solution was to do a regex on log messages and mask credit card numbers – and that’s pretty much what we did, but I didn’t want to perform a regex on every message when I knew only a tiny percentage would contain sensitive data. The solution of course, was to fight fire with fire and use more AOP.</p>
+
+<p>This is how I wanted it to look:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IPayPalGateway</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="na">    [MaskCredCardForLogging]</span>
+</span><span class='line'>    <span class="kt">string</span> <span class="nf">Submit</span><span class="p">(</span><span class="kt">string</span> <span class="n">request</span><span class="p">,</span> <span class="kt">string</span> <span class="n">id</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This way I could specifically mark an interface that I knew would accept sensitive data and apply an appropriate filter to it. The log filtering is implemented as a decorator to a log4net-like ILogger interface.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggerWithFilterFixture</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="na">    [Test]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Should_apply_filter_to_message</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="k">new</span> <span class="n">InterceptingLogger</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">loggerWithFilter</span> <span class="p">=</span> <span class="k">new</span> <span class="n">LoggerWithFilter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="k">new</span> <span class="n">AppendBangToMessage</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">loggerWithFilter</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="s">&quot;This is a message&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Assert</span><span class="p">.</span><span class="n">AreEqual</span><span class="p">(</span><span class="s">&quot;This is a message!&quot;</span><span class="p">,</span> <span class="n">logger</span><span class="p">.</span><span class="n">LastMessage</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AppendBangToMessage</span> <span class="p">:</span> <span class="n">ILogFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">Filter</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">message</span> <span class="p">+</span> <span class="s">&quot;!&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The decorator is then applied in the call handler by looking for custom attributes of type LogFilterAttribute like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggerCallHandler</span> <span class="p">:</span> <span class="n">ICallHandler</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">ILogger</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">GetLogger</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">.</span><span class="n">IsDebugEnabled</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="n">CreateLogMessage</span><span class="p">(</span><span class="n">input</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Stopwatch</span> <span class="n">stopWatch</span> <span class="p">=</span> <span class="n">Stopwatch</span><span class="p">.</span><span class="n">StartNew</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">IMethodReturn</span> <span class="n">result</span> <span class="p">=</span> <span class="n">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">stopWatch</span><span class="p">.</span><span class="n">Stop</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">.</span><span class="n">IsDebugEnabled</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="n">CreateLogMessage</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">stopWatch</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">ILogger</span> <span class="nf">GetLogger</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">CreateLogger</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">filter</span> <span class="p">=</span> <span class="n">CreateLogFilter</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">LoggerWithFilter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">filter</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ILogFilter</span> <span class="nf">CreateLogFilter</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">composite</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CompositeLogFilter</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">LogFilterAttribute</span> <span class="n">attribute</span>
+</span><span class='line'>            <span class="k">in</span> <span class="n">input</span><span class="p">.</span><span class="n">MethodBase</span><span class="p">.</span><span class="n">GetCustomAttributes</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">LogFilterAttribute</span><span class="p">),</span> <span class="k">true</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">composite</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">attribute</span><span class="p">.</span><span class="n">CreateLogFilter</span><span class="p">());</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">composite</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I’ll spare you the actual credit card masking logic:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MaskCreditCardForLoggingAttribute</span> <span class="p">:</span> <span class="n">LogFilterAttribute</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="n">ILogFilter</span> <span class="nf">CreateLogFilter</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">CreditCardMaskingLogFilter</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">CreditCardMaskingLogFilter</span> <span class="p">:</span> <span class="n">ILogFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">Filter</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="p">...</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1055,288 +1299,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/unit-of-work-with-unity-and-aspnet-mvc/">Unit of Work With Unity and ASP.NET MVC</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-05-09T21:42:00-07:00" pubdate data-updated="true">May 9<span>th</span>, 2009</time>
-        
-         | <a href="/unit-of-work-with-unity-and-aspnet-mvc/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I was recently asked how I get the context of  “this” in the UoW relating to the current page request.</p>
-
-<p><img class="plain" src="/images/posts/howididit-thumb.jpg"></p>
-
-<p>Before I get into the guts, I would like to provide a little context. My application has 20+ databases scattered across 4 machines.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Customer</span><span class="p">&gt;</span> <span class="n">customerRepository</span><span class="p">;</span> <span class="c1">// customer database on server 1</span>
-</span><span class='line'><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Package</span><span class="p">&gt;</span>  <span class="n">packageRepository</span><span class="p">;</span> <span class="c1">// customer database on server 1</span>
-</span><span class='line'><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Contact</span><span class="p">&gt;</span>  <span class="n">contactRepository</span><span class="p">;</span> <span class="c1">// contact database on server 2</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So, I might ask for a <code>Customer</code> object and a <code>Package</code> object and I want to get the same <code>ISession</code> for both and if I ask for the same Customer twice, I want to get the one from the 1st level cache (I’m using NHibernate). If I ask for a Contact object, I will get a different ISession. All opened sessions are managed by my UoW. So, when the page request is complete, I call <code>UoW.Commit</code> and all sessions are committed.</p>
-
-<p>The “magic” if you will, happens in the global.asax. I was nosing around in Rhino.Commons for inspiration and adapted a technique I saw there. This is how it looks:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">GlobalApplication</span> <span class="p">:</span> <span class="n">HttpApplication</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">GlobalApplication</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">BeginRequest</span> <span class="p">+=</span> <span class="k">new</span> <span class="n">EventHandler</span><span class="p">(</span><span class="n">GlobalApplication_BeginRequest</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">EndRequest</span> <span class="p">+=</span> <span class="k">new</span> <span class="n">EventHandler</span><span class="p">(</span><span class="n">GlobalApplication_EndRequest</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Start</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">RegisterRoutes</span><span class="p">(</span><span class="n">RouteTable</span><span class="p">.</span><span class="n">Routes</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">PolicyInjectorContainerExtension</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">HttpRequestLifetimeCoreContainerExtension</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">WebMvcContainerExtension</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">ControllerBuilder</span><span class="p">.</span><span class="n">Current</span><span class="p">.</span><span class="n">SetControllerFactory</span><span class="p">(</span><span class="k">new</span> <span class="n">UnityControllerFactory</span><span class="p">(</span><span class="n">container</span><span class="p">));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">void</span> <span class="nf">GlobalApplication_BeginRequest</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">unitOfWork</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IUnitOfWork</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">void</span> <span class="nf">GlobalApplication_EndRequest</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">unitOfWork</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IUnitOfWork</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I register the UoW with an <code>HttpRequestLifetimeManager</code> so I get a new instance for each request.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;,</span>
-</span><span class='line'>  <span class="n">NHibernateUnitOfWork</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">HttpRequestLifetimeManager</span><span class="p">());</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>My <code>NHibernateRepository</code> gets injected with the UoW for the current <code>HttpRequest</code> and when the request is complete, the <code>global.asax</code> commits the whole thing.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">NHibernateRepository</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IRepository</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">protected</span> <span class="n">ISession</span> <span class="n">session</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">NHibernateRepository</span><span class="p">(</span><span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;</span> <span class="n">unitOfWork</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">session</span> <span class="p">=</span> <span class="n">unitOfWork</span><span class="p">.</span><span class="n">GetContextFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Save</span><span class="p">(</span><span class="n">T</span> <span class="n">obj</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">session</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now, this is all the context of an ASP.NET MVC Controller, but I have a similar issue for other (non-web) services. In that context I am using AOP and decorating a particular method with <code>[UnitOfWork]</code>, which looks like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UnitOfWorkCallHander</span> <span class="p">:</span> <span class="n">ICallHandler</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;</span> <span class="n">unitOfWork</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">UnitOfWorkCallHander</span><span class="p">(</span><span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;</span> <span class="n">unitOfWork</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">unitOfWork</span> <span class="p">=</span> <span class="n">unitOfWork</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Order</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">try</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="nf">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">finally</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In that context I use a <code>PerThreadLifetimeManager</code> for the <code>NHibernateUnitOfWork</code>, and code ends up looking like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Process</span><span class="p">(</span><span class="n">Job</span> <span class="n">job</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You know, there is really no reason why you couldn’t do the same thing in the MVC context. You could basically ditch the <code>global.asax</code> event hooha and just annotate the Controller task:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
-</span><span class='line'><span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">ControllerTaskThatRequiresUoW</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It’s more explicit than using the <code>global.asax</code> technique and it would allow you to specify different UoW behavior on each controller task:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork(IsolationLevel.ReadCommitted]</span>
-</span><span class='line'><span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">SomeTaskThatShouldNotReadUncommitedData</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">[UnitOfWork(IsolationLevel.ReadUncommitted)]</span>
-</span><span class='line'><span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">AnotherTaskWithDifferentRequirements</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I’d like to try this out next time I get back into ASP.NET MVC, the global.asax event technique felt a little too magical and I don’t think Uncle Bob would approve.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1354,6 +1316,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
+      </li>
+    
+      <li class="post">
         <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
       </li>
     
@@ -1367,10 +1333,6 @@
     
       <li class="post">
         <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
-      </li>
-    
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
       </li>
     
   </ul>

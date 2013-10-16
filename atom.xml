@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2013-10-08T19:57:46-07:00</updated>
+  <updated>2013-10-16T08:59:28-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -12,6 +12,201 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Hadoop MapReduce Join Optimization with a Bloom Filter]]></title>
+    <link href="http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/"/>
+    <updated>2013-10-15T22:49:00-07:00</updated>
+    <id>http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter</id>
+    <content type="html"><![CDATA[<p>Doing a join in hadoop with Java is painful. A one-liner in Pig Latin can easily explode into hundreds of lines of Java. However, the additional control in Java can yield significant performance gains and simplify complex logic that is difficult to express in Pig Latin.</p>
+
+<p>In my case, the left side of the join contained about 100K records while the right side was closer to 1B. Emitting all join keys from the mapper means that all 1B records from the right side of the join are shuffled, sorted and sent to a reducer. The reducer then ends up discarding most of join keys that don&rsquo;t match the left side.</p>
+
+<p>Any best practices guide will tell you to push more work into the mapper. In the case of a join, that means dropping records in the mapper that will end up getting dropped by the reducer anyway. In order to do that, the mapper needs to know if a particular join key exists on the left hand side.</p>
+
+<p>An easy way to accomplish this is to put the smaller dataset into the <code>DistributedCache</code> and then load all the join keys into a <code>HashSet</code> that the mapper can do a lookup against.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">for</span> <span class="o">(</span><span class="n">FileStatus</span> <span class="n">status</span> <span class="o">:</span> <span class="n">fileSystem</span><span class="o">.</span><span class="na">globStatus</span><span class="o">(</span><span class="n">theSmallSideOfTheJoin</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">DistributedCache</span><span class="o">.</span><span class="na">addCacheFile</span><span class="o">(</span><span class="n">status</span><span class="o">.</span><span class="na">getPath</span><span class="o">().</span><span class="na">toUri</span><span class="o">(),</span> <span class="n">job</span><span class="o">.</span><span class="na">getConfiguration</span><span class="o">());</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">setup</span><span class="o">(</span><span class="n">Mapper</span><span class="o">.</span><span class="na">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">buildJoinKeyHashMap</span><span class="o">(</span><span class="n">context</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">map</span><span class="o">(</span><span class="n">LongWritable</span> <span class="n">key</span><span class="o">,</span> <span class="n">Text</span> <span class="n">value</span><span class="o">,</span> <span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">joinKeys</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">joinKey</span><span class="o">))</span>
+</span><span class='line'>      <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">context</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">outKey</span><span class="o">,</span> <span class="n">outVal</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This totally works, but consumes enough memory that I was occassionally getting <code>java.lang.OutOfMemoryError: Java heap space</code> from the mappers. Enter the <a href="http://en.wikipedia.org/wiki/Bloom_filter">Bloom filter</a>.</p>
+
+<blockquote><p>A Bloom filter is a space-efficient probabilistic data structure that is used to test whether an element is a member of a set. False positive matches are possible, but false negatives are not. Elements can be added to the set, but not removed. The more elements that are added to the set, the larger the probability of false positives. -Wikipedia</p></blockquote>
+
+<p>I hadn&rsquo;t heard of a Bloom filter before taking <a href="https://www.coursera.org/course/algo">Algorithms: Design and Analysis, Part 1</a>. If not for the course, I&rsquo;m pretty sure I would have skimmed over the innocuous reference while pilfering around the hadoop <a href="http://hadoop.apache.org/docs/current/api/org/apache/hadoop/util/bloom/BloomFilter.html">documentation</a>. Fortunately, recent exposure made the term jump out at me and I quickly recognized it was exactly what I was looking for.</p>
+
+<p>When I took the course, I thought the Bloom filter was an interesting idea that I wasn&rsquo;t likely to use anytime soon because I haven&rsquo;t needed one yet and I&rsquo;ve been programming professionally for more than a few years. But you don&rsquo;t know what you don&rsquo;t know, right? It&rsquo;s like thinking about buying a car you didn&rsquo;t notice before and now seeing it everywhere.</p>
+
+<h3>Configuration</h3>
+
+<p>The documentation is thin, with little more than variable names to glean meaning from.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="nf">BloomFilter</span><span class="o">(</span><span class="kt">int</span> <span class="n">vectorSize</span><span class="o">,</span>
+</span><span class='line'>                   <span class="kt">int</span> <span class="n">nbHash</span><span class="o">,</span>
+</span><span class='line'>                   <span class="kt">int</span> <span class="n">hashType</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>vectorSize</code> &ndash; The vector size of this filter.</li>
+<li><code>nbHash</code> &ndash; The number of hash function to consider.</li>
+<li><code>hashType</code> &ndash; type of the hashing function (see Hash).</li>
+</ul>
+
+
+<p>I know what you&rsquo;re thinking. What could be more helpful than <em>The vector size of this filter</em> as a description for <code>vectorSize</code>? Well, the basic idea is there&rsquo;s a trade-off between space, speed and probability of a false positive. Here&rsquo;s how I think about it:</p>
+
+<ul>
+<li><code>vectorSize</code> &ndash; The amount of memory used to store hash keys. Larger values are less likey to yield false positives. If the value is too large, you might as well use a <code>HashSet</code>.</li>
+<li><code>nbHash</code> &ndash; The number of times to hash the key. Larger numbers are less likely to yeild false positives at the expense of additional computation effort. Expect deminishing returns on larger values.</li>
+<li><code>hashType</code> &ndash; type of the hashing function (see Hash). The Hash documentation was reasonable so I&rsquo;m not going to add anything.</li>
+</ul>
+
+
+<p>I used trial and error to figure out numbers that were good for my constraints.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BloomFilterTests</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">BloomFilter</span> <span class="n">bloomFilter</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">knownKey</span> <span class="o">=</span> <span class="n">newGuid</span><span class="o">();</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">numberOfKeys</span> <span class="o">=</span> <span class="mi">500000</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@BeforeClass</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">before</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">bloomFilter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BloomFilter</span><span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="n">Hash</span><span class="o">.</span><span class="na">MURMUR_HASH</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">));</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Test</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">should_contain_known_key</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">),</span> <span class="n">is</span><span class="o">(</span><span class="kc">true</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Test</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">false_positive_probability_should_be_low</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()))</span>
+</span><span class='line'>                <span class="n">count</span><span class="o">++;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">onePercent</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="o">.</span><span class="mi">0005</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">count</span><span class="o">,</span> <span class="n">is</span><span class="o">(</span><span class="n">lessThan</span><span class="o">(</span><span class="n">onePercent</span><span class="o">)));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">newGuid</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">UUID</span><span class="o">.</span><span class="na">randomUUID</span><span class="o">().</span><span class="na">toString</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Key</span> <span class="nf">newKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">Key</span><span class="o">(</span><span class="n">key</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">hasKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">bloomFilter</span><span class="o">.</span><span class="na">membershipTest</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">key</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When you have your numbers worked out, simply swap out the <code>HashMap</code> with the <code>BloomFilter</code> and then blog about it.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Extracting root domain from a url]]></title>
@@ -2994,27 +3189,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 
 
 <p>Again, this is powerful because we didn’t have to pollute our code with logging statements, yet we see quality log entries with input, output and execution time. In addition to logging, we can attach performance counters to meaningful events, add exception policies to notify us when things go wrong, selectively add caching at run-time and lots more. To see it all in action, you can <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">download the source code</a> for the examples used in this article.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Definition of Enterprise Software]]></title>
-    <link href="http://www.agileatwork.com/definition-of-enterprise-software/"/>
-    <updated>2009-12-06T12:41:00-08:00</updated>
-    <id>http://www.agileatwork.com/definition-of-enterprise-software</id>
-    <content type="html"><![CDATA[<p>The difference between Enterprise software and regular software is like the difference between a start-up and a public company. Enterprise software has lots of bureaucracy and red tape (indirection and configuration) to support transparency and top-down policy. You pay a price up front to create all these layers and well-defined communication channels between departments, but once the whole thing is up and running, it’s powerful.</p>
-
-<p>Big companies can throw time and money at problems to produce activity diagrams, advisory boards and flow charts. Sure there’s bloat, but you need that kind of oversight to enforce corporate policy. Similarly, enterprise software can extravagantly use cpu cycles, disk space and memory, but this is a fair price to pay when complexity is king. Enterprise software must be concerned with things like service level agreements and government regulations. So how do you do that?</p>
-
-<p>You do that by dissecting your application into composable units of behavior. This is the essence of the single-responsibility-principle and while the concept is deceptively simple, it can have a profound effect on your software. Yes, the end result is lots of little classes, but it’s much more than that. These classes capture individual business concepts and overtime your software becomes a domain-specific-language (DSL). I don’t mean the kind of DSL that a business person would use directly, but more like xpath and regular expressions except your DSL is focused on your business domain.</p>
-
-<p>Over time, software becomes an asset or a liability. The difference is your ability to respond to the needs of the business and your toolbox for that is your DSL or lack thereof. You need to compose, decompose, rearrange and built-out bits of behavior in ways impossible to predict. Single responsibility gives you that ability and dependency inversion creates seams throughout your code to spin off in unpredictable directions. These seams are the key to longevity and the difference between enterprise software and regular software.</p>
-
-<p>I’ll share an experience I had this weekend. I was about to deploy a new application and I thought it would be cool to use a performance counter to watch throughput. Within about 20 minutes I was able to add a performance counter by only modifying the <code>App.config</code> and this was the result:</p>
-
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/perfmon3.png"></p>
-
-<p>This was possible because of IoC among other things. The app is composed of many small pieces and you’d be hard pressed to find the <code>new</code> keyword where it matters. <code>SyncListingJob</code> was already being built-up by Unity Container, so I was able take advantage of an off-the-shelf performance monitor aspect in the Enterprise Library 4.1 Policy Injection Application Block and wire it in via the <code>App.config</code>.</p>
 ]]></content>
   </entry>
   
