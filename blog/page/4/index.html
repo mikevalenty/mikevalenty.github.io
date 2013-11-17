@@ -9,7 +9,24 @@
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s &hellip;">
+  <meta name="description" content="This is how I want things to look: 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+public class UpdateUserRequest
+{ [AuthorizedUserPublisherRequired] public &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +95,272 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/validation-with-unity-interception/">Validation With Unity Interception</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-07-18T18:20:00-07:00" pubdate data-updated="true">Jul 18<span>th</span>, 2009</time>
+        
+         | <a href="/validation-with-unity-interception/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
+
+<p>This is how I want things to look:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UpdateUserRequest</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="na">    [AuthorizedUserPublisherRequired]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">UserId</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [Required(&quot;Name is required&quot;)]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [ValidZipCodeRequired(&quot;Invalid zip code&quot;)]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">ZipCode</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IUserService</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">void</span> <span class="nf">Update</span><span class="p">(</span><span class="n">UpdateUserRequest</span> <span class="n">request</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There are validation frameworks out there that will do this, so what’s my beef? Well, first of all I want to inject the validators with dependencies to implement the juicier rules. And second, I’m treating validation as a core concern so I don’t want a dependency on a framework like Enterprise Library. I had several questions like:</p>
+
+<ol>
+<li>How do I get dependencies into the validators?</li>
+<li>How do I get <code>ValidZipCodeRequired</code> to fire with the value of the <code>ZipCode</code> property</li>
+<li>How do I initiate this on <code>userService.Update()</code>?</li>
+</ol>
+
+
+<p>Let’s take a look at building up the validators.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">ValidZipCodeRequiredAttribute</span> <span class="p">:</span> <span class="n">ValidatorAttribute</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="n">IValidator</span> <span class="nf">CreateValidator</span><span class="p">(</span><span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">&lt;</span><span class="n">ValidZipCodeRequiredValidator</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This allows me to make a <code>UnityValidatorFactory</code> that can supply all my dependencies. Now how about this business of running the <code>ValidZipCodeRequiredValidator</code> with the value of the <code>ZipCode</code> property? For that I made a composite validator that loops through each property and runs the annotated validator against it’s property value.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">CompositeValidator</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IValidator</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">CompositeValidator</span><span class="p">(</span><span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">Validate</span><span class="p">(</span><span class="n">T</span> <span class="n">subject</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">exceptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">PropertyInfo</span> <span class="n">property</span> <span class="k">in</span> <span class="k">typeof</span><span class="p">(</span><span class="n">T</span><span class="p">).</span><span class="n">GetProperties</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">validator</span> <span class="k">in</span> <span class="n">GetValidatorsFor</span><span class="p">(</span><span class="n">property</span><span class="p">))</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">exceptions</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">validator</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">property</span><span class="p">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="k">null</span><span class="p">)));</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">exceptions</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">IValidator</span><span class="p">&gt;</span> <span class="n">GetValidatorsFor</span><span class="p">(</span><span class="n">ICustomAttributeProvider</span> <span class="n">provider</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">ValidatorAttribute</span> <span class="n">attribute</span>
+</span><span class='line'>            <span class="k">in</span> <span class="n">provider</span><span class="p">.</span><span class="n">GetCustomAttributes</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">ValidatorAttribute</span><span class="p">),</span> <span class="k">true</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">yield</span> <span class="k">return</span> <span class="n">attribute</span><span class="p">.</span><span class="n">CreateValidator</span><span class="p">(</span><span class="n">factory</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now I just need to run the <code>CompositeValidator</code> on <code>userService.Update()</code>. For that I use Unity Interception:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">ValidationCallHandler</span> <span class="p">:</span> <span class="n">ICallHandler</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IValidator</span> <span class="n">validator</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">ValidationCallHandler</span><span class="p">(</span><span class="n">IValidator</span> <span class="n">validator</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">validator</span> <span class="p">=</span> <span class="n">validator</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">ruleExceptions</span> <span class="p">=</span> <span class="n">ValidateEachArgument</span><span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">Arguments</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">ruleExceptions</span><span class="p">.</span><span class="n">Count</span><span class="p">()</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">ValidationException</span><span class="p">(</span><span class="n">ruleExceptions</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">ValidateEachArgument</span><span class="p">(</span><span class="n">IParameterCollection</span> <span class="n">arguments</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">ruleExceptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">arg</span> <span class="k">in</span> <span class="n">arguments</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">ruleExceptions</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">validator</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">arg</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">ruleExceptions</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Order</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Phew, we’re almost done. The only thing left is to apply this validator in configuration so I can keep the Unity reference out of my core domain. That looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">SetInterceptorFor</span><span class="p">&lt;</span><span class="n">IUserService</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">InterfaceInterceptor</span><span class="p">())</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddPolicy</span><span class="p">(</span><span class="s">&quot;UserServiceValidationPolicy&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddCallHandler</span><span class="p">&lt;</span><span class="n">ValidationCallHandler</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddMatchingRule</span><span class="p">&lt;</span><span class="n">AlwaysApplyMatchingRule</span><span class="p">&gt;();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1221,84 +1504,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/5-ways-to-fail-at-pair-programming/">5 Ways to Fail at Pair Programming</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-05-10T21:37:00-07:00" pubdate data-updated="true">May 10<span>th</span>, 2009</time>
-        
-         | <a href="/5-ways-to-fail-at-pair-programming/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img class="plain" src="/images/posts/shoes.jpg"></p>
-
-<p>The only hard part is convincing your boss that it’s not a colossal waste of time, right? Well that’s the first hurdle and yes it’s a doosie, but it’s just the price of admission. The real fun starts when you sit next to your partner and try to prove your boss wrong. After a year or so in the trenches, I’ve learned a thing or two on how to mess it up.</p>
-
-<h3>5. Researching new technology</h3>
-
-<p>“Click on that link, no wait scroll up, over there, wait I wasn’t done reading that…” That’s not pair programming, that’s insanity. Recently we were working on a project that involved a custom Firefox browser skin. Neither of us had experience with browser skins, so there was a lot of Googling and tutorial reading. As soon as we caught ourselves reading blogs and whatnot, we would split up for 15 minutes and then compare notes.</p>
-
-<h3>4. Getting your environment going</h3>
-
-<p>“Hey buddy, are you ready to start pairing on that project? Let’s see, now where is the source code for the project we’re working on… Hmm, this doesn’t compile – I think I need to install the latest version of that library.” Kill me now.</p>
-
-<h3>3. Paralysis</h3>
-
-<p><img class="plain right" src="/images/posts/FrightenedMan400.jpg"></p>
-
-<p>One of my favorite authors, Kurt Vonnegut would write clever things like “The man looked… guilty isn’t the right word, but it’s the first one that comes to mind.”</p>
-
-<p>With pair programming, you can’t just sit there because you don’t know where to start or you can’t think of the right variable name. Just type something. You have to get the problem solving out of your head and into a medium that two people can have a conversation about it. Maybe people are afraid to type something in front of a peer if it’s not perfect. Borrow a technique from Kurt Vonnegut and as you are type, just say “I don’t want the code to look like this…” and write some awful switch case statement.</p>
-
-<p>Once there is something on the screen, you and your partner are instantly aligned and solving the same problem. Now you can discuss factories and polymorphism and all kinds of heady solutions.</p>
-
-<h3>2. Not doing TDD</h3>
-
-<p>Have you ever watched an artist paint a picture and thought to yourself “what the heck is that”. Then with the next brush stroke you realize you’re looking at the profile of someone’s face. Well watching someone write code can be horribly worse than that.</p>
-
-<p>Pair programming is a conversation, not a seminar or window into someone’s brain. The best way to keep things at a conversational level is to work top down which is exactly what TDD forces you to do. You must consider your code from the client perspective and challenge yourself to keep your code on purpose.</p>
-
-<p>Even more importantly, TDD gives you and your buddy an “out” at regular intervals. You write a test, you make a test pass. Either way, you have many small victories over the course of a few hours and you can switch pairs at well defined feel-good stopping points.</p>
-
-<h3>1. Not using a timer</h3>
-
-<p><img class="plain left" src="/images/posts/pprobot.jpg"></p>
-
-<p>I used to work with a guy that was always competing with something. A mutual friend at the office was doing the 3-day breast cancer walk. If anyone in the office donated money, he would up his donation $1 higher. On the softball team, his jersey number was #1. When we started playing ping-pong at lunch, he bought a $600 ping-pong robot to practice with at home. So when he started using a timer while programming I just figured it was good old Paul racing against time.</p>
-
-<p>Then I paired with him on a project. Right after wanting to strangle him for not having his environment ready, we set his timer for 30 minutes and got going. When the timer went off, we stopped mid keystroke and switched seats. This did a few things. First, it kept Paul engaged the whole time because he knew he would be in the hot seat in a few minutes, and I can be a bit of a bully so it was easier for me to back off knowing I’d get my chance soon enough. One of the more surprising benefits, however, was simply the fact that we would sit for a minute and agree exactly what we were doing before starting the timer which really got us in gear and drastically cut down on tangents.</p>
-
-<p>Using a timer creates a magical dynamic that I cannot do justice with words. It’s like TDD, it’s not about the tests – it’s about the code you write to make it testable. You have to try it. Period.</p>
-
-<blockquote><p>If you can do a half-assed job of anything, you’re a one-eyed man in a kingdom of the blind. – Kurt Vonnegut</p></blockquote>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1316,6 +1521,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/multi-key-get-on-couchbase-view-in-scala/">Multi-Key Get on Couchbase View in Scala</a>
+      </li>
+    
+      <li class="post">
         <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
       </li>
     
@@ -1329,10 +1538,6 @@
     
       <li class="post">
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
   </ul>

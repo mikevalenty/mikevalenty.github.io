@@ -9,7 +9,7 @@
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="Doing a join in hadoop with Java is painful. A one-liner in Pig Latin can easily explode into hundreds of lines of Java. However, the additional &hellip;">
+  <meta name="description" content="To retreive documents from Couchbase by anything other than the document key requires querying a view and views are defined by map and reduce &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,147 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/multi-key-get-on-couchbase-view-in-scala/">Multi-Key Get on Couchbase View in Scala</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-16T15:26:00-08:00" pubdate data-updated="true">Nov 16<span>th</span>, 2013</time>
+        
+         | <a href="/multi-key-get-on-couchbase-view-in-scala/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>To retreive documents from Couchbase by anything other than the document key requires querying a <a href="http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html">view</a> and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">key</span>         <span class="nx">value</span>
+</span><span class='line'><span class="o">---</span>         <span class="o">-----</span>
+</span><span class='line'><span class="s2">&quot;key1&quot;</span>      <span class="p">{</span> <span class="s2">&quot;term&quot;</span><span class="o">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="o">:</span> <span class="mi">2</span> <span class="p">}</span>
+</span><span class='line'><span class="s2">&quot;key2&quot;</span>      <span class="p">{</span> <span class="s2">&quot;term&quot;</span><span class="o">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="o">:</span> <span class="mi">1</span> <span class="p">}</span>
+</span><span class='line'><span class="s2">&quot;key3&quot;</span>      <span class="p">{</span> <span class="s2">&quot;term&quot;</span><span class="o">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="o">:</span> <span class="mi">4</span> <span class="p">}</span>
+</span><span class='line'><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And this Scala <code>case class</code> to hold the documents retreived from the view.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">TermOccurrence</span><span class="o">(</span><span class="n">term</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">count</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s a common scenario to retreive multiple documents at once and the <a href="http://www.couchbase.com/communities/java/getting-started">Java driver</a> has a pretty straight forward api for that. The desired keys are simply specified as a json array.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">com.couchbase.client.CouchbaseClient</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.json.Json</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">CouchbaseExtensions._</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Log</span>
+</span><span class='line'><span class="k">def</span> <span class="n">findByTerms</span><span class="o">(</span><span class="n">terms</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">TermOccurrence</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">keys</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">stringify</span><span class="o">(</span><span class="nc">Json</span><span class="o">.</span><span class="n">toJson</span><span class="o">(</span><span class="n">terms</span> <span class="n">map</span> <span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toLowerCase</span><span class="o">)))</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">view</span> <span class="k">=</span> <span class="n">client</span><span class="o">.</span><span class="n">getView</span><span class="o">(</span><span class="s">&quot;view1&quot;</span><span class="o">,</span> <span class="s">&quot;by_term&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">query</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Query</span><span class="o">()</span>
+</span><span class='line'>  <span class="n">query</span><span class="o">.</span><span class="n">setIncludeDocs</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">query</span><span class="o">.</span><span class="n">setKeys</span><span class="o">(</span><span class="n">keys</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">response</span> <span class="k">=</span> <span class="n">client</span><span class="o">.</span><span class="n">query</span><span class="o">(</span><span class="n">view</span><span class="o">,</span> <span class="n">query</span><span class="o">).</span><span class="n">asScala</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">response</span><span class="o">.</span><span class="n">toList</span> <span class="n">map</span> <span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">TermOccurrence</span><span class="o">])</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The Java driver deals with strings so it&rsquo;s up to the client application to handle the json parsing. That was an excellent design decision and makes using the Java driver from Scala pretty painless. I&rsquo;m using the <a href="http://www.playframework.com/">Play Framework</a> json libraries and an extension method <code>_.as[TermOccurrence]</code> defined on <code>ViewRow</code> to simplify the mapping of the response documents to Scala objects.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">CouchbaseExtensions</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">ViewRowExtensions</span><span class="o">(</span><span class="n">row</span><span class="k">:</span> <span class="kt">ViewRow</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">as</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="k">implicit</span> <span class="n">format</span><span class="k">:</span> <span class="kt">Format</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">val</span> <span class="n">document</span> <span class="k">=</span> <span class="n">row</span><span class="o">.</span><span class="n">getValue</span>
+</span><span class='line'>      <span class="k">val</span> <span class="n">modelJsValue</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">parse</span><span class="o">(</span><span class="n">document</span><span class="o">)</span>
+</span><span class='line'>      <span class="nc">Json</span><span class="o">.</span><span class="n">fromJson</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">modelJsValue</span><span class="o">).</span><span class="n">get</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">implicit</span> <span class="k">def</span> <span class="n">enhanceViewRow</span><span class="o">(</span><span class="n">row</span><span class="k">:</span> <span class="kt">ViewRow</span><span class="o">)</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ViewRowExtensions</span><span class="o">(</span><span class="n">row</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In order for this extension method to work, it requires an implicit <code>Format[TermOccurrence]</code> which is defined on of the <code>TermOccurrence</code> compainion object.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">TermOccurrence</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">formatTermOccurrence</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">format</span><span class="o">[</span><span class="kt">TermOccurrence</span><span class="o">]</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1918,303 +2059,6 @@ It’s pretty simple, there is just one interface to implement and it looks like
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/refactoring-c-style/">Refactoring C# Style</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-11-27T09:51:00-08:00" pubdate data-updated="true">Nov 27<span>th</span>, 2010</time>
-        
-         | <a href="/refactoring-c-style/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Take a look a this function.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After doing some performance profiling, it quickly popped up as the top offender. Why? Because it’s holding a database transaction open while saving a file. In order to fix it, we have to ditch our <code>UnitOfWork</code> aspect and implement a finer-grained transaction. Basically what needs to happen is saving the entity and saving the file need to be separate operations so we can commit the transaction as soon as the entity is saved. And since saving the file could fail, we might have to clean up an orphaned file entity.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">SaveEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">TryDeleteEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">TryDeleteEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>That wasn’t too bad except that the number of lines of code exploded and we have a few private methods in our service that only deal with plumbing. It would be nice to push them into the framework. Since C# is awesome, we can use a combination of delegates and extension methods to do that.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Execute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">TryExecute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
-</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">DocumentRepositoryExtensions</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="k">this</span> <span class="n">IDocumentRepository</span> <span class="n">repository</span><span class="p">,</span> <span class="n">Document</span> <span class="n">document</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">UnitOfWorkExtensions</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">try</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">catch</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>            <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">TryExecute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">try</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">catch</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now we can move the extension methods into the framework and out of our service. In a less awesome language we could define these convenience methods on the <code>IUnitOfWork</code> interface and implement them in an abstract base class, but inheritance is evil and it’s a tradeoff we don’t have to make in C#.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2230,6 +2074,10 @@ It’s pretty simple, there is just one interface to implement and it looks like
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/multi-key-get-on-couchbase-view-in-scala/">Multi-Key Get on Couchbase View in Scala</a>
+      </li>
+    
+      <li class="post">
         <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
       </li>
     
@@ -2243,10 +2091,6 @@ It’s pretty simple, there is just one interface to implement and it looks like
     
       <li class="post">
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
   </ul>
