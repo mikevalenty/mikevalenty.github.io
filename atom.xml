@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2013-11-16T21:49:07-08:00</updated>
+  <updated>2013-11-16T21:59:15-08:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Multi-Key Get on Couchbase View in Scala]]></title>
-    <link href="http://www.agileatwork.com/multi-key-get-on-couchbase-view-in-scala/"/>
+    <title type="html"><![CDATA[Using Scala to Perform a Multi-Key Get on a Couchbase View]]></title>
+    <link href="http://www.agileatwork.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/"/>
     <updated>2013-11-16T15:26:00-08:00</updated>
-    <id>http://www.agileatwork.com/multi-key-get-on-couchbase-view-in-scala</id>
+    <id>http://www.agileatwork.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view</id>
     <content type="html"><![CDATA[<p>To retreive documents from Couchbase by anything other than the document key requires querying a <a href="http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html">view</a> and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
