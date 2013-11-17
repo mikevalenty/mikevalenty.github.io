@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "User Recommendations with Couchbase and Scala"
-date: 2013-11-16 13:29
+date: 2013-11-17 13:29
 comments: true
 categories: 
 published: false

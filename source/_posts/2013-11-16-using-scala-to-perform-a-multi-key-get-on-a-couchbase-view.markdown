@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Multi-Key Get on Couchbase View in Scala"
+title: "Using Scala to Perform a Multi-Key Get on a Couchbase View"
 date: 2013-11-16 15:26
 comments: true
 categories: 
