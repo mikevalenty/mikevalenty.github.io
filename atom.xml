@@ -4,7 +4,7 @@
   <title><![CDATA[Agile at Work]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2013-11-16T21:59:15-08:00</updated>
+  <updated>2013-11-26T15:16:16-08:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Michael Valenty]]></name>
@@ -18,7 +18,7 @@
     <link href="http://www.agileatwork.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/"/>
     <updated>2013-11-16T15:26:00-08:00</updated>
     <id>http://www.agileatwork.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view</id>
-    <content type="html"><![CDATA[<p>To retreive documents from Couchbase by anything other than the document key requires querying a <a href="http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html">view</a> and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:</p>
+    <content type="html"><![CDATA[<p>To retrieve documents from Couchbase by anything other than the document key requires querying a <a href="http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html">view</a> and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -35,14 +35,14 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>And this Scala <code>case class</code> to hold the documents retreived from the view.</p>
+<p>And this Scala <code>case class</code> to hold the documents retrieved from the view.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">TermOccurrence</span><span class="o">(</span><span class="n">term</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">count</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>It&rsquo;s a common scenario to retreive multiple documents at once and the <a href="http://www.couchbase.com/communities/java/getting-started">Java driver</a> has a pretty straight forward api for that. The desired keys are simply specified as a json array.</p>
+<p>It&rsquo;s a common scenario to retrieve multiple documents at once and the <a href="http://www.couchbase.com/communities/java/getting-started">Java driver</a> has a pretty straight forward api for that. The desired keys are simply specified as a json array.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
