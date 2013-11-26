@@ -5,7 +5,7 @@ date: 2013-11-16 15:26
 comments: true
 categories: 
 ---
-To retreive documents from Couchbase by anything other than the document key requires querying a [view](http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html) and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:
+To retrieve documents from Couchbase by anything other than the document key requires querying a [view](http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html) and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:
 
 ``` javascript
 key         value
@@ -16,13 +16,13 @@ key         value
 ...
 ```
 
-And this Scala `case class` to hold the documents retreived from the view.
+And this Scala `case class` to hold the documents retrieved from the view.
 
 ``` scala
 case class TermOccurrence(term: String, count: Int)
 ```
 
-It's a common scenario to retreive multiple documents at once and the [Java driver](http://www.couchbase.com/communities/java/getting-started) has a pretty straight forward api for that. The desired keys are simply specified as a json array.
+It's a common scenario to retrieve multiple documents at once and the [Java driver](http://www.couchbase.com/communities/java/getting-started) has a pretty straight forward api for that. The desired keys are simply specified as a json array.
 
 ``` scala
 import com.couchbase.client.CouchbaseClient
