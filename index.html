@@ -187,10 +187,9 @@
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
-<span class='line-number'>12</span>
 </pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">CouchbaseExtensions</span> <span class="o">{</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="k">class</span> <span class="nc">ViewRowExtensions</span><span class="o">(</span><span class="n">row</span><span class="k">:</span> <span class="kt">ViewRow</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">implicit</span> <span class="k">class</span> <span class="nc">RichViewRow</span><span class="o">(</span><span class="n">row</span><span class="k">:</span> <span class="kt">ViewRow</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>    <span class="k">def</span> <span class="n">as</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="k">implicit</span> <span class="n">format</span><span class="k">:</span> <span class="kt">Format</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=</span> <span class="o">{</span>
 </span><span class='line'>      <span class="k">val</span> <span class="n">document</span> <span class="k">=</span> <span class="n">row</span><span class="o">.</span><span class="n">getValue</span>
 </span><span class='line'>      <span class="k">val</span> <span class="n">modelJsValue</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">parse</span><span class="o">(</span><span class="n">document</span><span class="o">)</span>
@@ -198,7 +197,6 @@
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'>  <span class="o">}</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="k">implicit</span> <span class="k">def</span> <span class="n">enhanceViewRow</span><span class="o">(</span><span class="n">row</span><span class="k">:</span> <span class="kt">ViewRow</span><span class="o">)</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ViewRowExtensions</span><span class="o">(</span><span class="n">row</span><span class="o">)</span>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
