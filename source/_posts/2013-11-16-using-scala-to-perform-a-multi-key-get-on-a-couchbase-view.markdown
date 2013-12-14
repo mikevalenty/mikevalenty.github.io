@@ -50,15 +50,14 @@ The Java driver deals with strings so it's up to the client application to handl
 ``` scala
 object CouchbaseExtensions {
 
-  class ViewRowExtensions(row: ViewRow) {
+  implicit class RichViewRow(row: ViewRow) {
     def as[A](implicit format: Format[A]): A = {
       val document = row.getValue
       val modelJsValue = Json.parse(document)
       Json.fromJson[A](modelJsValue).get
     }
   }
-
-  implicit def enhanceViewRow(row: ViewRow) = new ViewRowExtensions(row)
+  
 }
 ```
 In order for this extension method to work, it requires an implicit `Format[TermOccurrence]` which is defined on of the `TermOccurrence` compainion object.
