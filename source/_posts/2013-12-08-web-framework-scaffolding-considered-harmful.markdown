@@ -31,31 +31,27 @@ I eventually succumbed to the peer pressure and started carrying a pocket knife 
 
 It turns out I had a similar experience with concurrent editing. Working on the same document at the same time with multiple people is pretty cool, and you'd be surprised how this powerful ability can change the way you work. There's no way you would justify an extravagant feature like this in your own back office tools and you get it for free with Google docs.
 
-### Bulk operations
+### Formulas
 
-Since it's a spreadsheet, you can use formulas and this is cooler than you might think. Consider a list of products. Chances are the product prices have some kind of relationship that you can capture with a formula and save yourself from tedious and error prone manual entry. Sure a developer can write some SQL or whatever query language you use, but then you have to work with a developer and don't get me started on that.
+Since it's a spreadsheet, you can use formulas and this is cooler than you might think. Consider a list of products. Chances are the product prices have some kind of relationship that you can capture with a formula and save yourself from tedious and error prone manual entry.
 
-Again, this is the kind of feature that invites new ways of working. You probably don't care about the actual product prices as much as you care about your margins or some other derived number. With a spreadsheet, you can keep your formula together with your data. When you change a price, you can see how it affects your bottom line in a calculated field a few cells over. Or work backwards and calculate the price based on a combination of other factors. Or just use a forumla as a sanity check that all your numbers add up to the right amount. There are countless ways to add depth to your data with formulas and this really isn't something you should try to code into your app.
+In reality though, you probably don't care about the actual product prices as much as you care about your margins or some other derived number. With a spreadsheet, you can keep your formula together with your data. When you change a price, you can see how it affects your bottom line in a calculated field a few cells over. Or work backwards and calculate the price based on a combination of other factors. Or just use a forumla as a sanity check that all your numbers add up to the right amount.
 
-Empower your team (not just developers) with a familiar tool like a spreadsheet and give them the opportunity to impress you with their creativity. Sure, you could use an offline spreadsheet like Excel and manually input the result, but it's different when it's online, shared and connected to your app (via import). It's the [pit of success](http://www.codinghorror.com/blog/2007/08/falling-into-the-pit-of-success.html), and it dares your team to be awesome.
+Again, this is the kind of feature that invites new ways of working. You might use a formula to find a bug before the data ever hits your app or add a new forumla so you don't get burned twice by the same mistake. A spreadsheet gives you a place to capture knowledge about your data. You could capture this knowledge in a wiki, but the fact that it's in a Google spreadsheet that's connected to your app, makes it real. It's the difference between a code comment and a unit test.
 
-> You could resign to the fact that nothing happens without developer hours, or you could let your team loose on a spreadsheet and watch calculations, charts and formatting emerge to add deeper meaning to your data.
-
-Futhermore, you might use a formula to find a bug before the data ever hits your app or add a new forumla so you don't get burned twice by the same mistake. What's cool is that you have a place to capture knowledge about your data. You could capture this knowledge in a wiki, but the fact that it's in a Google spreadsheet that's connected to your app, makes it real. It's the difference between a code comment and a unit test.
-
-### Repeatable
+### Import
 
 {% img right /images/posts/example_dup.png 300 %}
 
-This is easily the most important feature. A data update is a deployment just like a code deployment. Things can go horribly wrong when there's a bug in your data. Big companies _get this_ and respond with change advisory boards and more process to protect themselves. 
+A data update is a deployment just like a code deployment and things can go horribly wrong when there's a mistake in your data. Big companies get this and respond with change advisory boards and more process to protect themselves, but you can do better.
 
-With a small investment in an import tool, you get a repeatable one-click deployment process for your data. Oh, and if you spin off a copy prior to making changes, you get one-click rollback too.
+Your data deserves a repeatable one-click deployment process and you shouldn't settle for anything less. The Google docs API is robust and easy to use. You can fairly easily build a tool that lists all the spreadsheets along with metadata like last modified. Oh, and if you spin off a copy prior to making changes, you get one-click rollback too.
 
-<div style="clear:both;"></div>
+### Conclusion
 
---
+Empower your team (not just developers) with a familiar tool like a spreadsheet and give them the opportunity to impress you. Watch as calculations and charts emerge to add deeper meaning to your data. Watch as collaboration occurs and team members are brought together rather than divided by functional roles.
 
-Seriously. Don't waste your time half-assing back office tools when you can invest a similar amount of programming effort in a tool to import data from Google spreadsheets. A little bit of discipline with a scrappy tool and you're paying attention to what matters. You recognize the value of continuous delivery and focus the bulk of your effort on your product.
+Seriously. Don't waste your time half-assing back office tools when you can invest a similar amount of effort in a tool to import data from Google spreadsheets. A little bit of discipline with a scrappy tool and you're paying attention to what matters.
 
 <div style="clear:both;"></div>
 
