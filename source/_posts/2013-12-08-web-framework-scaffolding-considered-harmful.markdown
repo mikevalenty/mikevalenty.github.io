@@ -9,9 +9,9 @@ published: false
 
 If you're a start up and spending time building back office tools to input application data into web forms, you're doing it wrong. Sure, it's a pretty simple task to build a few [CRUD](http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) screens using the hottest new MVC framework, but you can do better.
 
-Integrating with Google spreadsheets to manage application data unlocks powerful possibilities and will take you further than anything you could scaffold up in a comperable amount of time. To be clear, I'm not suggesting you take a runtime dependency on Google docs. I'm talking about using a lightweight business process that takes advantage of the rich collaborations features of Google docs and simply *import* the data into your database using the [API](https://developers.google.com/google-apps/spreadsheets/).
+Integrating with Google spreadsheets to manage application data unlocks powerful possibilities and will take you further than anything you could scaffold up in a comperable amount of time. To be clear, I'm not suggesting you take a _runtime_ dependency on Google docs. I'm talking about using a lightweight business process that takes advantage of the rich collaborations features of Google docs and simply *import* the data into your database using the [API](https://developers.google.com/google-apps/spreadsheets/).
 
-{% img /images/posts/example_sp.png 600 %}
+{% img /images/posts/example_sp3.png 600 %}
 
 <div style="clear:both;"></div>
 
@@ -27,7 +27,7 @@ Sometimes release notes aren't detailed enough when trying to correlate a surpri
 
 My older brother carries a pocket knife at all times, and when he believes in something, he can't help but sell everyone else on the idea. He used to tell me I needed to carry a pocket knife so I could cut off my seatbelt when trapped in a burning (or sinking) car. In his defense, [GM recalled 240,000 SUVs in 2010](http://money.cnn.com/2010/08/17/autos/gm_recall/index.htm) citing "...[the seat belt] may seem to be jammed."
 
-I eventually succumbed to the peer pressure and started carrying a pocket knife too. I figured that along with untrapping myself from a burning car or defending myself at an ATM, it would be handy when I needed to open a box. To my surprise, new opportunities presented themselves and I was using my knife several times a day. I could cut off a hanging thread, scrape bee pollen off my windsheild, improve the vent in my coffee lid, remove a scratchy tag from my son's shirt and yes, open a box.
+Naturally, I started carrying a pocket knife too. I figured that along with untrapping myself from a burning car or defending myself at an ATM, it would be handy when I needed to open a box. To my surprise, new opportunities presented themselves and I was using my knife several times a day. I could cut off a hanging thread, scrape bee pollen off my windsheild, improve the vent in my coffee lid, remove a scratchy tag from my son's shirt and yes, open a box.
 
 It turns out I had a similar experience with concurrent editing. Working on the same document at the same time with multiple people is pretty cool, and you'd be surprised how this powerful ability can change the way you work. There's no way you would justify an extravagant feature like this in your own back office tools and you get it for free with Google docs.
 
@@ -45,9 +45,9 @@ Again, this is the kind of feature that invites new ways of working. You might u
 
 A data update is a deployment just like a code deployment and things can go horribly wrong when there's a mistake in your data. Big companies get this and respond with change advisory boards and more process to protect themselves, but you can do better.
 
-Your data deserves a repeatable one-click deployment process and you shouldn't settle for anything less. The Google docs API is robust and easy to use. You can fairly easily build a tool that lists all the spreadsheets along with metadata like last modified. Oh, and if you spin off a copy prior to making changes, you get one-click rollback too.
+Your data deserves a repeatable one-click deployment process and you shouldn't settle for anything less. An import is [idempotent](http://en.wikipedia.org/wiki/Idempotence) which means you can run it multiple times and the end result is always the same. A repeatable process is keyThis is important because it means you can practice several times in a test environment. Oh, and if you spin off a copy prior to making changes, you get one-click rollback too.
 
-### Conclusion
+## Conclusion
 
 Empower your team (not just developers) with a familiar tool like a spreadsheet and give them the opportunity to impress you. Watch as calculations and charts emerge to add deeper meaning to your data. Watch as collaboration occurs and team members are brought together rather than divided by functional roles.
 
