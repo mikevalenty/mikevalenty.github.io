@@ -5,11 +5,34 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Agile at Work</title>
+  <title>Michael Valenty</title>
   <meta name="author" content="Michael Valenty">
 
   
-  <meta name="description" content="Notes from my Brown Bag Learning Forum Presentation. Download the source code, or just sit back and relax. GoF Patterns: Chain of Responsibility &hellip;">
+  <meta name="description" content="You’ve seen code like this: 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+public class Order
+{ private ITaxCalculator taxCalculator; &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +44,7 @@
   <link rel="canonical" href="http://www.agileatwork.com/blog/page/3">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Michael Valenty" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -48,9 +71,9 @@
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">Agile at Work</a></h1>
+  <h1><a href="/">Michael Valenty</a></h1>
   
-    <h2>by Michael Valenty</h2>
+    <h2>on Software Development</h2>
   
 </hgroup>
 
@@ -70,7 +93,7 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/about-mike-valenty">About Me</a></li>
+  <li><a href="/about-mike-valenty">Contact Me</a></li>
 </ul>
 
 </nav>
@@ -84,7 +107,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/where-does-it-hurt/">Where Does It Hurt?</a></h1>
+      <h1 class="entry-title"><a href="/a-proper-closure-in-csharp/">A Proper Closure in C#</a></h1>
     
     
       <p class="meta">
@@ -100,47 +123,179 @@
   
 
 
-<time datetime="2009-12-26T20:30:00-08:00" pubdate data-updated="true">Dec 26<span>th</span>, 2009</time>
+<time datetime="2010-12-18T20:46:00-08:00" pubdate data-updated="true">Dec 18<span>th</span>, 2010</time>
         
-         | <a href="/where-does-it-hurt/#disqus_thread">Comments</a>
+         | <a href="/a-proper-closure-in-csharp/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Notes from my Brown Bag Learning Forum Presentation. <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">Download the source code</a>, or just sit back and relax.</p>
+  <div class="entry-content"><p>You’ve seen code like this:</p>
 
-<h3>GoF Patterns:</h3>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Order</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ITaxCalculator</span> <span class="n">taxCalculator</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">decimal?</span> <span class="n">tax</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">Order</span><span class="p">(</span><span class="n">ITaxCalculator</span> <span class="n">taxCalculator</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">taxCalculator</span> <span class="p">=</span> <span class="n">taxCalculator</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">decimal</span> <span class="nf">CalculateTax</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(!</span><span class="n">tax</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">tax</span> <span class="p">=</span> <span class="n">taxCalculator</span><span class="p">.</span><span class="n">Calculate</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">tax</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<ul>
-<li>Chain of Responsibility</li>
-<li>Decorator</li>
-<li>Adapter</li>
-</ul>
+
+<p>There are a few things to pick at. I’m looking at the member variable named <code>tax</code> that is null until you call <code>CalculateTax</code> for the first time. There isn’t anything to prevent the rest of the class from using the tax variable directly and possibly repeating the null check code in multiple places. I thought it would be fun to rewrite it using a closure. I don’t mean the kind of accidental closures we write with LINQ, but an honest to goodness proper closure.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Order</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">Order</span><span class="p">(</span><span class="n">ITaxCalculator</span> <span class="n">taxCalculator</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">CalculateTax</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="kt">decimal</span><span class="p">&gt;&gt;(()</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">decimal?</span> <span class="n">tax</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">return</span> <span class="p">()</span> <span class="p">=&gt;</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(!</span><span class="n">tax</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
+</span><span class='line'>                <span class="p">{</span>
+</span><span class='line'>                    <span class="n">tax</span> <span class="p">=</span> <span class="n">taxCalculator</span><span class="p">.</span><span class="n">Calculate</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>                <span class="k">return</span> <span class="n">tax</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">};</span>
+</span><span class='line'>        <span class="p">})();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">Func</span><span class="p">&lt;</span><span class="kt">decimal</span><span class="p">&gt;</span> <span class="n">CalculateTax</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Buzz Phrases:</h3>
+<p>A closure is created around the tax variable so only the <code>CalculateTax</code> function has access to it. That’s pretty awesome. I wouldn’t have thought of using this technique before learning JavaScript all over again. It’s fun code to write, but it’s not going to get checked-in to source control. It’s basically a landmine for the next guy that has to make changes. The mental energy it takes to wrap your head around it is like listening to a joke with a really long setup and a lousy punch line. The solution is more complicated than the problem.</p>
 
-<ul>
-<li>Single Responsibility Principle</li>
-<li>Open-Closed Principle</li>
-<li>Inversion of Control</li>
-<li>Aspect Oriented Programming</li>
-</ul>
+<p>I still thought it was worth the mental exercise. Each language has its wheelhouse which makes a certain class of problems easy to solve. Admittedly this was a bit forced here, but opening your mind to other solutions may lead to a breakthrough solving a legitimately tough problem.</p>
+</div>
+  
+  
 
 
-<p>Embracing the Single Responsibility Principle, Open-Closed Principle and Inversion of Control results in trading fragile application logic for fragile configuration logic. That’s a pretty good trade.</p>
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/refactoring-c-style/">Refactoring C# Style</a></h1>
+    
+    
+      <p class="meta">
+        
 
-<p>Fragile application logic is costly and it will come back to hurt you repeatedly. It goes without saying that fragile application logic is not testable, otherwise it wouldn’t be fragile. No tests mean changes are scary, so you have to compensate by regaining an intimate understanding of all the twists and turns in order to have enough confidence to make the change. The time and mental energy it takes to work through delicate and subtle conditional logic is enormous. My mediocre brain can only manage a short call stack and juggle a handful of variables at once.</p>
 
-<p>Let’s say you’re sold on the promise of pretentious acronyms like SRP, OCP, IoC and the like. So now you end up with a billion small classes and gobs of code dedicated to wiring-up your favorite inversion of control container (mine is Unity). Are we better for it? Let’s examine this trade-off by implementing the same functionality conventionally and using fancy patterns and principles.</p>
 
-<p>The Scenario: Implement captcha as the first step in some business process, like a registration form.</p>
 
-<p><img class="plain" src="/images/posts/captcha2.png"></p>
 
-<p>That’s pretty easy, I don’t need anything fancy to do that.</p>
+
+
+
+  
+
+
+<time datetime="2010-11-27T09:51:00-08:00" pubdate data-updated="true">Nov 27<span>th</span>, 2010</time>
+        
+         | <a href="/refactoring-c-style/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Take a look a this function.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After doing some performance profiling, it quickly popped up as the top offender. Why? Because it’s holding a database transaction open while saving a file. In order to fix it, we have to ditch our <code>UnitOfWork</code> aspect and implement a finer-grained transaction. Basically what needs to happen is saving the entity and saving the file need to be separate operations so we can commit the transaction as soon as the entity is saved. And since saving the file could fail, we might have to clean up an orphaned file entity.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -177,57 +332,81 @@
 <span class='line-number'>33</span>
 <span class='line-number'>34</span>
 <span class='line-number'>35</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SimpleController</span> <span class="p">:</span> <span class="n">Controller</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">CaptchaTextKey</span> <span class="p">=</span> <span class="s">&quot;captcha_text&quot;</span><span class="p">;</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Index</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">SaveEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
 </span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CaptchaImage</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">CaptchaTextKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
-</span><span class='line'>                <span class="k">return</span> <span class="k">new</span> <span class="nf">FileContentResult</span><span class="p">(</span><span class="n">stream</span><span class="p">.</span><span class="n">ToArray</span><span class="p">(),</span> <span class="s">&quot;image/jpeg&quot;</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">TryDeleteEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
 </span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'><span class="na">    [AcceptVerbs(HttpVerbs.Post)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">actualText</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">CaptchaTextKey</span><span class="p">];</span>
+</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">actualText</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;You are a human&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;fail&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="s">&quot;Index&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">TryDeleteEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Fast forward 3 months and amazingly new requirements have crept into the simple captcha controller. Consider these contrived yet poignant scenarios:</p>
-
-<ul>
-<li>After the project goes to QA, you realize there needs to be a way to bypass the captcha check so automated Selenium tests can get to the rest of the application.</li>
-<li>After the project goes live, the business decides it wants to know how many users are hitting the form. So an audit log is added.</li>
-<li>After reviewing the audit log, it is discovered that some IPs are attacking the form, so we decide to implement a black list.</li>
-<li>After the black list is live, the servers begin to perform slowly, so detailed logging is added.</li>
-<li>The logs show the black list lookup is slow during attacks, so it is determined that caching should be implemented.</li>
-<li>The business is doing a television promotion and expects traffic spikes. IT wants real-time visibility to monitor the application during heavy load.</li>
-</ul>
-
-
-<p>Now our <code>SimpleController</code> has morphed into a <code>SmellyController</code>:</p>
+<p>That wasn’t too bad except that the number of lines of code exploded and we have a few private methods in our service that only deal with plumbing. It would be nice to push them into the framework. Since C# is awesome, we can use a combination of delegates and extension methods to do that.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -288,330 +467,254 @@
 <span class='line-number'>57</span>
 <span class='line-number'>58</span>
 <span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SmellyController</span> <span class="p">:</span> <span class="n">Controller</span> <span class="p">{</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="c1">// ...</span>
+</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Execute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
 </span><span class='line'>
-</span><span class='line'><span class="na">    [AcceptVerbs(HttpVerbs.Post)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">TryExecute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">ip</span> <span class="p">=</span> <span class="n">HttpContext</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">ServerVariables</span><span class="p">[</span><span class="s">&quot;REMOTE_ADDR&quot;</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">isBlackListed</span> <span class="p">=</span> <span class="n">IsBlackListed</span><span class="p">(</span><span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">IsMatch</span><span class="p">(</span><span class="n">captchaText</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="p">!</span><span class="n">isBlackListed</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="s">&quot;selenium&quot;</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;You are a human&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="c1">// reset consecutive error count</span>
-</span><span class='line'>            <span class="n">ConsecutiveErrorCount</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;fail&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="c1">// add to black list</span>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">ConsecutiveErrorCount</span><span class="p">++</span> <span class="p">&gt;=</span> <span class="m">3</span> <span class="p">&amp;&amp;</span> <span class="p">!</span><span class="n">isBlackListed</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">AddToBlackList</span><span class="p">(</span><span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">DocumentRepositoryExtensions</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="k">this</span> <span class="n">IDocumentRepository</span> <span class="n">repository</span><span class="p">,</span> <span class="n">Document</span> <span class="n">document</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
 </span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">WriteToAuditLog</span><span class="p">(</span><span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="s">&quot;Index&quot;</span><span class="p">);</span>
 </span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">bool</span> <span class="nf">IsBlackListed</span><span class="p">(</span><span class="kt">string</span> <span class="n">ip</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">sessionKey</span> <span class="p">=</span> <span class="n">BlackListKey</span> <span class="p">+</span> <span class="n">ip</span><span class="p">;</span>
-</span><span class='line'>        <span class="kt">object</span> <span class="n">result</span> <span class="p">=</span> <span class="n">HttpContext</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">sessionKey</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">connection</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SqlConnection</span><span class="p">(</span><span class="n">connectionString</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">connection</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-</span><span class='line'>                <span class="kt">var</span> <span class="n">sql</span> <span class="p">=</span> <span class="s">&quot;select count(*) from blacklist where ip = @ip&quot;</span><span class="p">;</span>
-</span><span class='line'>                <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">command</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SqlCommand</span><span class="p">(</span><span class="n">sql</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>                    <span class="n">command</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">connection</span><span class="p">;</span>
-</span><span class='line'>                    <span class="n">command</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddWithValue</span><span class="p">(</span><span class="s">&quot;@ip&quot;</span><span class="p">,</span> <span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>                    <span class="n">result</span> <span class="p">=</span> <span class="n">Convert</span><span class="p">.</span><span class="n">ToBoolean</span><span class="p">(</span><span class="n">command</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">());</span>
-</span><span class='line'>                <span class="p">}</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>            <span class="n">HttpContext</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">sessionKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">UnitOfWorkExtensions</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">try</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
 </span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="kt">bool</span><span class="p">)</span><span class="n">result</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">catch</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
+</span><span class='line'>            <span class="k">throw</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">int</span> <span class="n">ConsecutiveErrorCount</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Convert</span><span class="p">.</span><span class="n">ToInt32</span><span class="p">(</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">ErrorCountKey</span><span class="p">]</span> <span class="p">??</span> <span class="s">&quot;0&quot;</span><span class="p">);</span> <span class="p">}</span>
-</span><span class='line'>        <span class="k">set</span> <span class="p">{</span> <span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">ErrorCountKey</span><span class="p">]</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">TryExecute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">try</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">catch</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c1">// ...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">bool</span> <span class="nf">IsMatch</span><span class="p">(</span><span class="n">IEquatable</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">actualText</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">CaptchaTextKey</span><span class="p">];</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">captchaText</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">actualText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>How does this smell? Let me count the ways:</p>
+<p>Now we can move the extension methods into the framework and out of our service. In a less awesome language we could define these convenience methods on the <code>IUnitOfWork</code> interface and implement them in an abstract base class, but inheritance is evil and it’s a tradeoff we don’t have to make in C#.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/software-development-team-building-part-1/">Software Development Team Building – Part 1</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-11-13T17:26:00-08:00" pubdate data-updated="true">Nov 13<span>th</span>, 2010</time>
+        
+         | <a href="/software-development-team-building-part-1/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season because when playoffs start, it’s like watching a different sport. To win the coveted Stanley Cup, a team must battle through four grueling best-of-seven series, and when it’s all over, it’s not about a bad call by the referee or a fluke fumble or broken tackle. It’s not even about a hot goal-tender or superstar forward. It’s about the whole team digging deep and banding together to create a whole greater than the sum of its parts.</p>
+
+<p>If that wasn’t true, you could simply put all the best players on one team and watch them dominate. Russia tried it in the 2010 Winter Olympics and only walked away with the bronze medal. A successful team has an identity that transcends individuals. If you watch hockey, you’ll hear teams described as up-tempo, finesse, defensive or gritty and hard-hitting. One isn’t better than another, it really depends on what your core strengths are and then getting buy-in from everyone on the team.</p>
+
+<p>On a software team, maybe you’ve got some pre-family twenty-something developers that are wizards with Javascript. Or, maybe you’ve got a veteran team and company with deep enough pockets to invest in a long term product strategy. It really doesn’t matter, just identify your strengths and get buy-in.</p>
+
+<p>Developers are opinionated and not always team players; the cliché herding cats comes to mind. So how do you get developers to buy in? Try out this exercise. Get your team in front of a whiteboard and come up with a list of words that describe positive software quality factors. Here’s a start:</p>
+
+<ul>
+<li>Scalable</li>
+<li>Fast</li>
+<li>Efficient</li>
+<li>Reliable</li>
+<li>Maintainable</li>
+<li>Elegant</li>
+<li>Expressive</li>
+<li>Readable</li>
+<li>Portable</li>
+<li>Concise</li>
+<li>Testable</li>
+<li>Understandable</li>
+<li>Correct</li>
+<li>Consistent</li>
+<li>Clean</li>
+<li>Innovative</li>
+<li>Secure</li>
+<li>Extensible</li>
+<li>Reusable</li>
+<li>Composable</li>
+</ul>
+
+
+<p>Have each team member to pick their top 5 and write them on the board. Compare the lists and allow the team to negotiate with each other to come up with a common top 3. Why is a shared list important? Writing software is about trade-offs. We make dozens of decisions per day while writing code and sharing a set of values is essential to consistent forward progress in a team environment.</p>
+
+<blockquote><p>If you don’t know where you’re going, you might not get there – Yogi Berra</p></blockquote>
+
+<p>Consider this list:</p>
+
+<ul>
+<li>Testable</li>
+<li>Expressive</li>
+<li>Scalable</li>
+</ul>
+
+
+<p>Compare that with:</p>
+
+<ul>
+<li>Innovative</li>
+<li>Efficient</li>
+<li>Elegant</li>
+</ul>
+
+
+<p>Imagine you are sitting at the keyboard working on a feature. Can you see how the first list could influence completely different decisions than the second list? It’s not about right or wrong, it’s just about being explicit about how you make decisions and trusting the rest of your team to make similar choices.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/automatic-deployment-from-teamcity-using-webdeploy/">Automatic Deployment From TeamCity Using WebDeploy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
+        
+         | <a href="/automatic-deployment-from-teamcity-using-webdeploy/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
+
+<p><img class="plain" src="/images/posts/tcp1.jpg"></p>
 
 <ol>
-<li><a href="http://xunitpatterns.com/Hard%20to%20Test%20Code.html">Hard to test</a></li>
-<li><a href="http://c2.com/cgi/wiki?MixingLevels">Mixed levels of abstraction</a></li>
-<li>No separation of concerns</li>
+<li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
+<li><strong>Run integration tests</strong>  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.</li>
+<li><strong>Run acceptance tests</strong> – these tests are written in the Given, When, Then style. We write the tests in BehaveN, but we expect that a stakeholder could read them and verify the business rules are correct.</li>
+<li><strong>Deploy to CI and run UI tests</strong> – these are qunit and Selenium tests. They require the code to be deployed to a real web server before the tests run. That’s what this article is about.</li>
+<li><strong>Deploy to QA</strong> – once the automated UI tests have passed, we deploy to our QA server for manual testing.</li>
 </ol>
 
 
-<p>What if we had followed <a href="http://butunclebob.com/ArticleS.UncleBob.PrinciplesOfOod">Uncle Bob’s SOLID principles</a>? Our controller might look like this:</p>
+<p><strong>Step 1:</strong> <a href="http://weblogs.asp.net/scottgu/archive/2010/09/13/automating-deployment-with-microsoft-web-deploy.aspx">Install WebDeploy on the web server you want to deploy to.</a></p>
+
+<p><strong>Step 2:</strong> <a href="http://blogs.msdn.com/b/webdevtools/archive/2009/05/04/web-deployment-web-config-transformation.aspx">Configure Web.config transforms.</a> This will enable you to change connection strings and whatnot based on your build configuration.</p>
+
+<p>Currently this is only supported for web applications, but since it’s built on top of MSBuild tasks, you can do the same thing to an <code>App.config</code> with a little extra work. Take a peak at <code>Microsoft.Web.Publishing.targets</code> (C:\Program Files\MSBuild\Microsoft\VisualStudio\v10.0\Web) to see how to use the build tasks.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SolidController</span> <span class="p">:</span> <span class="n">Controller</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">SolidController</span><span class="p">(</span><span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">captchaProvider</span> <span class="p">=</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Index</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Render</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="nf">FileContentResult</span><span class="p">(</span><span class="n">stream</span><span class="p">.</span><span class="n">ToArray</span><span class="p">(),</span> <span class="s">&quot;image/jpeg&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [AcceptVerbs(HttpVerbs.Post)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">captchaProvider</span><span class="p">.</span><span class="n">Verify</span><span class="p">(</span><span class="n">captchaText</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;You are a human&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;fail&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="s">&quot;Index&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;TransformXml&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;MSDeploy&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>And our original simple captcha provider could look like this:</p>
+<p><strong>Step 3:</strong> Figure out the MSBuild command line arguments that work for your application. This took a bit of trial and error before landing on this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Serializable]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SimpleCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="n">captchaText</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span> <span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CaptchaImage</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">captchaText</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">format</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you’re wondering why we don’t have to store the captcha text in the session, it’s because we’re putting the onus on the container to give us the same instance of <code>SimpleCaptchaProvider</code> each time it’s requested in the same session.</p>
-
-<p>Let’s revisit the list of features that made our controller smelly and see how we could have done it open-closed style (by writing new code instead modifying old code). The go-to technique for this is the decorator pattern. So let’s make a decorator to look for a secret captcha password that our selenium test knows and let it through.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SeleniumBypassCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">password</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">SeleniumBypassCaptchaProvider</span><span class="p">(</span>
-</span><span class='line'>        <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">,</span>
-</span><span class='line'>        <span class="kt">string</span> <span class="n">password</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">captchaProvider</span> <span class="p">=</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">password</span> <span class="p">=</span> <span class="n">password</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span> <span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Render</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">format</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">captchaText</span> <span class="p">==</span> <span class="n">password</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Verify</span><span class="p">(</span><span class="n">captchaText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next is the audit log, then the black list. These could be implemented as two more decorators, however we’re outgrowing this solution which means it’s time to refactor. Let’s switch hats for a few minutes and promote our decorator chain into an explicit chain of responsibility. This is like adding another lane to the freeway, it really opens things up. We’re modifying existing code so maybe you’re wondering what happened to our open-closed principle? It’s still there, I promise. The first point I’ll make is that refactoring is a special activity. It does not change the observable behavior of the application. When working with single responsibility classes, all we end up doing is adapting the logic to a different interface. In our case, we’re moving logic from <code>BlackListCaptchaProvider</code> to <code>BlackListVerifyFilter</code>. The logic stays intact and the unit tests are minimally impacted.</p>
-
-<p>The end result of this refactor might look like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">VerifyChainCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IServiceProvider</span> <span class="n">serviceProvider</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">VerifyChainCaptchaProvider</span><span class="p">(</span>
-</span><span class='line'>        <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">,</span>
-</span><span class='line'>        <span class="n">IServiceProvider</span> <span class="n">serviceProvider</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">captchaProvider</span> <span class="p">=</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">serviceProvider</span> <span class="p">=</span> <span class="n">serviceProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span> <span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Render</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">format</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="n">Pipeline</span><span class="p">&lt;</span><span class="kt">string</span> <span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;(</span><span class="n">serviceProvider</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">AuditLoggingFilter</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">BlackListingFilter</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">SeleniumBypassFilter</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">CaptchaProviderAdapter</span><span class="p">(</span><span class="n">captchaProvider</span><span class="p">))</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Process</span><span class="p">(</span><span class="n">captchaText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Was it worth it? Well, we’re left with all these little classes each with their single responsibility, however we still have to wire it up. I’m not going to lie, it’s ugly and it’s fragile. So why is this design any better? It’s better because troubleshooting bad configuration is better than troubleshooting bad application logic. Bad application logic can do really bad things. In a 24/7 business-critical application, this usually happens around 3 AM and involves you waking up and trying adjust your eyes to a harsh laptop screen. With bad configuration on the other hand, whole chunks of functionality are just missing. Chances are your app won’t even start, or maybe it starts but the black list or the audit logging isn’t wired in. These issues are easy to test and when you fix them, you have enormous confidence that the functionality you just wired-in will work and continue to work in the wee hours of the morning.</p>
-
-<p>The second point I’ll make is the code more closely follows the way we think about our application. This makes it easier to respond to change because new requirements are extensions of the way we already think about our application. Consider the scenario that our selenium secret passphrase is not secure enough for production and we want to add an IP restriction or signature to make sure it’s really our selenium test that is getting through. In our smelly controller, a selenium test bypass is not an explicit concept, it’s just an or-clause tacked on to the end of an already abused if statement. We’ll have to go into our smelly controller and do some thrashing around in the most important and delicate block of code. In our solid controller however, we have a nicely abstracted testable single responsibility class we can isolate our change to.</p>
-
-<p>As another example, consider the scenario that our black list caching is consuming too much memory on the web server. With our SOLID design we can surgically replace our <code>ICacheProvider</code> with an implementation backed by Memcached. Bits of functionality are free to evolve at their own pace. Some areas of your application will need a beefy solution and some will be just fine with a simple one. The important thing is that concerns are isolated from each other and allowed to fulfill their own destiny.</p>
-
-<h2>Aspect-Oriented Programming</h2>
-
-<p>I mentioned aspect oriented programming at the beginning of the article in a shallow attempt to pique your interest. So before I wrap things up I’ll show how it fits in. Since we’re already using an IoC container and faithfully employing our SOLID design principles, we pretty much get AOP for free. This is a big deal. Software running under service level agreements and government regulations demands visibility and having aspects in your toolbox is a must. Because aspects are reusable, they are typically higher quality and more mature than something hand-rolled for a one-off scenario. And because they are bolt-on, our core business logic stays focused on our business domain.</p>
-
-<p>Consider the cliché logging example. It’s overused, but works well not unlike the calculator example for unit testing or the singleton job interview question. The idea is that we tell our IoC container to apply a logging aspect to all objects it has registered. Here’s what my logging aspect produces:</p>
-
-<pre style="background-color: black; color: #ddd;">
-DEBUG VerifyChainCaptchaProvider.Render() stream = MemoryStream, format = Jpeg
-DEBUG SimpleCaptchaProvider.Render() stream = MemoryStream, format = Jpeg
-DEBUG SimpleCaptchaProvider.Render() [72 ms]
-DEBUG VerifyChainCaptchaProvider.Render() [74 ms]
-DEBUG VerifyChainCaptchaProvider.Verify() text = afds
-DEBUG AuditLoggingFilter.Process() input = afds
-DEBUG BlackListingFilter.Process() input = afds
-DEBUG CachingBlackListService.IsBlocked() ip = 127.0.0.1
-DEBUG CachingBlackListService.IsBlocked() > False [0 ms]
-DEBUG SeleniumBypassFilter.Process() input = afds
-DEBUG SimpleCaptchaProvider.Verify() text = afds
-DEBUG SimpleCaptchaProvider.Verify() > False [0 ms]
-DEBUG SeleniumBypassFilter.Process() > False [1 ms]
-DEBUG BlackListingFilter.Process() > False [4 ms]
-DEBUG AuditLoggingFilter.Process() > False [8 ms]
-DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
+<pre>
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln 
+  /p:Configuration=QA
+  /p:OutputPath=bin
+  /p:DeployOnBuild=True 
+  /p:DeployTarget=MSDeployPublish 
+  /p:MsDeployServiceUrl=https://myserver:8172/msdeploy.axd 
+  /p:username=***** 
+  /p:password=***** 
+  /p:AllowUntrustedCertificate=True 
+  /p:DeployIisAppPath=ci
+  /p:MSDeployPublishMethod=WMSVC
 </pre>
 
 
-<p>Again, this is powerful because we didn’t have to pollute our code with logging statements, yet we see quality log entries with input, output and execution time. In addition to logging, we can attach performance counters to meaningful events, add exception policies to notify us when things go wrong, selectively add caching at run-time and lots more. To see it all in action, you can <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">download the source code</a> for the examples used in this article.</p>
+<p><strong>Step 4:</strong> Configure the Build Runner in TeamCity</p>
+
+<p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
+
+<p><img class="plain" src="/images/posts/teamcity2.jpg"></p>
+
+<p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
+
+<p><img class="plain" src="/images/posts/dep1.jpg"></p>
+
+<p><img class="plain" src="/images/posts/snap1.jpg"></p>
+
+<p><strong>Step 6:</strong> Write some code.</p>
 </div>
   
   
@@ -624,7 +727,7 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
       
   <header>
     
-      <h1 class="entry-title"><a href="/definition-of-enterprise-software/">Definition of Enterprise Software</a></h1>
+      <h1 class="entry-title"><a href="/hacker-artist-craftsman-or-engineer/">Hacker, Artist, Craftsman or Engineer?</a></h1>
     
     
       <p class="meta">
@@ -640,1151 +743,56 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   
 
 
-<time datetime="2009-12-06T12:41:00-08:00" pubdate data-updated="true">Dec 6<span>th</span>, 2009</time>
+<time datetime="2010-10-10T09:44:00-07:00" pubdate data-updated="true">Oct 10<span>th</span>, 2010</time>
         
-         | <a href="/definition-of-enterprise-software/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The difference between Enterprise software and regular software is like the difference between a start-up and a public company. Enterprise software has lots of bureaucracy and red tape (indirection and configuration) to support transparency and top-down policy. You pay a price up front to create all these layers and well-defined communication channels between departments, but once the whole thing is up and running, it’s powerful.</p>
-
-<p>Big companies can throw time and money at problems to produce activity diagrams, advisory boards and flow charts. Sure there’s bloat, but you need that kind of oversight to enforce corporate policy. Similarly, enterprise software can extravagantly use cpu cycles, disk space and memory, but this is a fair price to pay when complexity is king. Enterprise software must be concerned with things like service level agreements and government regulations. So how do you do that?</p>
-
-<p>You do that by dissecting your application into composable units of behavior. This is the essence of the single-responsibility-principle and while the concept is deceptively simple, it can have a profound effect on your software. Yes, the end result is lots of little classes, but it’s much more than that. These classes capture individual business concepts and overtime your software becomes a domain-specific-language (DSL). I don’t mean the kind of DSL that a business person would use directly, but more like xpath and regular expressions except your DSL is focused on your business domain.</p>
-
-<p>Over time, software becomes an asset or a liability. The difference is your ability to respond to the needs of the business and your toolbox for that is your DSL or lack thereof. You need to compose, decompose, rearrange and built-out bits of behavior in ways impossible to predict. Single responsibility gives you that ability and dependency inversion creates seams throughout your code to spin off in unpredictable directions. These seams are the key to longevity and the difference between enterprise software and regular software.</p>
-
-<p>I’ll share an experience I had this weekend. I was about to deploy a new application and I thought it would be cool to use a performance counter to watch throughput. Within about 20 minutes I was able to add a performance counter by only modifying the <code>App.config</code> and this was the result:</p>
-
-<p><img class="plain" src="/images/posts/perfmon3.png"></p>
-
-<p>This was possible because of IoC among other things. The app is composed of many small pieces and you’d be hard pressed to find the <code>new</code> keyword where it matters. <code>SyncListingJob</code> was already being built-up by Unity Container, so I was able take advantage of an off-the-shelf performance monitor aspect in the Enterprise Library 4.1 Policy Injection Application Block and wire it in via the <code>App.config</code>.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/a-class-isnt-always-a-noun/">A Class Isn’t Always a Noun</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-12-04T12:45:00-08:00" pubdate data-updated="true">Dec 4<span>th</span>, 2009</time>
-        
-         | <a href="/a-class-isnt-always-a-noun/#disqus_thread">Comments</a>
+         | <a href="/hacker-artist-craftsman-or-engineer/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
+  <div class="entry-content"><p>I recently read the book <a href="http://www.codersatwork.com/">Coders at Work</a> on <a href="http://blargh.tommymontgomery.com/">tmont’s</a> recommendation. It was a good read, and at 500+ pages you can repurpose it as a monitor stand when you’re finished reading it.</p>
 
-<p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>
+<blockquote><p>Based on nearly eighty hours of conversations with fifteen all-time great programmers and computer scientists, the Q&amp;A interviews in Coders at Work provide a multifaceted view into how great programmers learn to program, how they practice their craft, and what they think about the future of programming.</p></blockquote>
 
-<p><img src="/images/posts/yext1.png"></p>
+<p>The author, Peter Siebel, asked each of the interviewees “Do you consider yourself a hacker, artist, craftsman or engineer?” It’s a good question and one I forgot about until <a href="http://thecleancoder.blogspot.com/2010/09/hacker-novice-artist-and-craftsman.html">Uncle Bob wrote an article</a> suggesting a correlation with one’s definition of done. It’s a clever angle but there is more to explore.</p>
 
-<p>I don’t expect you to understand how the app works, but you should at least get a feel right away for the things that are important. Knowing it’s a console app, you could find the entry point and quickly navigate to the meat and potatoes of the application.</p>
+<h2>Hacker</h2>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SyncListingJob</span> <span class="p">:</span> <span class="n">MarshalByRefObject</span><span class="p">,</span> <span class="n">IJob</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">YextListing</span> <span class="n">listing</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">SyncListingJob</span><span class="p">(</span><span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">locator</span> <span class="p">=</span> <span class="n">locator</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Init</span><span class="p">(</span><span class="n">YextListing</span> <span class="n">listing</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">listing</span> <span class="p">=</span> <span class="n">listing</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [UnitOfWork]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">GuardAgainstNotInitialized</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">SyncListing</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">SyncListing</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">new</span> <span class="n">LocatorChain</span><span class="p">&lt;</span><span class="n">Yextlisting</span><span class="p">&gt;(</span><span class="n">locator</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RevertDiscontinuedListing</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RefreshLinkedBusiness</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateLinkToExistingBusiness</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateNewBusinessAndLink</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Process</span><span class="p">(</span><span class="n">listing</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">GuardAgainstNotInitialized</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">listing</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">Exception</span><span class="p">(</span><span class="s">&quot;Job not initialized!&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<p>On a PDP-8 with only eight instructions and two registers, you’re going to need some ingenuity, maybe even the rare kind of intellect that led a 14 year-old to win eight United States Chess Championships in a row.</p>
 
+<blockquote><p>It’s just you and your opponent at the board and you’re trying to prove something. — Bobby Fischer</p></blockquote>
 
-<p>* <em>The <code>LocatorChain&lt;T&gt;</code> is an implementation of the chain of responsibility pattern.</em></p>
+<p>The hacker lives in a world of tight constraints, like Houdini in a straight jacket inside a locked box submerged in icy water. The hacker gets a thrill from this kind of challenge and often relies on a toolbox of algorithms and decompilers to get the job done. The hacker isn’t satisfied with mainstream abstractions for IO, instead the hacker knows exactly what happens when you write a file or open a socket and why you might choose UDP instead of TCP. The hacker is the guy that’s going to push the industry forward with new technology and techniques.</p>
 
-<p>I do everything I can to push out all the noise and bring the behavior to the surface. Sometimes the right way to name a class is after a feature or behavior. I want my code to read like a DSL and making everything a noun just doesn’t cut it. The drivers for me are context and readability.</p>
-</div>
-  
-  
+<p>It’s a fine line though, finding loopholes and circumventing the intent of your framework can be a recipe for disaster. Often times, it’s not just you and the machine, it’s you and a team of developers writing software for users that expect their cell phone to stream music from Pandora via Bluetooth to their car stereo while rendering a map of the current location with real-time traffic info. And if all this takes a few extra seconds, your software is casually dismissed as a piece of crap.</p>
 
+<h2>Artist</h2>
 
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/maybe-uncle-bob-is-wrong-about-testing/">Maybe Uncle Bob Is Wrong About Testing</a></h1>
-    
-    
-      <p class="meta">
-        
+<p>The artist believes that software is an expression of one’s self. The process is creative and each solution is subtly unique like a brush stroke on a canvas. An artist believes what they do is special and you could no more teach someone how to be a great programmer than you could teach someone how to write a great song or novel. You’ve either got it or you don’t.</p>
 
+<p>Just like a great band, truly great software comes from a small team with just the right mix of strengths and styles. Too many contributors and it’s a mess. Not enough and it’s too predictable. Boston was a great band, but it was dominated by Tom Schulz, the guitarist, keyboardist, songwriter and producer. He owned every note. It’s not necessarily a bad thing, Boston sold over 31 million albums in the United States. But consider the Beatles, two creative forces pushing and pulling on each other, clashing and meshing to produce a truly dynamic catalog.</p>
 
+<h2>Craftsman</h2>
 
+<p>If you’re having open heart surgery, you probably want an experienced doctor holding the scalpel. The human body is a complex system and reading a text book just isn’t the same as years of experience.</p>
 
+<p>Programming is difficult. At its core, it is about managing complexity. Computer programs are the most complex things that humans make. Quality is illusive and elusive. – Douglas Crockford</p>
 
+<p>When a fine furniture craftsman looks at a piece of wood, the unique shape and the location of the knots are thoughtfully considered. The craftsman observes how dry or green the wood is, how hard or soft it is and applies a set of best practices honed through years of experience to produce the finest end result.</p>
 
+<p>The craftsman believes that most software problems are the same but knows a solution can’t be stamped out by code monkeys. Physical and financial constraints, subtleties of the problem domain and quirks of a particular framework or language require an experienced and steady hand to produce a quality product. The craftsman believes software development is a highly skilled trade and to become an expert you must start as an apprentice.</p>
 
+<h2>Engineer</h2>
 
-  
+<p>An engineer writes the kind of software you count on when you drive a car, fly in a plane or dial 911; Where a failure means more than a delayed shipment or double payment on your online order. The stakes are high and the problems are too big to fit in one person’s head. Problems that only process and frameworks can wrangle. You can’t simply start typing and watch the design of your application emerge from nothing, it requires detailed analysis and thoughtful study.</p>
 
+<p>Which one am I? I have a piece of paper that says Engineer on it, and while I enjoy writing frameworks as much as the next guy, I’m a craftsman. Maybe it’s because I’ve been doing this for a dozen years and I’d like to think my experience is worth more than a piece of paper.</p>
 
-<time datetime="2009-11-30T21:45:00-08:00" pubdate data-updated="true">Nov 30<span>th</span>, 2009</time>
-        
-         | <a href="/maybe-uncle-bob-is-wrong-about-testing/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
+<blockquote><p>Hey, if you want me to take a dump in a box and mark it guaranteed, I will. I got spare time. But for now, for your customer’s sake, for your daughter’s sake, ya might wanna think about buying a quality product from me. – Tommy Boy</p></blockquote>
 
-
-  <div class="entry-content"><p>As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s known as a positive feedback loop, and this was how I spent the better part of last week.</p>
-
-<p><img src="/images/posts/feedback2_thumb.png"></p>
-
-<p><strong>Figure A.5</strong> Not enough time to test reduces the available time <em>Test-Driven Development: By Example by Kent Beck</em></p>
-
-<p>It didn’t start out that way. In fact the first few lines of code I wrote were tests. The problem was I could only get about an hour or two in each night and every day that passed we were leaving money on the table.</p>
-
-<p>Since I didn’t have much time at night, I didn’t want to spend it writing tests. I just wanted to get the app done. All I needed to do was sync business listings from an affiliate with GarageCommerce.com, the project I’ve been working on for the last few months. There were only a handful of business rules to deal with and I thought I could just bang it out.</p>
-
-<p><img class="left" src="/images/posts/district9poster_thumb.jpg"></p>
-
-<p>I know what you’re thinking. You already know where this is headed and you might as well just skip to the end. It’s like in that movie District 9. It started out pretty good with some edgy social commentary but by the end of the movie it just phoned in a cliché Hollywood plot. You know, like “fish out of water”, “buddy movie”, or “trading places” as was the case with District 9.</p>
-
-<p>Anyway, I finished the app and since I only had a few tests I figured I should trace through things a few times to look for obvious problems. After doing that for a few minutes I was ready to press F5 and start working the kinks out. So after hours of zero feedback coding, I took a deep breath and the started the app for the first time.</p>
-
-<p>It promptly bombed out as expected. I worked through a handful of errors and then it was good to go. As I watched it run, I thought to myself that maybe Uncle Bob is wrong about testing and Spolsky isn’t such a douche bag after all. However after processing a couple hundred jobs, it started throwing crazy errors in a tight loop. Crap!</p>
-
-<p>Fast forward a few hours and I’ve got a hunch as to what is causing the problem. The way I wired up the app, I was creating a single NHibernate session for the entire batch of jobs. I knew this could be trouble so I at least made a point to commit after each job and clear the session so it wouldn’t get bogged down with 10K+ entities. I knew the single session was smelly and the errors I was seeing prompted me to refactor.</p>
-
-<p><img class="plain" src="/images/posts/MASHtvshow11_thumb.jpg"></p>
-
-<p>This is where it got ugly. I needed to do a pretty major overhaul and I was mostly test-less. My blood pressure went way up with each change and the fact that I didn’t have tests just made me take larger steps with no safety net. I felt like a M.A.S.H. surgeon with guts all over the operating table. Part of me thought I should take a few steps back and regroup, but another part of me was reminded of this quote:</p>
-
-<blockquote><p>If you’re going through hell, keep going. – Winston Churchill</p></blockquote>
-
-<p>So I stuck with it and got ‘er done, but it wasn’t much fun. What did I take from this experience? No revelations really, just some common sense reinforcement. It’s like rediscovering that diet and exercise is the key to losing weight, except that I rediscovered that not having tests really sucks when you have to make changes.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/console-application-with-ioc/">Console Application With IoC</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-11-21T21:57:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2009</time>
-        
-         | <a href="/console-application-with-ioc/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I like to think of the <code>Main</code> method in a Console application like the <code>Global.asax</code>. Its single responsibility is to wire-up things to be run in a console context. Each environment has unique configuration requirements. For example, when using NHiberate in a web application the lifetime of the <code>ISession</code> is attached to the <code>HttpRequest</code>, however in the context of a console application it may be a singleton or “per job” in a windows service. I like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">class</span> <span class="nc">Program</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">())</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">container</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">AddExtension</span><span class="p">(</span><span class="k">new</span> <span class="n">ConfigureForConsole</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">MyApplication</span><span class="p">&gt;()</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">Execute</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/integration-testing-with-nhibernate/">Integration Testing With NHibernate</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-11-06T21:59:00-08:00" pubdate data-updated="true">Nov 6<span>th</span>, 2009</time>
-        
-         | <a href="/integration-testing-with-nhibernate/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure my mapping works and that when I save an entity it goes to the database.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MyIntegrationFixture</span> <span class="p">:</span> <span class="n">IntegrationFixture</span> <span class="p">{</span>
-</span><span class='line'><span class="na">    [Test]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Can_add_elements</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">repository</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">MyEntity</span><span class="p">&gt;&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="n">repository</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">entity</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">Element</span> <span class="p">{</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&quot;The Description&quot;</span> <span class="p">});</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="n">repository</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">1</span><span class="p">).</span><span class="n">Elements</span><span class="p">.</span><span class="n">Count</span><span class="p">(),</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The problem is the next time I call <code>FindById()</code> I get my object back from the first level cache <code>ISession</code>, so the Assert passes but looking at the SQL output by NHibernate I can see that no INSERT statement is happening. There are two things that NHibernate needs to do in order for the integration test to work as expected.</p>
-
-<ol>
-<li>There needs to be an explicit transaction and it needs to be committed in order to actually send the INSERT statements to the database.</li>
-<li>The entity needs to be evicted from the session in order to ensure that the next call to <code>FindById()</code> actually goes to the database.</li>
-</ol>
-
-
-<p>It’s the job of the application to manage the scope of the unit of work. Typically this is per web request in a web app. In a test, it’s per test. This turns into a bunch of boiler-plate noise. Also, this business about evicting the session is an NHibernate specific thing and doesn’t belong in a test that is dealing with an IRepository abstraction.</p>
-
-<p>Since I solve all my problems with a pipeline or decorator, I figured I’d decorate the <code>ISession</code> and commit and evict on the operations I care about:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AutoCommitAndEvictSession</span> <span class="p">:</span> <span class="n">SessionDecorator</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">AutoCommitAndEvictSession</span><span class="p">(</span><span class="n">ISession</span> <span class="n">session</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">session</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">Save</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">object</span> <span class="n">result</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">tx</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">BeginTransaction</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">result</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
-</span><span class='line'>            <span class="n">tx</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="n">Session</span><span class="p">.</span><span class="n">Evict</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Update</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">Update</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">SaveOrUpdate</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">SaveOrUpdate</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Delete</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">Delete</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">CommitAndEvict</span><span class="p">(</span><span class="n">Action</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;</span> <span class="n">action</span><span class="p">,</span> <span class="kt">object</span> <span class="n">entity</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">tx</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">BeginTransaction</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>            <span class="n">tx</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="n">Session</span><span class="p">.</span><span class="n">Evict</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then I just work it into a test fixture like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">IntegrationFixture</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">protected</span> <span class="n">IUnityContainer</span> <span class="n">Container</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">private</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'><span class="na"> </span>
-</span><span class='line'><span class="na">    [TestFixtureSetUp]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TestFixtureSetUp</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">ConfigureNHibernate</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="na"> </span>
-</span><span class='line'><span class="na">    [TestFixtureTearDown]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TestFixtureTearDown</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="na"> </span>
-</span><span class='line'><span class="na">    [SetUp]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">SetUp</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">session</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;().</span><span class="n">OpenSession</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">AutoCommitAndEvictSession</span><span class="p">(</span><span class="n">session</span><span class="p">));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="na"> </span>
-</span><span class='line'><span class="na">    [TearDown]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TearDown</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;().</span><span class="n">Dispose</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/moq-extension-methods-for-unity/">Moq Extension Methods for Unity</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-10-31T06:21:00-07:00" pubdate data-updated="true">Oct 31<span>st</span>, 2009</time>
-        
-         | <a href="/moq-extension-methods-for-unity/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>A few people have asked about the <code>RegisterMock</code> extension method used in another post. The usage looks like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Test]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_delete_removed_image</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IFileRepository</span><span class="p">&gt;()</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">r</span> <span class="p">=&gt;</span> <span class="n">r</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">It</span><span class="p">.</span><span class="n">IsAny</span><span class="p">&lt;</span><span class="n">IFile</span><span class="p">&gt;()))</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">Verifiable</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IBusinessRepository</span><span class="p">&gt;()</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">r</span> <span class="p">=&gt;</span> <span class="n">r</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">3</span><span class="p">))</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">Returns</span><span class="p">(</span><span class="n">CreateBusinessWith</span><span class="p">(</span><span class="k">new</span> <span class="n">BusinessImage</span> <span class="p">{</span> <span class="n">ImageId</span> <span class="p">=</span> <span class="m">4</span> <span class="p">}));</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">controller</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">BusinessGalleryController</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="n">controller</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">VerifyMockFor</span><span class="p">&lt;</span><span class="n">IFileRepository</span><span class="p">&gt;();</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It’s just a few helper extensions for using <a href="http://code.google.com/p/moq/">Moq</a> with <a href="http://www.codeplex.com/unity/">Unity</a> that cut down on the noise in tests. My friend Keith came up with it, I just happen to blog about it first. Here it is:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">MoqExtensions</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
-</span><span class='line'>    <span class="err">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">mock</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;(</span><span class="n">mock</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">mock</span><span class="p">.</span><span class="n">Object</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="n">mock</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c1">/// &lt;summary&gt;</span>
-</span><span class='line'>    <span class="c1">/// Use this to add additional setups for a mock that is already registered</span>
-</span><span class='line'>    <span class="c1">/// &lt;/summary&gt;</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">ConfigureMockFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
-</span><span class='line'>    <span class="err">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="n">VerifyMockFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
-</span><span class='line'>    <span class="err">{</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;().</span><span class="n">VerifyAll</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/domain-driven-design-in-the-small/">Domain Driven Design in the Small</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-08-08T06:24:00-07:00" pubdate data-updated="true">Aug 8<span>th</span>, 2009</time>
-        
-         | <a href="/domain-driven-design-in-the-small/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>A few months ago we built a <a href="http://www.magentocommerce.com/">Magento</a> extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking. As part of the process, a contact record was created in the affiliate’s CRM account.</p>
-
-<p> <img src="/images/posts/SubmitYourIdea1.jpg"></p>
-
-<p>Recently, the stake holders came up with a twist that went something like this: If the order contains a gift card, add the contact to a specific folder in the CRM application. No big deal, we had a nicely abstracted <code>OrderGateway</code> interface and I was already envisioning a quick addition to the existing decorator chain.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">OrderWithGiftCardGateway</span> <span class="k">extends</span> <span class="nx">OrderGatewayDecorator</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="o">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I had a few minutiae questions like what happens with duplicates, etc. It took me nearly an hour to track down the right person and get real answers. During the conversation, a subtle comment was made that I almost missed.</p>
-
-<p>Stake holder: We should check with the product supplier to make sure the gift card sku I made up isn’t for a real product.</p>
-
-<p><strong>Me:</strong> Say what?</p>
-
-<p><strong>Stake holder:</strong> The gift card is not fulfilled by the product supplier, it’s fulfilled by the affiliate.</p>
-
-<p><strong>Me:</strong> %$@!&amp;, I’m glad we had this conversation.</p>
-
-<p>We talked about what it meant for the the affiliate to fulfill the product and basically the folder stuff was okay, but I recommended we remove the fake sku from the order before sending it through.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I didn’t have a buddy to pair with so I just grabbed Keith for a minute at the end of the day to walk through things. I recapped the stake holder discussion and we looked through the code. He pointed out I was missing the concept of fulfillment and that was hard earned knowledge that would be lost!</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">sendToAffiliateForFulfillment</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<blockquote><p>That was huge. – Paris Hilton</p></blockquote>
-
-<iframe class="plain" width="640" height="360" src="//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
-
-
-<p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
-
-<p>It tells an important story for the next guy looking at the code and it changes the role of the programmer from code monkey to business partner. Maybe you think I’m crazy, but this stuff matters to me.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/the-holy-trinity-of-web-2-0-application-monitoring/">The Holy Trinity of Web 2.0 Application Monitoring</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-07-24T06:37:00-07:00" pubdate data-updated="true">Jul 24<span>th</span>, 2009</time>
-        
-         | <a href="/the-holy-trinity-of-web-2-0-application-monitoring/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>We had just rolled out a new system for a client and they were doing a high profile launch of their product. We had all our normal monitoring in place like CPU, memory, connections and page load time. Everything was swell…</p>
-
-<p>On their signup form, we did an ajax call to check if their desired username was available. If it wasn’t, we displayed a validation error an prevented the user from submitting the form. Turns out our little jquery script was silently bombing out and always returning ‘false’ meaning nobody could sign up!</p>
-
-<p><img class="plain" src="/images/posts/scaredmonkey_thumb.png"></p>
-
-<p>This little issue slipped through the cracks and it hurt pretty bad. I couldn’t just tell the stake holders “sorry”, I needed something a little better so I spent some time with <a href="http://blog.mattbeckman.com/">Matt, our super do-everything networking guy</a>, and we put together the holy trinity of web 2.0 application monitoring (insert enlightenment music here).</p>
-
-<p><img src="/images/posts/trinity.png"></p>
-
-<p>We were already using <a href="http://www.nagios.org/">Nagios</a> for monitoring and alerting, <a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a> for running unit tests, and <a href="http://seleniumhq.org/">Selenium</a> for automated web application testing. We just needed to glue it all together!</p>
-
-<ol>
-<li>The first step was to write a selenium test to go through the online order sequence. We then exported it as a phpUnit test and dropped it in a our svn repository in a folder named “monitoring.”</li>
-<li>Next, we configured a CruiseControl project named “selenium-bot” to pull down all the phpUnit tests from the “monitoring” folder in svn and run the whole test suite every 10 minutes.</li>
-<li>The last step was to use Nagios to monitor the CruiseControl log file to make sure it was actually running every 10 minutes and returning all green. If anything stops working, Nagios takes care of the alerting.</li>
-</ol>
-
-
-<p>I should also mention that since this hits the live online order form every 10 minutes, we needed a way to a way to short circuit the test orders. Fortunately, we already had a convenient OrderGateway interface, so we were able accomplish this in a very <a href="http://en.wikipedia.org/wiki/Open/closed_principle">open-closed</a> manner using the decorator pattern:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">TestOrderInterceptor</span> <span class="k">implements</span> <span class="nx">OrderGateway</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="k">const</span> <span class="no">TEST_CODE</span> <span class="o">=</span> <span class="s1">&#39;843feaa7-bf13-4aff-91f6-a074434f9c14&#39;</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">const</span> <span class="no">SUCCESS_RESULT</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">private</span> <span class="nv">$orderGateway</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">private</span> <span class="nv">$logger</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nx">OrderGateway</span> <span class="nv">$orderGateway</span><span class="p">,</span> <span class="nx">Logger</span> <span class="nv">$logger</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">{</span>
-</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span> <span class="o">=</span> <span class="nv">$orderGateway</span><span class="p">;</span>
-</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span> <span class="o">=</span> <span class="nv">$logger</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isTest</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>      <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span><span class="o">-&gt;</span><span class="na">debug</span><span class="p">(</span><span class="s1">&#39;test order intercepted&#39;</span><span class="p">);</span>
-</span><span class='line'>      <span class="k">return</span> <span class="nx">self</span><span class="o">::</span><span class="na">SUCCESS_RESULT</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span><span class="o">-&gt;</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">private</span> <span class="k">function</span> <span class="nf">isTest</span><span class="p">(</span><span class="nv">$request</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nb">strpos</span><span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">name1</span><span class="p">,</span> <span class="nx">self</span><span class="o">::</span><span class="na">TEST_CODE</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The decorator chain is wired up using <a href="http://www.picocontainer.org/">PicoContainer</a>, and looks like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;OrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;TestOrderInterceptor&#39;</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span>
-</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">),</span>
-</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;Logger&#39;</span><span class="p">)));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This infrastructure has paid dividends more than a few times and now I can’t imagine rolling out a site without it.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/default-interceptor-for-unity/">Default Interceptor for Unity</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-07-22T18:17:00-07:00" pubdate data-updated="true">Jul 22<span>nd</span>, 2009</time>
-        
-         | <a href="/default-interceptor-for-unity/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><blockquote><p>Default: the two sweetest words in the English language – Homer Simpson</p></blockquote>
-
-<p>Unity interception requires you to specify what kind of interceptor to use for each type you want to intercept. This can be a little painful, so I decided to take a stab at a container extension that will apply a default interceptor with optional matching rules.</p>
-
-<p>This is how I want it to look:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">container</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">InterceptOnRegister</span><span class="p">&gt;()</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">InterceptOnRegister</span><span class="p">&gt;()</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">SetDefaultInterceptor</span><span class="p">&lt;</span><span class="n">TransparentProxyInterceptor</span><span class="p">&gt;()</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">AddMatchingRule</span><span class="p">(</span><span class="k">new</span> <span class="n">AssemblyNameStartsWith</span><span class="p">(</span><span class="s">&quot;MyCompany&quot;</span><span class="p">));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The basic idea here is to subscribe to the register events and configure interception if it meets our criteria. By default it will match everything and apply <code>TransparentProxyInterceptor</code>, but as you can see from the snippet above, you can explicitly supply another interceptor and matching rules.</p>
-
-<p>Here it is:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">InterceptOnRegister</span> <span class="p">:</span> <span class="n">UnityContainerExtension</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IInstanceInterceptor</span> <span class="n">interceptor</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IList</span><span class="p">&lt;</span><span class="n">IInterceptRule</span><span class="p">&gt;</span> <span class="n">rules</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">InterceptOnRegister</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">interceptor</span> <span class="p">=</span> <span class="k">new</span> <span class="n">TransparentProxyInterceptor</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">rules</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">IInterceptRule</span><span class="p">&gt;</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">new</span> <span class="nf">NotUnityInterceptionAssembly</span><span class="p">(),</span>
-</span><span class='line'>            <span class="k">new</span> <span class="nf">DoesNotHaveGenericMethods</span><span class="p">()</span> <span class="p">};</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">InterceptOnRegister</span> <span class="nf">AddMatchingRule</span><span class="p">(</span><span class="n">IInterceptRule</span> <span class="n">rule</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">rules</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">rule</span><span class="p">);</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">InterceptOnRegister</span> <span class="n">AddNewMatchingRule</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;()</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IInterceptRule</span><span class="p">,</span> <span class="k">new</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">rules</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">T</span><span class="p">());</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">InterceptOnRegister</span> <span class="n">SetDefaultInterceptor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;()</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IInstanceInterceptor</span><span class="p">,</span> <span class="k">new</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">interceptor</span> <span class="p">=</span> <span class="k">new</span> <span class="n">T</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Initialize</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">AddInterceptionExtensionIfNotExists</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">Context</span><span class="p">.</span><span class="n">Registering</span> <span class="p">+=</span>
-</span><span class='line'>            <span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">SetInterceptorFor</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">TypeFrom</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">TypeTo</span> <span class="p">??</span> <span class="n">e</span><span class="p">.</span><span class="n">TypeFrom</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">AddInterceptionExtensionIfNotExists</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">Container</span><span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">Container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">SetInterceptorFor</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(!</span><span class="n">AllMatchingRulesApply</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">typeOfInstance</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">return</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">interceptor</span><span class="p">.</span><span class="n">CanIntercept</span><span class="p">(</span><span class="n">typeOfInstance</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">Container</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">SetDefaultInterceptorFor</span><span class="p">(</span><span class="n">typeOfInstance</span><span class="p">,</span> <span class="n">interceptor</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">interceptor</span><span class="p">.</span><span class="n">CanIntercept</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">Container</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">SetDefaultInterceptorFor</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">interceptor</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">bool</span> <span class="nf">AllMatchingRulesApply</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">rule</span> <span class="k">in</span> <span class="n">rules</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(!</span><span class="n">rule</span><span class="p">.</span><span class="n">Matches</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">typeOfInstance</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>                <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And you’ll need this stuff too:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">NotUnityInterceptionAssembly</span> <span class="p">:</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="p">!</span><span class="n">typeToIntercept</span><span class="p">.</span><span class="n">Assembly</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">Interception</span><span class="p">).</span><span class="n">Assembly</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">DoesNotHaveGenericMethods</span> <span class="p">:</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">typeOfInstance</span><span class="p">.</span><span class="n">GetMethods</span><span class="p">().</span><span class="n">Count</span><span class="p">(</span><span class="n">m</span> <span class="p">=&gt;</span> <span class="n">m</span><span class="p">.</span><span class="n">IsGenericMethod</span><span class="p">)</span> <span class="p">==</span> <span class="m">0</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AssemblyNameStartsWith</span> <span class="p">:</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="n">match</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">AssemblyNameStartsWith</span><span class="p">(</span><span class="kt">string</span> <span class="n">match</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">match</span> <span class="p">=</span> <span class="n">match</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">typeOfInstance</span><span class="p">.</span><span class="n">Assembly</span><span class="p">.</span><span class="n">FullName</span><span class="p">.</span><span class="n">StartsWith</span><span class="p">(</span><span class="n">match</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<p>Which one are you?</p>
 </div>
   
   
@@ -1809,6 +817,10 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
+      </li>
+    
+      <li class="post">
         <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Using Scala to Perform a Multi-Key Get on a Couchbase View</a>
       </li>
     
@@ -1828,41 +840,16 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
       </li>
     
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
+      </li>
+    
   </ul>
 </section>
-
-<section>
-  <h1>GitHub Repos</h1>
-  <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
-  </ul>
-  
-  <a href="https://github.com/mikevalenty">@mikevalenty</a> on GitHub
-  
-  <script type="text/javascript">
-    $(document).ready(function(){
-        if (!window.jXHR){
-            var jxhr = document.createElement('script');
-            jxhr.type = 'text/javascript';
-            jxhr.src = '/javascripts/libs/jXHR.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(jxhr, s);
-        }
-
-        github.showRepos({
-            user: 'mikevalenty',
-            count: 0,
-            skip_forks: true,
-            target: '#gh_repos'
-        });
-    });
-  </script>
-  <script src="/javascripts/github.js" type="text/javascript"> </script>
-</section>
-
-
-
-
 
   
 </aside>
@@ -1870,7 +857,7 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Michael Valenty -
+  Copyright &copy; 2014 - Michael Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

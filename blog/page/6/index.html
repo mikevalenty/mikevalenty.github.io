@@ -1,0 +1,863 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Michael Valenty</title>
+  <meta name="author" content="Michael Valenty">
+
+  
+  <meta name="description" content="I like to think of the Main method in a Console application like the Global.asax. Its single responsibility is to wire-up things to be run in a &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.agileatwork.com/blog/page/6">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Michael Valenty" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-2314490-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Michael Valenty</a></h1>
+  
+    <h2>on Software Development</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.agileatwork.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">Contact Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/console-application-with-ioc/">Console Application With IoC</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-11-21T21:57:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2009</time>
+        
+         | <a href="/console-application-with-ioc/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I like to think of the <code>Main</code> method in a Console application like the <code>Global.asax</code>. Its single responsibility is to wire-up things to be run in a console context. Each environment has unique configuration requirements. For example, when using NHiberate in a web application the lifetime of the <code>ISession</code> is attached to the <code>HttpRequest</code>, however in the context of a console application it may be a singleton or “per job” in a windows service. I like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">class</span> <span class="nc">Program</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">container</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">AddExtension</span><span class="p">(</span><span class="k">new</span> <span class="n">ConfigureForConsole</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">MyApplication</span><span class="p">&gt;()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Execute</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/integration-testing-with-nhibernate/">Integration Testing With NHibernate</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-11-06T21:59:00-08:00" pubdate data-updated="true">Nov 6<span>th</span>, 2009</time>
+        
+         | <a href="/integration-testing-with-nhibernate/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure my mapping works and that when I save an entity it goes to the database.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MyIntegrationFixture</span> <span class="p">:</span> <span class="n">IntegrationFixture</span> <span class="p">{</span>
+</span><span class='line'><span class="na">    [Test]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Can_add_elements</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">repository</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">MyEntity</span><span class="p">&gt;&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="n">repository</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">entity</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">Element</span> <span class="p">{</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&quot;The Description&quot;</span> <span class="p">});</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="n">repository</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">1</span><span class="p">).</span><span class="n">Elements</span><span class="p">.</span><span class="n">Count</span><span class="p">(),</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The problem is the next time I call <code>FindById()</code> I get my object back from the first level cache <code>ISession</code>, so the Assert passes but looking at the SQL output by NHibernate I can see that no INSERT statement is happening. There are two things that NHibernate needs to do in order for the integration test to work as expected.</p>
+
+<ol>
+<li>There needs to be an explicit transaction and it needs to be committed in order to actually send the INSERT statements to the database.</li>
+<li>The entity needs to be evicted from the session in order to ensure that the next call to <code>FindById()</code> actually goes to the database.</li>
+</ol>
+
+
+<p>It’s the job of the application to manage the scope of the unit of work. Typically this is per web request in a web app. In a test, it’s per test. This turns into a bunch of boiler-plate noise. Also, this business about evicting the session is an NHibernate specific thing and doesn’t belong in a test that is dealing with an IRepository abstraction.</p>
+
+<p>Since I solve all my problems with a pipeline or decorator, I figured I’d decorate the <code>ISession</code> and commit and evict on the operations I care about:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AutoCommitAndEvictSession</span> <span class="p">:</span> <span class="n">SessionDecorator</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">AutoCommitAndEvictSession</span><span class="p">(</span><span class="n">ISession</span> <span class="n">session</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">session</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">Save</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">object</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">tx</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">BeginTransaction</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">result</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">tx</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">Session</span><span class="p">.</span><span class="n">Evict</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Update</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">Update</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">SaveOrUpdate</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">SaveOrUpdate</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Delete</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">Delete</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">CommitAndEvict</span><span class="p">(</span><span class="n">Action</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;</span> <span class="n">action</span><span class="p">,</span> <span class="kt">object</span> <span class="n">entity</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">tx</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">BeginTransaction</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">tx</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">Session</span><span class="p">.</span><span class="n">Evict</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I just work it into a test fixture like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">IntegrationFixture</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="n">IUnityContainer</span> <span class="n">Container</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">private</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [TestFixtureSetUp]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TestFixtureSetUp</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">ConfigureNHibernate</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [TestFixtureTearDown]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TestFixtureTearDown</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [SetUp]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">SetUp</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">session</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;().</span><span class="n">OpenSession</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">AutoCommitAndEvictSession</span><span class="p">(</span><span class="n">session</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [TearDown]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TearDown</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;().</span><span class="n">Dispose</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/moq-extension-methods-for-unity/">Moq Extension Methods for Unity</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-10-31T06:21:00-07:00" pubdate data-updated="true">Oct 31<span>st</span>, 2009</time>
+        
+         | <a href="/moq-extension-methods-for-unity/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A few people have asked about the <code>RegisterMock</code> extension method used in another post. The usage looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Test]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_delete_removed_image</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IFileRepository</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">r</span> <span class="p">=&gt;</span> <span class="n">r</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">It</span><span class="p">.</span><span class="n">IsAny</span><span class="p">&lt;</span><span class="n">IFile</span><span class="p">&gt;()))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Verifiable</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IBusinessRepository</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">r</span> <span class="p">=&gt;</span> <span class="n">r</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">3</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Returns</span><span class="p">(</span><span class="n">CreateBusinessWith</span><span class="p">(</span><span class="k">new</span> <span class="n">BusinessImage</span> <span class="p">{</span> <span class="n">ImageId</span> <span class="p">=</span> <span class="m">4</span> <span class="p">}));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">controller</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">BusinessGalleryController</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="n">controller</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">VerifyMockFor</span><span class="p">&lt;</span><span class="n">IFileRepository</span><span class="p">&gt;();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It’s just a few helper extensions for using <a href="http://code.google.com/p/moq/">Moq</a> with <a href="http://www.codeplex.com/unity/">Unity</a> that cut down on the noise in tests. My friend Keith came up with it, I just happen to blog about it first. Here it is:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">MoqExtensions</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">mock</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;(</span><span class="n">mock</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">mock</span><span class="p">.</span><span class="n">Object</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mock</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">/// &lt;summary&gt;</span>
+</span><span class='line'>    <span class="c1">/// Use this to add additional setups for a mock that is already registered</span>
+</span><span class='line'>    <span class="c1">/// &lt;/summary&gt;</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">ConfigureMockFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="n">VerifyMockFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;().</span><span class="n">VerifyAll</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/domain-driven-design-in-the-small/">Domain Driven Design in the Small</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-08-08T06:24:00-07:00" pubdate data-updated="true">Aug 8<span>th</span>, 2009</time>
+        
+         | <a href="/domain-driven-design-in-the-small/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A few months ago we built a <a href="http://www.magentocommerce.com/">Magento</a> extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking. As part of the process, a contact record was created in the affiliate’s CRM account.</p>
+
+<p> <img src="/images/posts/SubmitYourIdea1.jpg"></p>
+
+<p>Recently, the stake holders came up with a twist that went something like this: If the order contains a gift card, add the contact to a specific folder in the CRM application. No big deal, we had a nicely abstracted <code>OrderGateway</code> interface and I was already envisioning a quick addition to the existing decorator chain.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">OrderWithGiftCardGateway</span> <span class="k">extends</span> <span class="nx">OrderGatewayDecorator</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I had a few minutiae questions like what happens with duplicates, etc. It took me nearly an hour to track down the right person and get real answers. During the conversation, a subtle comment was made that I almost missed.</p>
+
+<p>Stake holder: We should check with the product supplier to make sure the gift card sku I made up isn’t for a real product.</p>
+
+<p><strong>Me:</strong> Say what?</p>
+
+<p><strong>Stake holder:</strong> The gift card is not fulfilled by the product supplier, it’s fulfilled by the affiliate.</p>
+
+<p><strong>Me:</strong> %$@!&amp;, I’m glad we had this conversation.</p>
+
+<p>We talked about what it meant for the the affiliate to fulfill the product and basically the folder stuff was okay, but I recommended we remove the fake sku from the order before sending it through.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I didn’t have a buddy to pair with so I just grabbed Keith for a minute at the end of the day to walk through things. I recapped the stake holder discussion and we looked through the code. He pointed out I was missing the concept of fulfillment and that was hard earned knowledge that would be lost!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">sendToAffiliateForFulfillment</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>That was huge. – Paris Hilton</p></blockquote>
+
+<iframe class="plain" width="640" height="360" src="//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+
+
+<p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
+
+<p>It tells an important story for the next guy looking at the code and it changes the role of the programmer from code monkey to business partner. Maybe you think I’m crazy, but this stuff matters to me.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/the-holy-trinity-of-web-2-0-application-monitoring/">The Holy Trinity of Web 2.0 Application Monitoring</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-07-24T06:37:00-07:00" pubdate data-updated="true">Jul 24<span>th</span>, 2009</time>
+        
+         | <a href="/the-holy-trinity-of-web-2-0-application-monitoring/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>We had just rolled out a new system for a client and they were doing a high profile launch of their product. We had all our normal monitoring in place like CPU, memory, connections and page load time. Everything was swell…</p>
+
+<p>On their signup form, we did an ajax call to check if their desired username was available. If it wasn’t, we displayed a validation error an prevented the user from submitting the form. Turns out our little jquery script was silently bombing out and always returning ‘false’ meaning nobody could sign up!</p>
+
+<p><img class="plain" src="/images/posts/scaredmonkey_thumb.png"></p>
+
+<p>This little issue slipped through the cracks and it hurt pretty bad. I couldn’t just tell the stake holders “sorry”, I needed something a little better so I spent some time with <a href="http://blog.mattbeckman.com/">Matt, our super do-everything networking guy</a>, and we put together the holy trinity of web 2.0 application monitoring (insert enlightenment music here).</p>
+
+<p><img src="/images/posts/trinity.png"></p>
+
+<p>We were already using <a href="http://www.nagios.org/">Nagios</a> for monitoring and alerting, <a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a> for running unit tests, and <a href="http://seleniumhq.org/">Selenium</a> for automated web application testing. We just needed to glue it all together!</p>
+
+<ol>
+<li>The first step was to write a selenium test to go through the online order sequence. We then exported it as a phpUnit test and dropped it in a our svn repository in a folder named “monitoring.”</li>
+<li>Next, we configured a CruiseControl project named “selenium-bot” to pull down all the phpUnit tests from the “monitoring” folder in svn and run the whole test suite every 10 minutes.</li>
+<li>The last step was to use Nagios to monitor the CruiseControl log file to make sure it was actually running every 10 minutes and returning all green. If anything stops working, Nagios takes care of the alerting.</li>
+</ol>
+
+
+<p>I should also mention that since this hits the live online order form every 10 minutes, we needed a way to a way to short circuit the test orders. Fortunately, we already had a convenient OrderGateway interface, so we were able accomplish this in a very <a href="http://en.wikipedia.org/wiki/Open/closed_principle">open-closed</a> manner using the decorator pattern:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">TestOrderInterceptor</span> <span class="k">implements</span> <span class="nx">OrderGateway</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">const</span> <span class="no">TEST_CODE</span> <span class="o">=</span> <span class="s1">&#39;843feaa7-bf13-4aff-91f6-a074434f9c14&#39;</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">const</span> <span class="no">SUCCESS_RESULT</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="nv">$orderGateway</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">private</span> <span class="nv">$logger</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nx">OrderGateway</span> <span class="nv">$orderGateway</span><span class="p">,</span> <span class="nx">Logger</span> <span class="nv">$logger</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span> <span class="o">=</span> <span class="nv">$orderGateway</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span> <span class="o">=</span> <span class="nv">$logger</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isTest</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span><span class="o">-&gt;</span><span class="na">debug</span><span class="p">(</span><span class="s1">&#39;test order intercepted&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">self</span><span class="o">::</span><span class="na">SUCCESS_RESULT</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span><span class="o">-&gt;</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">function</span> <span class="nf">isTest</span><span class="p">(</span><span class="nv">$request</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">strpos</span><span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">name1</span><span class="p">,</span> <span class="nx">self</span><span class="o">::</span><span class="na">TEST_CODE</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The decorator chain is wired up using <a href="http://www.picocontainer.org/">PicoContainer</a>, and looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;OrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;TestOrderInterceptor&#39;</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">),</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;Logger&#39;</span><span class="p">)));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This infrastructure has paid dividends more than a few times and now I can’t imagine rolling out a site without it.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/7/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/5/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
+      </li>
+    
+      <li class="post">
+        <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Using Scala to Perform a Multi-Key Get on a Couchbase View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
+      </li>
+    
+      <li class="post">
+        <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
+      </li>
+    
+      <li class="post">
+        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
+      </li>
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Michael Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

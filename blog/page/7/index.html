@@ -1,0 +1,1302 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Michael Valenty</title>
+  <meta name="author" content="Michael Valenty">
+
+  
+  <meta name="description" content="Default: the two sweetest words in the English language – Homer Simpson Unity interception requires you to specify what kind of interceptor to use &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.agileatwork.com/blog/page/7">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Michael Valenty" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-2314490-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Michael Valenty</a></h1>
+  
+    <h2>on Software Development</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.agileatwork.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">Contact Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/default-interceptor-for-unity/">Default Interceptor for Unity</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-07-22T18:17:00-07:00" pubdate data-updated="true">Jul 22<span>nd</span>, 2009</time>
+        
+         | <a href="/default-interceptor-for-unity/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>Default: the two sweetest words in the English language – Homer Simpson</p></blockquote>
+
+<p>Unity interception requires you to specify what kind of interceptor to use for each type you want to intercept. This can be a little painful, so I decided to take a stab at a container extension that will apply a default interceptor with optional matching rules.</p>
+
+<p>This is how I want it to look:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">InterceptOnRegister</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">InterceptOnRegister</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">SetDefaultInterceptor</span><span class="p">&lt;</span><span class="n">TransparentProxyInterceptor</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddMatchingRule</span><span class="p">(</span><span class="k">new</span> <span class="n">AssemblyNameStartsWith</span><span class="p">(</span><span class="s">&quot;MyCompany&quot;</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The basic idea here is to subscribe to the register events and configure interception if it meets our criteria. By default it will match everything and apply <code>TransparentProxyInterceptor</code>, but as you can see from the snippet above, you can explicitly supply another interceptor and matching rules.</p>
+
+<p>Here it is:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">InterceptOnRegister</span> <span class="p">:</span> <span class="n">UnityContainerExtension</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IInstanceInterceptor</span> <span class="n">interceptor</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IList</span><span class="p">&lt;</span><span class="n">IInterceptRule</span><span class="p">&gt;</span> <span class="n">rules</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">InterceptOnRegister</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">interceptor</span> <span class="p">=</span> <span class="k">new</span> <span class="n">TransparentProxyInterceptor</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">rules</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">IInterceptRule</span><span class="p">&gt;</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">new</span> <span class="nf">NotUnityInterceptionAssembly</span><span class="p">(),</span>
+</span><span class='line'>            <span class="k">new</span> <span class="nf">DoesNotHaveGenericMethods</span><span class="p">()</span> <span class="p">};</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">InterceptOnRegister</span> <span class="nf">AddMatchingRule</span><span class="p">(</span><span class="n">IInterceptRule</span> <span class="n">rule</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">rules</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">rule</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">InterceptOnRegister</span> <span class="n">AddNewMatchingRule</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;()</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IInterceptRule</span><span class="p">,</span> <span class="k">new</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">rules</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">T</span><span class="p">());</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">InterceptOnRegister</span> <span class="n">SetDefaultInterceptor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;()</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IInstanceInterceptor</span><span class="p">,</span> <span class="k">new</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">interceptor</span> <span class="p">=</span> <span class="k">new</span> <span class="n">T</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Initialize</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">AddInterceptionExtensionIfNotExists</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Context</span><span class="p">.</span><span class="n">Registering</span> <span class="p">+=</span>
+</span><span class='line'>            <span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">SetInterceptorFor</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">TypeFrom</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">TypeTo</span> <span class="p">??</span> <span class="n">e</span><span class="p">.</span><span class="n">TypeFrom</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">AddInterceptionExtensionIfNotExists</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">Container</span><span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">Container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">SetInterceptorFor</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(!</span><span class="n">AllMatchingRulesApply</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">typeOfInstance</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">interceptor</span><span class="p">.</span><span class="n">CanIntercept</span><span class="p">(</span><span class="n">typeOfInstance</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">Container</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">SetDefaultInterceptorFor</span><span class="p">(</span><span class="n">typeOfInstance</span><span class="p">,</span> <span class="n">interceptor</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">interceptor</span><span class="p">.</span><span class="n">CanIntercept</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">Container</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">SetDefaultInterceptorFor</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">interceptor</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">bool</span> <span class="nf">AllMatchingRulesApply</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">rule</span> <span class="k">in</span> <span class="n">rules</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(!</span><span class="n">rule</span><span class="p">.</span><span class="n">Matches</span><span class="p">(</span><span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">typeOfInstance</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And you’ll need this stuff too:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">NotUnityInterceptionAssembly</span> <span class="p">:</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">!</span><span class="n">typeToIntercept</span><span class="p">.</span><span class="n">Assembly</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">Interception</span><span class="p">).</span><span class="n">Assembly</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">DoesNotHaveGenericMethods</span> <span class="p">:</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">typeOfInstance</span><span class="p">.</span><span class="n">GetMethods</span><span class="p">().</span><span class="n">Count</span><span class="p">(</span><span class="n">m</span> <span class="p">=&gt;</span> <span class="n">m</span><span class="p">.</span><span class="n">IsGenericMethod</span><span class="p">)</span> <span class="p">==</span> <span class="m">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AssemblyNameStartsWith</span> <span class="p">:</span> <span class="n">IInterceptRule</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="n">match</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">AssemblyNameStartsWith</span><span class="p">(</span><span class="kt">string</span> <span class="n">match</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">match</span> <span class="p">=</span> <span class="n">match</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Matches</span><span class="p">(</span><span class="n">Type</span> <span class="n">typeToIntercept</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeOfInstance</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">typeOfInstance</span><span class="p">.</span><span class="n">Assembly</span><span class="p">.</span><span class="n">FullName</span><span class="p">.</span><span class="n">StartsWith</span><span class="p">(</span><span class="n">match</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/validation-with-unity-interception/">Validation With Unity Interception</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-07-18T18:20:00-07:00" pubdate data-updated="true">Jul 18<span>th</span>, 2009</time>
+        
+         | <a href="/validation-with-unity-interception/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
+
+<p>This is how I want things to look:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UpdateUserRequest</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="na">    [AuthorizedUserPublisherRequired]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">UserId</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [Required(&quot;Name is required&quot;)]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [ValidZipCodeRequired(&quot;Invalid zip code&quot;)]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">ZipCode</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IUserService</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">void</span> <span class="nf">Update</span><span class="p">(</span><span class="n">UpdateUserRequest</span> <span class="n">request</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There are validation frameworks out there that will do this, so what’s my beef? Well, first of all I want to inject the validators with dependencies to implement the juicier rules. And second, I’m treating validation as a core concern so I don’t want a dependency on a framework like Enterprise Library. I had several questions like:</p>
+
+<ol>
+<li>How do I get dependencies into the validators?</li>
+<li>How do I get <code>ValidZipCodeRequired</code> to fire with the value of the <code>ZipCode</code> property</li>
+<li>How do I initiate this on <code>userService.Update()</code>?</li>
+</ol>
+
+
+<p>Let’s take a look at building up the validators.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">ValidZipCodeRequiredAttribute</span> <span class="p">:</span> <span class="n">ValidatorAttribute</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="n">IValidator</span> <span class="nf">CreateValidator</span><span class="p">(</span><span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">&lt;</span><span class="n">ValidZipCodeRequiredValidator</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This allows me to make a <code>UnityValidatorFactory</code> that can supply all my dependencies. Now how about this business of running the <code>ValidZipCodeRequiredValidator</code> with the value of the <code>ZipCode</code> property? For that I made a composite validator that loops through each property and runs the annotated validator against it’s property value.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">CompositeValidator</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IValidator</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">CompositeValidator</span><span class="p">(</span><span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">Validate</span><span class="p">(</span><span class="n">T</span> <span class="n">subject</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">exceptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">PropertyInfo</span> <span class="n">property</span> <span class="k">in</span> <span class="k">typeof</span><span class="p">(</span><span class="n">T</span><span class="p">).</span><span class="n">GetProperties</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">validator</span> <span class="k">in</span> <span class="n">GetValidatorsFor</span><span class="p">(</span><span class="n">property</span><span class="p">))</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">exceptions</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">validator</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">property</span><span class="p">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="k">null</span><span class="p">)));</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">exceptions</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">IValidator</span><span class="p">&gt;</span> <span class="n">GetValidatorsFor</span><span class="p">(</span><span class="n">ICustomAttributeProvider</span> <span class="n">provider</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">ValidatorAttribute</span> <span class="n">attribute</span>
+</span><span class='line'>            <span class="k">in</span> <span class="n">provider</span><span class="p">.</span><span class="n">GetCustomAttributes</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">ValidatorAttribute</span><span class="p">),</span> <span class="k">true</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">yield</span> <span class="k">return</span> <span class="n">attribute</span><span class="p">.</span><span class="n">CreateValidator</span><span class="p">(</span><span class="n">factory</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now I just need to run the <code>CompositeValidator</code> on <code>userService.Update()</code>. For that I use Unity Interception:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">ValidationCallHandler</span> <span class="p">:</span> <span class="n">ICallHandler</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IValidator</span> <span class="n">validator</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">ValidationCallHandler</span><span class="p">(</span><span class="n">IValidator</span> <span class="n">validator</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">validator</span> <span class="p">=</span> <span class="n">validator</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">ruleExceptions</span> <span class="p">=</span> <span class="n">ValidateEachArgument</span><span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">Arguments</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">ruleExceptions</span><span class="p">.</span><span class="n">Count</span><span class="p">()</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">ValidationException</span><span class="p">(</span><span class="n">ruleExceptions</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">ValidateEachArgument</span><span class="p">(</span><span class="n">IParameterCollection</span> <span class="n">arguments</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">ruleExceptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">arg</span> <span class="k">in</span> <span class="n">arguments</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">ruleExceptions</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">validator</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">arg</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">ruleExceptions</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Order</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Phew, we’re almost done. The only thing left is to apply this validator in configuration so I can keep the Unity reference out of my core domain. That looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">SetInterceptorFor</span><span class="p">&lt;</span><span class="n">IUserService</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">InterfaceInterceptor</span><span class="p">())</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddPolicy</span><span class="p">(</span><span class="s">&quot;UserServiceValidationPolicy&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddCallHandler</span><span class="p">&lt;</span><span class="n">ValidationCallHandler</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">AddMatchingRule</span><span class="p">&lt;</span><span class="n">AlwaysApplyMatchingRule</span><span class="p">&gt;();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/what-happens-when-you-actually-use-aop-for-logging/">What Happens When You Actually Use AOP for Logging?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-07-05T20:10:00-07:00" pubdate data-updated="true">Jul 5<span>th</span>, 2009</time>
+        
+         | <a href="/what-happens-when-you-actually-use-aop-for-logging/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s something everyone can relate to. Well, what happens when you actually use it for logging?</p>
+
+<p>I can tell you what happened to me last week. Things were going great until it came time to port our credit card charging program from the stone age to .NET. It occurred to me that our fancy AOP logging would unknowingly log decrypted credit cards!</p>
+
+<p> <img class="plain" src="/images/posts/credit_cards1.jpg"></p>
+
+<p>An obvious solution was to do a regex on log messages and mask credit card numbers – and that’s pretty much what we did, but I didn’t want to perform a regex on every message when I knew only a tiny percentage would contain sensitive data. The solution of course, was to fight fire with fire and use more AOP.</p>
+
+<p>This is how I wanted it to look:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IPayPalGateway</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="na">    [MaskCredCardForLogging]</span>
+</span><span class='line'>    <span class="kt">string</span> <span class="nf">Submit</span><span class="p">(</span><span class="kt">string</span> <span class="n">request</span><span class="p">,</span> <span class="kt">string</span> <span class="n">id</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This way I could specifically mark an interface that I knew would accept sensitive data and apply an appropriate filter to it. The log filtering is implemented as a decorator to a log4net-like ILogger interface.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggerWithFilterFixture</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="na">    [Test]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Should_apply_filter_to_message</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="k">new</span> <span class="n">InterceptingLogger</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">loggerWithFilter</span> <span class="p">=</span> <span class="k">new</span> <span class="n">LoggerWithFilter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="k">new</span> <span class="n">AppendBangToMessage</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">loggerWithFilter</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="s">&quot;This is a message&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Assert</span><span class="p">.</span><span class="n">AreEqual</span><span class="p">(</span><span class="s">&quot;This is a message!&quot;</span><span class="p">,</span> <span class="n">logger</span><span class="p">.</span><span class="n">LastMessage</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AppendBangToMessage</span> <span class="p">:</span> <span class="n">ILogFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">Filter</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">message</span> <span class="p">+</span> <span class="s">&quot;!&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The decorator is then applied in the call handler by looking for custom attributes of type LogFilterAttribute like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggerCallHandler</span> <span class="p">:</span> <span class="n">ICallHandler</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">ILogger</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">GetLogger</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">.</span><span class="n">IsDebugEnabled</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="n">CreateLogMessage</span><span class="p">(</span><span class="n">input</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Stopwatch</span> <span class="n">stopWatch</span> <span class="p">=</span> <span class="n">Stopwatch</span><span class="p">.</span><span class="n">StartNew</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">IMethodReturn</span> <span class="n">result</span> <span class="p">=</span> <span class="n">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">stopWatch</span><span class="p">.</span><span class="n">Stop</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">.</span><span class="n">IsDebugEnabled</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="n">CreateLogMessage</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">stopWatch</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="n">ILogger</span> <span class="nf">GetLogger</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">CreateLogger</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">filter</span> <span class="p">=</span> <span class="n">CreateLogFilter</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">LoggerWithFilter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">filter</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ILogFilter</span> <span class="nf">CreateLogFilter</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">composite</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CompositeLogFilter</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">LogFilterAttribute</span> <span class="n">attribute</span>
+</span><span class='line'>            <span class="k">in</span> <span class="n">input</span><span class="p">.</span><span class="n">MethodBase</span><span class="p">.</span><span class="n">GetCustomAttributes</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">LogFilterAttribute</span><span class="p">),</span> <span class="k">true</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">composite</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">attribute</span><span class="p">.</span><span class="n">CreateLogFilter</span><span class="p">());</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">composite</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I’ll spare you the actual credit card masking logic:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MaskCreditCardForLoggingAttribute</span> <span class="p">:</span> <span class="n">LogFilterAttribute</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="n">ILogFilter</span> <span class="nf">CreateLogFilter</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">CreditCardMaskingLogFilter</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">CreditCardMaskingLogFilter</span> <span class="p">:</span> <span class="n">ILogFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">Filter</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="p">...</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/auto-mocking-unity-container-extension/">Auto-Mocking Unity Container Extension</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-06-26T20:13:00-07:00" pubdate data-updated="true">Jun 26<span>th</span>, 2009</time>
+        
+         | <a href="/auto-mocking-unity-container-extension/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Using a container for unit testing is a good way to insulate your tests from changes in object construction. Typically my first test will be something pretty boring just to get the process started. A few tests later, the real behavior comes out along with new dependencies. Rather than having to go back and add the dependencies to all the tests I’ve already written, I like to use a container to build up the object I’m testing.</p>
+
+<p>To streamline this process, I thought it would be handy to use a container extension to auto generate mocks for any required interface that wasn’t explicitly registered. The best way I can explain this is with code, so here it is:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[SetUp]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">SetUp</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">AutoMockingContainerExtension</span><span class="p">&gt;();</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">[Test]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_be_really_easy_to_test</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">container</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IDependencyThatNeedsExplicitMocking</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">d</span> <span class="p">=&gt;</span> <span class="n">d</span><span class="p">.</span><span class="n">MyMethod</span><span class="p">(</span><span class="n">It</span><span class="p">.</span><span class="n">IsAny</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;()))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Returns</span><span class="p">(</span><span class="s">&quot;I want to specify the return value&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">service</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ServiceWithThreeDependencies</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="n">service</span><span class="p">.</span><span class="n">DoSomething</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="s">&quot;I didn&#39;t have to mock the other 2 dependencies!&quot;</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It really reduces the noise level in tests and lets you focus on the interesting parts of your application. Here’s the code for the container extension:</p>
+
+<p><img src="/images/posts/luigi1.jpg"></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AutoMockingContainerExtension</span> <span class="p">:</span> <span class="n">UnityContainerExtension</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Initialize</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">strategy</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AutoMockingBuilderStrategy</span><span class="p">(</span><span class="n">Container</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Context</span><span class="p">.</span><span class="n">Strategies</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">UnityBuildStage</span><span class="p">.</span><span class="n">PreCreation</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">AutoMockingBuilderStrategy</span> <span class="p">:</span> <span class="n">BuilderStrategy</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">private</span> <span class="k">readonly</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">public</span> <span class="nf">AutoMockingBuilderStrategy</span><span class="p">(</span><span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">this</span><span class="p">.</span><span class="n">container</span> <span class="p">=</span> <span class="n">container</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">PreBuildUp</span><span class="p">(</span><span class="n">IBuilderContext</span> <span class="n">context</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">key</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">OriginalBuildKey</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="n">Type</span><span class="p">.</span><span class="n">IsInterface</span> <span class="p">&amp;&amp;</span> <span class="p">!</span><span class="n">container</span><span class="p">.</span><span class="n">IsRegistered</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="n">Type</span><span class="p">))</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">context</span><span class="p">.</span><span class="n">Existing</span> <span class="p">=</span> <span class="n">CreateDynamicMock</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="n">Type</span><span class="p">);</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">CreateDynamicMock</span><span class="p">(</span><span class="n">Type</span> <span class="n">type</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">genericMockType</span> <span class="p">=</span> <span class="k">typeof</span><span class="p">(</span><span class="n">Mock</span><span class="p">&lt;&gt;).</span><span class="n">MakeGenericType</span><span class="p">(</span><span class="n">type</span><span class="p">);</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">mock</span> <span class="p">=</span> <span class="p">(</span><span class="n">Mock</span><span class="p">)</span><span class="n">Activator</span><span class="p">.</span><span class="n">CreateInstance</span><span class="p">(</span><span class="n">genericMockType</span><span class="p">);</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">mock</span><span class="p">.</span><span class="n">Object</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In case you’re wondering about <code>container.RegisterMock&lt;&gt;</code>, it’s just extension method that you can read about <a href="/moq-extension-methods-for-unity/">here</a>.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/captcha-and-inversion-of-control/">Captcha and Inversion of Control</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-06-14T20:44:00-07:00" pubdate data-updated="true">Jun 14<span>th</span>, 2009</time>
+        
+         | <a href="/captcha-and-inversion-of-control/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img class="plain" src="/images/posts/lorenzoflip.jpg"></p>
+
+<p>I made a few tweaks to a captcha library I found here and basically wrapped their CaptchaImage object in a service interface to use in my application. Pretty easy stuff, but I didn’t get it right the first time.</p>
+
+<p>What’s wrong with this class?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">HttpContextCacheCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">httpContextCacheKey</span> <span class="p">=</span> <span class="s">&quot;4D795A45-8015-475C-A6C4-765B09EB9955&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">HttpContextCacheCaptchaProvider</span><span class="p">(</span><span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">,</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">context</span> <span class="p">=</span> <span class="n">context</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">CaptchaImage</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">context</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">httpContextCacheKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span> <span class="c1">// hint</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">string</span> <span class="n">captchaText</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">context</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">httpContextCacheKey</span><span class="p">];</span> <span class="c1">// hint</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">ToLower</span><span class="p">().</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">ToLower</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Perhaps your nose can lead you in the right direction. The smell is hard to test, and it’s hard to test because it requires mocking the <code>HttpContextBase</code>. You might say “no problem, I can blast out a stub with Moq in no time” but you’re missing the real problem. That would be like taking aspirin for a brain tumor.</p>
+
+<p><img class="plain" src="/images/posts/arnold.jpg"></p>
+
+<blockquote><p>It’s not a tumor</p></blockquote>
+
+<p>The real problem is this class is violating the Single Responsibility Principle (SRP) by doing more than one thing. I don’t mean the two methods <code>Render()</code> and <code>Verify()</code>, those are a cohesive unit operating on the same data. The other thing is lifetime management. Look how simple the class gets when you invert control and take out the notion of lifetime management:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Serializable]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LifetimeManagedCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="n">captchaText</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">LifetimeManagedCaptchaProvider</span><span class="p">(</span><span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">CaptchaImage</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">captchaText</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">ToLower</span><span class="p">().</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">ToLower</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now this class is a breeze to test and all you have to do is register it like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ICaptchaProvider</span><span class="p">,</span> <span class="n">LifetimeManagedCaptchaProvider</span><span class="p">&gt;(</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nf">HttpSessionStateLifetimeManager</span><span class="p">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The moral of the story is let your IoC container do things it’s good at.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/8/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/6/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
+      </li>
+    
+      <li class="post">
+        <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Using Scala to Perform a Multi-Key Get on a Couchbase View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
+      </li>
+    
+      <li class="post">
+        <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
+      </li>
+    
+      <li class="post">
+        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
+      </li>
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Michael Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

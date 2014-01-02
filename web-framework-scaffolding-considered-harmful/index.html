@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Web Framework Scaffolding Considered Harmful - Michael Valenty</title>
+  <meta name="author" content="Michael Valenty">
+
+  
+  <meta name="description" content="If you&rsquo;re a start up and spending time building back office tools to input application data into web forms, you&rsquo;re doing it wrong. Sure, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.agileatwork.com/web-framework-scaffolding-considered-harmful">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Michael Valenty" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-2314490-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Michael Valenty</a></h1>
+  
+    <h2>on Software Development</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.agileatwork.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">Contact Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Web Framework Scaffolding Considered Harmful</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-02T09:59:00-08:00" pubdate data-updated="true">Jan 2<span>nd</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>If you&rsquo;re a start up and spending time building back office tools to input application data into web forms, you&rsquo;re doing it wrong. Sure, it&rsquo;s a pretty simple task to build a few <a href="http://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> screens using the hottest new MVC framework, but you can do better.</p>
+
+<p>Integrating with Google spreadsheets to manage application data unlocks powerful possibilities and will take you further than anything you could scaffold up in a comperable amount of time. To be clear, I&rsquo;m not suggesting you take a <em>runtime</em> dependency on Google docs. I&rsquo;m talking about using a lightweight business process that takes advantage of the rich collaborations features of Google docs and simply <em>import</em> the data into your database using the <a href="https://developers.google.com/google-apps/spreadsheets/">API</a>.</p>
+
+<p><img src="/images/posts/example_sp3.png" width="600"></p>
+
+<div style="clear:both;"></div>
+
+
+<h3>Revision history</h3>
+
+<p><img class="right" src="/images/posts/example_rev.png" width="300"></p>
+
+<p>Google docs keeps a revision history of what was changed, when and by whom. That&rsquo;s a pretty cool feature and one you&rsquo;re not likely to build when there are more pressing customer facing features to work on.</p>
+
+<p>Sometimes release notes aren&rsquo;t detailed enough when trying to correlate a surprising change in a KPI, so it&rsquo;s reassuring to have the nitty gritty revision history there when you need to dig a little deeper. It&rsquo;s just like reviewing source control history when tracking down a bug that was introduced in the latest code release. Your data deserves the same respect.</p>
+
+<h3>Concurrent editing</h3>
+
+<p>My older brother carries a pocket knife at all times, and when he believes in something, he can&rsquo;t help but sell everyone else on the idea. He used to tell me I needed to carry a pocket knife so I could cut off my seatbelt when trapped in a burning (or sinking) car. In his defense, <a href="http://money.cnn.com/2010/08/17/autos/gm_recall/index.htm">GM recalled 240,000 SUVs in 2010</a> citing &ldquo;&hellip;[the seat belt] may seem to be jammed.&rdquo;</p>
+
+<p>Naturally, I started carrying a pocket knife too. I figured that along with untrapping myself from a burning car or defending myself at an ATM, it would be handy when I needed to open a box. To my surprise, new opportunities presented themselves and I was using my knife several times a day. I could cut off a hanging thread, scrape bee pollen off my windsheild, improve the vent in my coffee lid, remove a scratchy tag from my son&rsquo;s shirt and yes, open a box.</p>
+
+<p>It turns out I had a similar experience with concurrent editing. Working on the same document at the same time with multiple people is pretty cool, and you&rsquo;d be surprised how this powerful ability can change the way you work. There&rsquo;s no way you would justify an extravagant feature like this in your own back office tools and you get it for free with Google docs.</p>
+
+<h3>Formulas</h3>
+
+<p>Since it&rsquo;s a spreadsheet, you can use formulas and this is cooler than you might think. Consider a list of products. Chances are the product prices have some kind of relationship that you can capture with a formula and save yourself from tedious and error prone manual entry.</p>
+
+<p>In reality though, you probably don&rsquo;t care about the actual product prices as much as you care about your margins or some other derived number. With a spreadsheet, you can keep your formula together with your data. When you change a price, you can see how it affects your bottom line in a calculated field a few cells over. Or work backwards and calculate the price based on a combination of other factors. Or just use a forumla as a sanity check that all your numbers add up to the right amount.</p>
+
+<p>Again, this is the kind of feature that invites new ways of working. You might use a formula to find a bug before the data ever hits your app or add a new forumla so you don&rsquo;t get burned twice by the same mistake. A spreadsheet gives you a place to capture knowledge about your data. You could capture this knowledge in a wiki, but the fact that it&rsquo;s in a Google spreadsheet that&rsquo;s connected to your app, makes it real. It&rsquo;s the difference between a code comment and a unit test.</p>
+
+<h3>Import</h3>
+
+<p><img class="right" src="/images/posts/example_dup.png" width="300"></p>
+
+<p>A data update is a deployment just like a code deployment and things can go horribly wrong when there&rsquo;s a mistake in your data. Big companies get this and respond with change advisory boards and more process to protect themselves, but you can do better.</p>
+
+<p>Your data deserves a repeatable one-click deployment process and you shouldn&rsquo;t settle for anything less. An import is <a href="http://en.wikipedia.org/wiki/Idempotence">idempotent</a> which means you can run it multiple times and the end result is always the same. In other words, you can practice in a test environment and iterate until you get it right. Oh, and if you spin off a copy prior to making changes, you get one-click rollback too.</p>
+
+<h2>Conclusion</h2>
+
+<p>One-click deployment and rollback with revision history for your data without developer interaction. That&rsquo;s a really big deal because the end result is confidence. Confidence means that as an organization, you can make decisions, execute and not look back.</p>
+
+<p>Empower your team (not just developers) with a familiar tool like a spreadsheet and give them the opportunity to impress you. Watch as calculations and charts emerge to add deeper meaning to your data. Watch as collaboration occurs and team members are brought together rather than divided by functional roles. Watch as confidence increases in your ability to deploy changes.</p>
+
+<p>Seriously. Don&rsquo;t waste your time half-assing back office tools when you can invest a similar amount of effort to import data from Google spreadsheets. It&rsquo;s a scrappy tool that delivers on the features that accelerate the way you work.</p>
+
+<div style="clear:both;"></div>
+
+
+<blockquote><p>If you can do a half-assed job of anything, you’re a one-eyed man in a kingdom of the blind. – Kurt Vonnegut</p></blockquote>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Michael Valenty</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-02T09:59:00-08:00" pubdate data-updated="true">Jan 2<span>nd</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.agileatwork.com/web-framework-scaffolding-considered-harmful/" data-via="mikevalenty" data-counturl="http://www.agileatwork.com/web-framework-scaffolding-considered-harmful/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/" title="Previous Post: Using Scala to Perform a Multi-Key Get on a Couchbase View">&laquo; Using Scala to Perform a Multi-Key Get on a Couchbase View</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
+      </li>
+    
+      <li class="post">
+        <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Using Scala to Perform a Multi-Key Get on a Couchbase View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
+      </li>
+    
+      <li class="post">
+        <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
+      </li>
+    
+      <li class="post">
+        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
+      </li>
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Michael Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.agileatwork.com/web-framework-scaffolding-considered-harmful/';
+        var disqus_url = 'http://www.agileatwork.com/web-framework-scaffolding-considered-harmful/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
