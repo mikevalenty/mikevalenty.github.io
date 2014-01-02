@@ -4,7 +4,7 @@ title: "Web Framework Scaffolding Considered Harmful"
 date: 2014-01-02 09:59
 comments: true
 categories: 
-published: false
+published: true
 ---
 
 If you're a start up and spending time building back office tools to input application data into web forms, you're doing it wrong. Sure, it's a pretty simple task to build a few [CRUD](http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) screens using the hottest new MVC framework, but you can do better.
