@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Michael Valenty</title>
-  <meta name="author" content="Michael Valenty">
+  <title>Agile at Work</title>
+  <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="Default: the two sweetest words in the English language – Homer Simpson Unity interception requires you to specify what kind of interceptor to use &hellip;">
+  <meta name="description" content="We had just rolled out a new system for a client and they were doing a high profile launch of their product. We had all our normal monitoring in &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +21,7 @@
   <link rel="canonical" href="http://www.agileatwork.com/blog/page/7">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Michael Valenty" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -48,9 +48,9 @@
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">Michael Valenty</a></h1>
+  <h1><a href="/">Agile at Work</a></h1>
   
-    <h2>on Software Development</h2>
+    <h2>by Mike Valenty</h2>
   
 </hgroup>
 
@@ -78,6 +78,143 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/the-holy-trinity-of-web-2-0-application-monitoring/">The Holy Trinity of Web 2.0 Application Monitoring</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-07-24T06:37:00-07:00" pubdate data-updated="true">Jul 24<span>th</span>, 2009</time>
+        
+         | <a href="/the-holy-trinity-of-web-2-0-application-monitoring/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>We had just rolled out a new system for a client and they were doing a high profile launch of their product. We had all our normal monitoring in place like CPU, memory, connections and page load time. Everything was swell…</p>
+
+<p>On their signup form, we did an ajax call to check if their desired username was available. If it wasn’t, we displayed a validation error an prevented the user from submitting the form. Turns out our little jquery script was silently bombing out and always returning ‘false’ meaning nobody could sign up!</p>
+
+<p><img class="plain" src="/images/posts/scaredmonkey_thumb.png"></p>
+
+<p>This little issue slipped through the cracks and it hurt pretty bad. I couldn’t just tell the stake holders “sorry”, I needed something a little better so I spent some time with <a href="http://blog.mattbeckman.com/">Matt, our super do-everything networking guy</a>, and we put together the holy trinity of web 2.0 application monitoring (insert enlightenment music here).</p>
+
+<p><img src="/images/posts/trinity.png"></p>
+
+<p>We were already using <a href="http://www.nagios.org/">Nagios</a> for monitoring and alerting, <a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a> for running unit tests, and <a href="http://seleniumhq.org/">Selenium</a> for automated web application testing. We just needed to glue it all together!</p>
+
+<ol>
+<li>The first step was to write a selenium test to go through the online order sequence. We then exported it as a phpUnit test and dropped it in a our svn repository in a folder named “monitoring.”</li>
+<li>Next, we configured a CruiseControl project named “selenium-bot” to pull down all the phpUnit tests from the “monitoring” folder in svn and run the whole test suite every 10 minutes.</li>
+<li>The last step was to use Nagios to monitor the CruiseControl log file to make sure it was actually running every 10 minutes and returning all green. If anything stops working, Nagios takes care of the alerting.</li>
+</ol>
+
+
+<p>I should also mention that since this hits the live online order form every 10 minutes, we needed a way to a way to short circuit the test orders. Fortunately, we already had a convenient OrderGateway interface, so we were able accomplish this in a very <a href="http://en.wikipedia.org/wiki/Open/closed_principle">open-closed</a> manner using the decorator pattern:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">TestOrderInterceptor</span> <span class="k">implements</span> <span class="nx">OrderGateway</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">const</span> <span class="no">TEST_CODE</span> <span class="o">=</span> <span class="s1">&#39;843feaa7-bf13-4aff-91f6-a074434f9c14&#39;</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">const</span> <span class="no">SUCCESS_RESULT</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="nv">$orderGateway</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">private</span> <span class="nv">$logger</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nx">OrderGateway</span> <span class="nv">$orderGateway</span><span class="p">,</span> <span class="nx">Logger</span> <span class="nv">$logger</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span> <span class="o">=</span> <span class="nv">$orderGateway</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span> <span class="o">=</span> <span class="nv">$logger</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isTest</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span><span class="o">-&gt;</span><span class="na">debug</span><span class="p">(</span><span class="s1">&#39;test order intercepted&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">self</span><span class="o">::</span><span class="na">SUCCESS_RESULT</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span><span class="o">-&gt;</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">function</span> <span class="nf">isTest</span><span class="p">(</span><span class="nv">$request</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">strpos</span><span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">name1</span><span class="p">,</span> <span class="nx">self</span><span class="o">::</span><span class="na">TEST_CODE</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The decorator chain is wired up using <a href="http://www.picocontainer.org/">PicoContainer</a>, and looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;OrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;TestOrderInterceptor&#39;</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">),</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;Logger&#39;</span><span class="p">)));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This infrastructure has paid dividends more than a few times and now I can’t imagine rolling out a site without it.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1004,203 +1141,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/captcha-and-inversion-of-control/">Captcha and Inversion of Control</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-06-14T20:44:00-07:00" pubdate data-updated="true">Jun 14<span>th</span>, 2009</time>
-        
-         | <a href="/captcha-and-inversion-of-control/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img class="plain" src="/images/posts/lorenzoflip.jpg"></p>
-
-<p>I made a few tweaks to a captcha library I found here and basically wrapped their CaptchaImage object in a service interface to use in my application. Pretty easy stuff, but I didn’t get it right the first time.</p>
-
-<p>What’s wrong with this class?</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">HttpContextCacheCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">httpContextCacheKey</span> <span class="p">=</span> <span class="s">&quot;4D795A45-8015-475C-A6C4-765B09EB9955&quot;</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">HttpContextCacheCaptchaProvider</span><span class="p">(</span><span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">,</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">context</span> <span class="p">=</span> <span class="n">context</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">CaptchaImage</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">context</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">httpContextCacheKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span> <span class="c1">// hint</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">string</span> <span class="n">captchaText</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">context</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">httpContextCacheKey</span><span class="p">];</span> <span class="c1">// hint</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">else</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">ToLower</span><span class="p">().</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">ToLower</span><span class="p">());</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Perhaps your nose can lead you in the right direction. The smell is hard to test, and it’s hard to test because it requires mocking the <code>HttpContextBase</code>. You might say “no problem, I can blast out a stub with Moq in no time” but you’re missing the real problem. That would be like taking aspirin for a brain tumor.</p>
-
-<p><img class="plain" src="/images/posts/arnold.jpg"></p>
-
-<blockquote><p>It’s not a tumor</p></blockquote>
-
-<p>The real problem is this class is violating the Single Responsibility Principle (SRP) by doing more than one thing. I don’t mean the two methods <code>Render()</code> and <code>Verify()</code>, those are a cohesive unit operating on the same data. The other thing is lifetime management. Look how simple the class gets when you invert control and take out the notion of lifetime management:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Serializable]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LifetimeManagedCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="n">captchaText</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">LifetimeManagedCaptchaProvider</span><span class="p">(</span><span class="n">ICaptchaImageFactory</span> <span class="n">factory</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">CaptchaImage</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">captchaText</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">else</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">ToLower</span><span class="p">().</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">ToLower</span><span class="p">());</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now this class is a breeze to test and all you have to do is register it like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ICaptchaProvider</span><span class="p">,</span> <span class="n">LifetimeManagedCaptchaProvider</span><span class="p">&gt;(</span>
-</span><span class='line'>    <span class="k">new</span> <span class="nf">HttpSessionStateLifetimeManager</span><span class="p">());</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The moral of the story is let your IoC container do things it’s good at.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -1216,6 +1156,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
+      </li>
     
       <li class="post">
         <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
@@ -1245,10 +1189,6 @@
         <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -1258,7 +1198,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Michael Valenty -
+  Copyright &copy; 2014 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

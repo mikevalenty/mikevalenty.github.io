@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Michael Valenty</title>
-  <meta name="author" content="Michael Valenty">
+  <title>Agile at Work</title>
+  <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="I like to think of the Main method in a Console application like the Global.asax. Its single responsibility is to wire-up things to be run in a &hellip;">
+  <meta name="description" content="As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +21,7 @@
   <link rel="canonical" href="http://www.agileatwork.com/blog/page/6">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Michael Valenty" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -48,9 +48,9 @@
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">Michael Valenty</a></h1>
+  <h1><a href="/">Agile at Work</a></h1>
   
-    <h2>on Software Development</h2>
+    <h2>by Mike Valenty</h2>
   
 </hgroup>
 
@@ -78,6 +78,70 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/maybe-uncle-bob-is-wrong-about-testing/">Maybe Uncle Bob Is Wrong About Testing</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-11-30T21:45:00-08:00" pubdate data-updated="true">Nov 30<span>th</span>, 2009</time>
+        
+         | <a href="/maybe-uncle-bob-is-wrong-about-testing/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s known as a positive feedback loop, and this was how I spent the better part of last week.</p>
+
+<p><img src="/images/posts/feedback2_thumb.png"></p>
+
+<p><strong>Figure A.5</strong> Not enough time to test reduces the available time <em>Test-Driven Development: By Example by Kent Beck</em></p>
+
+<p>It didn’t start out that way. In fact the first few lines of code I wrote were tests. The problem was I could only get about an hour or two in each night and every day that passed we were leaving money on the table.</p>
+
+<p>Since I didn’t have much time at night, I didn’t want to spend it writing tests. I just wanted to get the app done. All I needed to do was sync business listings from an affiliate with GarageCommerce.com, the project I’ve been working on for the last few months. There were only a handful of business rules to deal with and I thought I could just bang it out.</p>
+
+<p><img class="left" src="/images/posts/district9poster_thumb.jpg"></p>
+
+<p>I know what you’re thinking. You already know where this is headed and you might as well just skip to the end. It’s like in that movie District 9. It started out pretty good with some edgy social commentary but by the end of the movie it just phoned in a cliché Hollywood plot. You know, like “fish out of water”, “buddy movie”, or “trading places” as was the case with District 9.</p>
+
+<p>Anyway, I finished the app and since I only had a few tests I figured I should trace through things a few times to look for obvious problems. After doing that for a few minutes I was ready to press F5 and start working the kinks out. So after hours of zero feedback coding, I took a deep breath and the started the app for the first time.</p>
+
+<p>It promptly bombed out as expected. I worked through a handful of errors and then it was good to go. As I watched it run, I thought to myself that maybe Uncle Bob is wrong about testing and Spolsky isn’t such a douche bag after all. However after processing a couple hundred jobs, it started throwing crazy errors in a tight loop. Crap!</p>
+
+<p>Fast forward a few hours and I’ve got a hunch as to what is causing the problem. The way I wired up the app, I was creating a single NHibernate session for the entire batch of jobs. I knew this could be trouble so I at least made a point to commit after each job and clear the session so it wouldn’t get bogged down with 10K+ entities. I knew the single session was smelly and the errors I was seeing prompted me to refactor.</p>
+
+<p><img class="plain" src="/images/posts/MASHtvshow11_thumb.jpg"></p>
+
+<p>This is where it got ugly. I needed to do a pretty major overhaul and I was mostly test-less. My blood pressure went way up with each change and the fact that I didn’t have tests just made me take larger steps with no safety net. I felt like a M.A.S.H. surgeon with guts all over the operating table. Part of me thought I should take a few steps back and regroup, but another part of me was reminded of this quote:</p>
+
+<blockquote><p>If you’re going through hell, keep going. – Winston Churchill</p></blockquote>
+
+<p>So I stuck with it and got ‘er done, but it wasn’t much fun. What did I take from this experience? No revelations really, just some common sense reinforcement. It’s like rediscovering that diet and exercise is the key to losing weight, except that I rediscovered that not having tests really sucks when you have to make changes.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -625,143 +689,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/the-holy-trinity-of-web-2-0-application-monitoring/">The Holy Trinity of Web 2.0 Application Monitoring</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-07-24T06:37:00-07:00" pubdate data-updated="true">Jul 24<span>th</span>, 2009</time>
-        
-         | <a href="/the-holy-trinity-of-web-2-0-application-monitoring/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>We had just rolled out a new system for a client and they were doing a high profile launch of their product. We had all our normal monitoring in place like CPU, memory, connections and page load time. Everything was swell…</p>
-
-<p>On their signup form, we did an ajax call to check if their desired username was available. If it wasn’t, we displayed a validation error an prevented the user from submitting the form. Turns out our little jquery script was silently bombing out and always returning ‘false’ meaning nobody could sign up!</p>
-
-<p><img class="plain" src="/images/posts/scaredmonkey_thumb.png"></p>
-
-<p>This little issue slipped through the cracks and it hurt pretty bad. I couldn’t just tell the stake holders “sorry”, I needed something a little better so I spent some time with <a href="http://blog.mattbeckman.com/">Matt, our super do-everything networking guy</a>, and we put together the holy trinity of web 2.0 application monitoring (insert enlightenment music here).</p>
-
-<p><img src="/images/posts/trinity.png"></p>
-
-<p>We were already using <a href="http://www.nagios.org/">Nagios</a> for monitoring and alerting, <a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a> for running unit tests, and <a href="http://seleniumhq.org/">Selenium</a> for automated web application testing. We just needed to glue it all together!</p>
-
-<ol>
-<li>The first step was to write a selenium test to go through the online order sequence. We then exported it as a phpUnit test and dropped it in a our svn repository in a folder named “monitoring.”</li>
-<li>Next, we configured a CruiseControl project named “selenium-bot” to pull down all the phpUnit tests from the “monitoring” folder in svn and run the whole test suite every 10 minutes.</li>
-<li>The last step was to use Nagios to monitor the CruiseControl log file to make sure it was actually running every 10 minutes and returning all green. If anything stops working, Nagios takes care of the alerting.</li>
-</ol>
-
-
-<p>I should also mention that since this hits the live online order form every 10 minutes, we needed a way to a way to short circuit the test orders. Fortunately, we already had a convenient OrderGateway interface, so we were able accomplish this in a very <a href="http://en.wikipedia.org/wiki/Open/closed_principle">open-closed</a> manner using the decorator pattern:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">TestOrderInterceptor</span> <span class="k">implements</span> <span class="nx">OrderGateway</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="k">const</span> <span class="no">TEST_CODE</span> <span class="o">=</span> <span class="s1">&#39;843feaa7-bf13-4aff-91f6-a074434f9c14&#39;</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">const</span> <span class="no">SUCCESS_RESULT</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">private</span> <span class="nv">$orderGateway</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">private</span> <span class="nv">$logger</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nx">OrderGateway</span> <span class="nv">$orderGateway</span><span class="p">,</span> <span class="nx">Logger</span> <span class="nv">$logger</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">{</span>
-</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span> <span class="o">=</span> <span class="nv">$orderGateway</span><span class="p">;</span>
-</span><span class='line'>    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span> <span class="o">=</span> <span class="nv">$logger</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isTest</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>      <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logger</span><span class="o">-&gt;</span><span class="na">debug</span><span class="p">(</span><span class="s1">&#39;test order intercepted&#39;</span><span class="p">);</span>
-</span><span class='line'>      <span class="k">return</span> <span class="nx">self</span><span class="o">::</span><span class="na">SUCCESS_RESULT</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orderGateway</span><span class="o">-&gt;</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">private</span> <span class="k">function</span> <span class="nf">isTest</span><span class="p">(</span><span class="nv">$request</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nb">strpos</span><span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">name1</span><span class="p">,</span> <span class="nx">self</span><span class="o">::</span><span class="na">TEST_CODE</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The decorator chain is wired up using <a href="http://www.picocontainer.org/">PicoContainer</a>, and looks like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="nv">$pico</span><span class="o">-&gt;</span><span class="na">regComponentImpl</span><span class="p">(</span><span class="s1">&#39;OrderGateway&#39;</span><span class="p">,</span> <span class="s1">&#39;TestOrderInterceptor&#39;</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span>
-</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;SoapOrderGateway&#39;</span><span class="p">),</span>
-</span><span class='line'>    <span class="k">new</span> <span class="nx">BasicComponentParameter</span><span class="p">(</span><span class="s1">&#39;Logger&#39;</span><span class="p">)));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This infrastructure has paid dividends more than a few times and now I can’t imagine rolling out a site without it.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/7/">&larr; Older</a>
@@ -777,6 +704,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
+      </li>
     
       <li class="post">
         <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
@@ -806,10 +737,6 @@
         <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -819,7 +746,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Michael Valenty -
+  Copyright &copy; 2014 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

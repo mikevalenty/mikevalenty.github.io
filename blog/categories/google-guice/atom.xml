@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Google Guice | Michael Valenty]]></title>
+  <title><![CDATA[Category: Google Guice | Agile at Work]]></title>
   <link href="http://www.agileatwork.com/blog/categories/google-guice/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2014-01-01T16:19:27-08:00</updated>
+  <updated>2014-01-24T22:59:07-08:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
-    <name><![CDATA[Michael Valenty]]></name>
+    <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>

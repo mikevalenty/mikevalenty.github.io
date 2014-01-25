@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Parsing json with defaults in scala - Agile at Work</title>
+  <meta name="author" content="Mike Valenty">
+
+  
+  <meta name="description" content="The json library in Play does thing where it explodes if the json you&rsquo;re reading is missing a property. Gson would happily leave the property &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.agileatwork.com/parsing-json-with-defaults-in-scala">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-2314490-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Agile at Work</a></h1>
+  
+    <h2>by Mike Valenty</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.agileatwork.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">Contact Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Parsing Json With Defaults in Scala</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-24T22:57:00-08:00" pubdate data-updated="true">Jan 24<span>th</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>The <a href="http://www.playframework.com/documentation/2.2.x/ScalaJson">json library in Play</a> does thing where it explodes if the json you&rsquo;re reading is missing a property. <a href="https://code.google.com/p/google-gson/">Gson</a> would happily leave the property null, but that&rsquo;s just not the scala way. In scala, if something is optional, it&rsquo;s wrapped in an <code>Option</code>. The problem is I&rsquo;d like to add a property to my data model and I don&rsquo;t want it to be optional because it&rsquo;s not.</p>
+
+<p>In Java land, I probably would have added the property and thought about how to deal with migrating old data later, but not in scala. This battle has to be fought right now. That&rsquo;s what <em>type safe</em> means and it&rsquo;s why the <code>NullPointerException</code> has all but died in pure scala apps, not unlike the <a href="http://freakonomics.com/2013/09/12/whatever-happened-to-the-carpal-tunnel-epidemic/">carpal tunnel epidemic</a>.</p>
+
+<p>In my case I&rsquo;ve got some data in Couchbase and when I add a new property to my data model, I won&rsquo;t be able to read the old data. What I need to do is transform the json before hydrating the object. Fortunately, this is a snap by using the rich transformation features described in <a href="http://mandubian.com/2013/01/13/JSON-Coast-to-Coast/">JSON Coast-to-Coast</a>.</p>
+
+<p>My approach was to create a subclass of <code>Reads[A]</code> called <code>ReadsWithDefaults[A]</code> that reads json and uses a transformation to merge default values. It looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">MyObject</span><span class="o">(</span><span class="n">color</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">shape</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">object</span> <span class="nc">MyObject</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">defaults</span> <span class="k">=</span> <span class="nc">MyObject</span><span class="o">(</span><span class="s">&quot;blue&quot;</span><span class="o">,</span> <span class="s">&quot;square&quot;</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">implicit</span> <span class="k">val</span> <span class="n">readsMyObject</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ReadsWithDefaults</span><span class="o">(</span><span class="n">defaults</span><span class="o">)(</span><span class="nc">Json</span><span class="o">.</span><span class="n">format</span><span class="o">[</span><span class="kt">MyObject</span><span class="o">])</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">implicit</span> <span class="k">val</span> <span class="n">writesMyObject</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Json</span><span class="o">.</span><span class="n">writes</span><span class="o">[</span><span class="kt">MyObject</span><span class="o">]</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.json._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.json.Reads._</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">ReadsWithDefaults</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">defaults</span><span class="k">:</span> <span class="kt">A</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">format</span><span class="k">:</span> <span class="kt">Format</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">Reads</span><span class="o">[</span><span class="kt">A</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="n">mergeWithDefaults</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">defaultJson</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">fromJson</span><span class="o">[</span><span class="kt">JsObject</span><span class="o">](</span><span class="nc">Json</span><span class="o">.</span><span class="n">toJson</span><span class="o">(</span><span class="n">defaults</span><span class="o">)).</span><span class="n">get</span>
+</span><span class='line'>    <span class="nc">__</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">update</span><span class="o">(</span><span class="n">of</span><span class="o">[</span><span class="kt">JsObject</span><span class="o">]</span> <span class="n">map</span> <span class="o">{</span><span class="n">o</span> <span class="k">=&gt;</span> <span class="n">defaultJson</span> <span class="o">++</span> <span class="n">o</span><span class="o">})</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">reads</span><span class="o">(</span><span class="n">json</span><span class="k">:</span> <span class="kt">JsValue</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">jsObject</span> <span class="k">=</span> <span class="n">json</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">mergeWithDefaults</span><span class="o">).</span><span class="n">get</span>
+</span><span class='line'>    <span class="nc">Json</span><span class="o">.</span><span class="n">fromJson</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">jsObject</span><span class="o">)(</span><span class="n">format</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Mike Valenty</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-24T22:57:00-08:00" pubdate data-updated="true">Jan 24<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.agileatwork.com/parsing-json-with-defaults-in-scala/" data-via="mikevalenty" data-counturl="http://www.agileatwork.com/parsing-json-with-defaults-in-scala/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/web-framework-scaffolding-considered-harmful/" title="Previous Post: Web Framework Scaffolding Considered Harmful">&laquo; Web Framework Scaffolding Considered Harmful</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
+      </li>
+    
+      <li class="post">
+        <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
+      </li>
+    
+      <li class="post">
+        <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Using Scala to Perform a Multi-Key Get on a Couchbase View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
+      </li>
+    
+      <li class="post">
+        <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
+      </li>
+    
+      <li class="post">
+        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
+      </li>
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Mike Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.agileatwork.com/parsing-json-with-defaults-in-scala/';
+        var disqus_url = 'http://www.agileatwork.com/parsing-json-with-defaults-in-scala/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

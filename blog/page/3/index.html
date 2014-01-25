@@ -5,34 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Michael Valenty</title>
-  <meta name="author" content="Michael Valenty">
+  <title>Agile at Work</title>
+  <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="You’ve seen code like this: 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-public class Order
-{ private ITaxCalculator taxCalculator; &hellip;">
+  <meta name="description" content="My application has logging of fine-grained operations, but I want to see the duration of the entire web request. The idea is to start a Stopwatch on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -44,7 +21,7 @@ public class Order
   <link rel="canonical" href="http://www.agileatwork.com/blog/page/3">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Michael Valenty" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Agile at Work" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -71,9 +48,9 @@ public class Order
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">Michael Valenty</a></h1>
+  <h1><a href="/">Agile at Work</a></h1>
   
-    <h2>on Software Development</h2>
+    <h2>by Mike Valenty</h2>
   
 </hgroup>
 
@@ -101,6 +78,163 @@ public class Order
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/a-custom-httpmodule-to-log-request-duration/">A Custom HttpModule to Log Request Duration</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-16T02:31:00-08:00" pubdate data-updated="true">Jan 16<span>th</span>, 2011</time>
+        
+         | <a href="/a-custom-httpmodule-to-log-request-duration/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>My application has logging of fine-grained operations, but I want to see the duration of the entire web request. The idea is to start a <code>Stopwatch</code> on the <code>BeginRequest</code> event and then log the elapsed time on the <code>EndRequest</code> event. I started by modifying the <code>Global.asax</code> to wire this up, but quickly got turned off because I was violating the Open-Closed Principle. I really just want to bolt-in this behavior while I’m profiling the application and then turn it off when the kinks are worked out. IIS has a pretty slick extension point for this sort of thing that let’s you hook into the request lifecycle events.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">RequestDurationLoggerModule</span> <span class="p">:</span> <span class="n">IHttpModule</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">ContextItemKey</span> <span class="p">=</span> <span class="s">&quot;stopwatchContextItemKey&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Init</span><span class="p">(</span><span class="n">HttpApplication</span> <span class="n">application</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">application</span><span class="p">.</span><span class="n">BeginRequest</span> <span class="p">+=</span> <span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">application</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">Items</span><span class="p">[</span><span class="n">ContextItemKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">Stopwatch</span><span class="p">.</span><span class="n">StartNew</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">application</span><span class="p">.</span><span class="n">EndRequest</span> <span class="p">+=</span> <span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">stopwatch</span> <span class="p">=</span> <span class="p">(</span><span class="n">Stopwatch</span><span class="p">)</span><span class="n">application</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">Items</span><span class="p">[</span><span class="n">ContextItemKey</span><span class="p">];</span>
+</span><span class='line'>            <span class="n">stopwatch</span><span class="p">.</span><span class="n">Stop</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">GetLogger</span><span class="p">(</span><span class="n">application</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span>
+</span><span class='line'>                <span class="s">&quot;{0} -&gt; [{1} ms]&quot;</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">application</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">RawUrl</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">stopwatch</span><span class="p">.</span><span class="n">ElapsedMilliseconds</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">};</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="n">ILogger</span> <span class="nf">GetLogger</span><span class="p">(</span><span class="n">HttpApplication</span> <span class="n">application</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">serviceProvider</span> <span class="p">=</span> <span class="n">application</span> <span class="k">as</span> <span class="n">IServiceProvider</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">serviceProvider</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="nf">NullLogger</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">serviceProvider</span><span class="p">.</span><span class="n">GetService</span><span class="p">&lt;</span><span class="n">ILogger</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Dispose</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The only weird part here is getting a handle to the logger. I’m using an IoC container in my application, however I can’t tell IIS how to build up my <code>RequestDurationLoggerModule</code>, so I’m stuck using the Service Locator pattern. The container could be a singleton, but I don’t like singletons, so I implemented <code>IServiceProvider</code> in <code>Global.asax</code> instead. All that’s left now is wiring in the module. Since Cassini behaves like IIS6, you have to use the legacy style configuration, which looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>  <span class="nt">&lt;system.web&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;httpModules&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;add</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span> <span class="na">type=</span><span class="s">&quot;MyApplication.RequestDurationLoggerModule, MyApplication&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/httpModules&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/system.web&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For IIS7 though, you add it like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>  <span class="nt">&lt;system.webServer&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;modules&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;add</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span> <span class="na">type=</span><span class="s">&quot;MyApplication.RequestDurationLoggerModule, MyApplication&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/modules&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/system.webServer&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, it’s time to run the application and see the total request duration logged.</p>
+
+<p><img class="plain" src="/images/posts/durationmodule.png"></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -722,84 +856,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/hacker-artist-craftsman-or-engineer/">Hacker, Artist, Craftsman or Engineer?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-10-10T09:44:00-07:00" pubdate data-updated="true">Oct 10<span>th</span>, 2010</time>
-        
-         | <a href="/hacker-artist-craftsman-or-engineer/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I recently read the book <a href="http://www.codersatwork.com/">Coders at Work</a> on <a href="http://blargh.tommymontgomery.com/">tmont’s</a> recommendation. It was a good read, and at 500+ pages you can repurpose it as a monitor stand when you’re finished reading it.</p>
-
-<blockquote><p>Based on nearly eighty hours of conversations with fifteen all-time great programmers and computer scientists, the Q&amp;A interviews in Coders at Work provide a multifaceted view into how great programmers learn to program, how they practice their craft, and what they think about the future of programming.</p></blockquote>
-
-<p>The author, Peter Siebel, asked each of the interviewees “Do you consider yourself a hacker, artist, craftsman or engineer?” It’s a good question and one I forgot about until <a href="http://thecleancoder.blogspot.com/2010/09/hacker-novice-artist-and-craftsman.html">Uncle Bob wrote an article</a> suggesting a correlation with one’s definition of done. It’s a clever angle but there is more to explore.</p>
-
-<h2>Hacker</h2>
-
-<p>On a PDP-8 with only eight instructions and two registers, you’re going to need some ingenuity, maybe even the rare kind of intellect that led a 14 year-old to win eight United States Chess Championships in a row.</p>
-
-<blockquote><p>It’s just you and your opponent at the board and you’re trying to prove something. — Bobby Fischer</p></blockquote>
-
-<p>The hacker lives in a world of tight constraints, like Houdini in a straight jacket inside a locked box submerged in icy water. The hacker gets a thrill from this kind of challenge and often relies on a toolbox of algorithms and decompilers to get the job done. The hacker isn’t satisfied with mainstream abstractions for IO, instead the hacker knows exactly what happens when you write a file or open a socket and why you might choose UDP instead of TCP. The hacker is the guy that’s going to push the industry forward with new technology and techniques.</p>
-
-<p>It’s a fine line though, finding loopholes and circumventing the intent of your framework can be a recipe for disaster. Often times, it’s not just you and the machine, it’s you and a team of developers writing software for users that expect their cell phone to stream music from Pandora via Bluetooth to their car stereo while rendering a map of the current location with real-time traffic info. And if all this takes a few extra seconds, your software is casually dismissed as a piece of crap.</p>
-
-<h2>Artist</h2>
-
-<p>The artist believes that software is an expression of one’s self. The process is creative and each solution is subtly unique like a brush stroke on a canvas. An artist believes what they do is special and you could no more teach someone how to be a great programmer than you could teach someone how to write a great song or novel. You’ve either got it or you don’t.</p>
-
-<p>Just like a great band, truly great software comes from a small team with just the right mix of strengths and styles. Too many contributors and it’s a mess. Not enough and it’s too predictable. Boston was a great band, but it was dominated by Tom Schulz, the guitarist, keyboardist, songwriter and producer. He owned every note. It’s not necessarily a bad thing, Boston sold over 31 million albums in the United States. But consider the Beatles, two creative forces pushing and pulling on each other, clashing and meshing to produce a truly dynamic catalog.</p>
-
-<h2>Craftsman</h2>
-
-<p>If you’re having open heart surgery, you probably want an experienced doctor holding the scalpel. The human body is a complex system and reading a text book just isn’t the same as years of experience.</p>
-
-<p>Programming is difficult. At its core, it is about managing complexity. Computer programs are the most complex things that humans make. Quality is illusive and elusive. – Douglas Crockford</p>
-
-<p>When a fine furniture craftsman looks at a piece of wood, the unique shape and the location of the knots are thoughtfully considered. The craftsman observes how dry or green the wood is, how hard or soft it is and applies a set of best practices honed through years of experience to produce the finest end result.</p>
-
-<p>The craftsman believes that most software problems are the same but knows a solution can’t be stamped out by code monkeys. Physical and financial constraints, subtleties of the problem domain and quirks of a particular framework or language require an experienced and steady hand to produce a quality product. The craftsman believes software development is a highly skilled trade and to become an expert you must start as an apprentice.</p>
-
-<h2>Engineer</h2>
-
-<p>An engineer writes the kind of software you count on when you drive a car, fly in a plane or dial 911; Where a failure means more than a delayed shipment or double payment on your online order. The stakes are high and the problems are too big to fit in one person’s head. Problems that only process and frameworks can wrangle. You can’t simply start typing and watch the design of your application emerge from nothing, it requires detailed analysis and thoughtful study.</p>
-
-<p>Which one am I? I have a piece of paper that says Engineer on it, and while I enjoy writing frameworks as much as the next guy, I’m a craftsman. Maybe it’s because I’ve been doing this for a dozen years and I’d like to think my experience is worth more than a piece of paper.</p>
-
-<blockquote><p>Hey, if you want me to take a dump in a box and mark it guaranteed, I will. I got spare time. But for now, for your customer’s sake, for your daughter’s sake, ya might wanna think about buying a quality product from me. – Tommy Boy</p></blockquote>
-
-<p>Which one are you?</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -815,6 +871,10 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
+      </li>
     
       <li class="post">
         <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
@@ -844,10 +904,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
         <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -857,7 +913,7 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Michael Valenty -
+  Copyright &copy; 2014 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
