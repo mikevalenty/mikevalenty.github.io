@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="The json library in Play does thing where it explodes if the json you&rsquo;re reading is missing a property. Gson would happily leave the property &hellip;">
+  <meta name="description" content="The json library in Play does this thing where it explodes if the json you&rsquo;re reading is missing a property. Gson would happily leave the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -106,7 +106,7 @@
   </header>
 
 
-<div class="entry-content"><p>The <a href="http://www.playframework.com/documentation/2.2.x/ScalaJson">json library in Play</a> does thing where it explodes if the json you&rsquo;re reading is missing a property. <a href="https://code.google.com/p/google-gson/">Gson</a> would happily leave the property null, but that&rsquo;s just not the scala way. In scala, if something is optional, it&rsquo;s wrapped in an <code>Option</code>. The problem is I&rsquo;d like to add a property to my data model and I don&rsquo;t want it to be optional because it&rsquo;s not.</p>
+<div class="entry-content"><p>The <a href="http://www.playframework.com/documentation/2.2.x/ScalaJson">json library in Play</a> does this thing where it explodes if the json you&rsquo;re reading is missing a property. <a href="https://code.google.com/p/google-gson/">Gson</a> would happily leave the property null, but that&rsquo;s just not the scala way. In scala, if something is optional, it&rsquo;s wrapped in an <code>Option</code>. The problem is I&rsquo;d like to add a property to my data model and I don&rsquo;t want it to be optional because it&rsquo;s not.</p>
 
 <p>In Java land, I probably would have added the property and thought about how to deal with migrating old data later, but not in scala. This battle has to be fought right now. That&rsquo;s what <em>type safe</em> means and it&rsquo;s why the <code>NullPointerException</code> has all but died in pure scala apps, not unlike the <a href="http://freakonomics.com/2013/09/12/whatever-happened-to-the-carpal-tunnel-epidemic/">carpal tunnel epidemic</a>.</p>
 
