@@ -97,7 +97,7 @@ public class BloomFilterTests {
             if (hasKey(newGuid()))
                 count++;
 
-        int onePercent = (int) (numberOfKeys * .0005);
+        int onePercent = (int) (numberOfKeys * .01);
 
         assertThat(count, is(lessThan(onePercent)));
     }
