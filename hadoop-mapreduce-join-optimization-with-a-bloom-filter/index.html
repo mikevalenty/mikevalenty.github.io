@@ -272,7 +272,7 @@
 </span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()))</span>
 </span><span class='line'>                <span class="n">count</span><span class="o">++;</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="kt">int</span> <span class="n">onePercent</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="o">.</span><span class="mi">0005</span><span class="o">);</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">onePercent</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="o">.</span><span class="mi">01</span><span class="o">);</span>
 </span><span class='line'>
 </span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">count</span><span class="o">,</span> <span class="n">is</span><span class="o">(</span><span class="n">lessThan</span><span class="o">(</span><span class="n">onePercent</span><span class="o">)));</span>
 </span><span class='line'>    <span class="o">}</span>
