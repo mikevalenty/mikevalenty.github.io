@@ -5,6 +5,10 @@ body {
 	max-width: 100%;
 }
 
+body > header {
+    font-size: 1em;
+}
+
 body > footer {
 	border-radius: 0;
 	margin-bottom: 0;
