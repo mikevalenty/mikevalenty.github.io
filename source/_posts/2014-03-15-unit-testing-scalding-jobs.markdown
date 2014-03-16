@@ -6,8 +6,9 @@ comments: true
 categories: 
 published: false
 ---
+[Scalding](https://github.com/twitter/scalding) is a powerful framework for writing complex data processing applications on Apache Hadoop. It's concise and expressive - almost to a fault. It's dangerously easy to pack gobs of subtle business logic into just a few lines of code. If you're writing real data processing applications and not just ad-hoc reports, unit testing is a must. However tests can get unwieldy to manage as job complexity grows and the arity of data increases.
 
-Consider this scalding job:
+For example, consider this scalding job:
 
 ```scala
 class ComplicatedJob(args: Args) extends Job(args) {
@@ -29,18 +30,20 @@ class ComplicatedJob(args: Args) extends Job(args) {
     .filter('timestamp) { ts: DateTime => ts.isAfter(DateTime.now.minusDays(30)) }
     .map('user_agent -> 'browser) { userAgent: String => toBrowser(userAgent) }
     .map('remote_addr -> 'country) { ip: String => toCountry(ip) }
-
-    // I want to test this block
     .map('country -> 'country) { c: String => if (c == "us") c else "other" }
     .groupBy('browser, 'country) { _.size('count) }
     .groupBy('browser) { _.pivot(('country, 'count) ->('us, 'other)) }
-    // I want to test this block
-
     .write(Tsv("output"))
+
+  def toDateTime(ts: String): DateTime = { ... }
+
+  ...
 }
 ```
 
-This looks better
+Testing this job end-to-end would be fragile because there is so much going on and it would be tedious and noisy to build fake data to isolate and highlight edge cases. The pivot operations on lines 20-22 only deal with `browser` and `country` yet test data with all 10 fields is required including valid timestamps and user agents just to get to the pivot logic.
+
+ There are a few ways to tackle this and an approach I like is to use extension methods to breakdown the logic into smaller chunks of testable code. The result might look something like this.
 
 ```scala
 class ComplicatedJob(args: Args) extends Job(args) {
@@ -56,7 +59,7 @@ class ComplicatedJob(args: Args) extends Job(args) {
 }
 ```
 
-This can be done with extension methods
+Each block of code depends on only a few fields so it doesn't require mocking the entire input set.
 
 ```scala
 import Dsl._
@@ -79,9 +82,12 @@ object ComplicatedJob {
 }
 ```
 
-And this is the test class for it
+In this example only `browser` and `country` are required so setting up test data is reasonably painless and the intent of the test case isn't lost in a sea of tuples. Granted, this approach requires creating a helper job to set up the input and capture the output for test assertions, but I think it's a worthwhile trade off to reveal such a clear test case.
 
 ```scala
+import ComplicatedJob._
+import ComplicatedJobTests._
+
 @RunWith(classOf[JUnitRunner])
 class ComplicatedJobTests extends FunSuite with ShouldMatchers {
 
