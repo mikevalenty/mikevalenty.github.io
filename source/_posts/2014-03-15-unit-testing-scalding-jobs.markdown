@@ -13,7 +13,8 @@ Consider this scalding job:
 class ComplicatedJob(args: Args) extends Job(args) {
 
   val bloatedTsv = Tsv("input",
-    ('timestamp,
+    ('user_id,
+      'timestamp,
       'host,
       'referer,
       'remote_addr,
@@ -26,31 +27,33 @@ class ComplicatedJob(args: Args) extends Job(args) {
   bloatedTsv
     .map('timestamp -> 'timestamp) { ts: String => toDateTime(ts) }
     .filter('timestamp) { ts: DateTime => ts.isAfter(DateTime.now.minusDays(30)) }
-    .map('remote_addr -> 'country) { ip: String => toCountry(ip) getOrElse "unknown" }
-    .filter('country) { country: String => country == "US" }
     .map('user_agent -> 'browser) { userAgent: String => toBrowser(userAgent) }
-    .map('accept_encoding -> 'gzip) { enc: String => enc.contains("gzip") }
+    .map('remote_addr -> 'country) { ip: String => toCountry(ip) }
 
-    // I want to test this block and not deal with other fields
-    .map('gzip -> 'gzip) { gzip: Boolean => if (gzip) "yes" else "no" }
-    .groupBy('browser, 'gzip) { _.size('count) }
-    .groupBy('browser) { _.pivot(('gzip, 'count) ->('yes, 'no)) }
+    // I want to test this block
+    .map('country -> 'country) { c: String => if (c == "us") c else "other" }
+    .groupBy('browser, 'country) { _.size('count) }
+    .groupBy('browser) { _.pivot(('country, 'count) ->('us, 'other)) }
     // I want to test this block
 
     .write(Tsv("output"))
-
-  ...
 }
 ```
+
 This looks better
 
 ```scala
-bloatedTsv
-  .timestampIsAfter(DateTime.now.minusDays(30))
-  .countryEquals("US")
-  .doesBrowserSupportGzip()
-  .countGzipByBrowser()
-  .write(Tsv("output"))
+class ComplicatedJob(args: Args) extends Job(args) {
+
+  ...
+
+  bloatedTsv
+    .timestampIsAfter(DateTime.now.minusDays(30))
+    .userAgentToBrowser()
+    .remoteAddrToCountry()
+    .countCountryByBrowser()
+    .write(Tsv("output"))
+}
 ```
 
 This can be done with extension methods
@@ -62,12 +65,12 @@ object ComplicatedJob {
 
   implicit class ComplicatedJobRichPipe(pipe: Pipe) {
 
-    // this block is testable in isolation
-    def countGzipByBrowser(): Pipe = {
+    // this chunk of code is testable in isolation
+    def countCountryByBrowser(): Pipe = {
       pipe
-        .map('gzip -> 'gzip) { gzip: Boolean => if (gzip) "yes" else "no" }
-        .groupBy('browser, 'gzip) { _.size('count) }
-        .groupBy('browser) { _.pivot(('gzip, 'count) ->('yes, 'no)) }
+        .map('country -> 'country) { c: String => if (c == "us") c else "other" }
+        .groupBy('browser, 'country) { _.size('count) }
+        .groupBy('browser) { _.pivot(('country, 'count) ->('us, 'other)) }
     }
 
     ...
@@ -75,6 +78,7 @@ object ComplicatedJob {
 
 }
 ```
+
 And this is the test class for it
 
 ```scala
@@ -84,45 +88,49 @@ class ComplicatedJobTests extends FunSuite with ShouldMatchers {
   test("should count and pivot rows into columns") {
 
     val input = List[InputTuple](
-      ("firefox", true),
-      ("firefox", false),
-      ("chrome", true),
-      ("safari", false)
+      ("firefox", "us"),
+      ("chrome", "us"),
+      ("safari", "us"),
+      ("firefox", "us"),
+      ("firefox", "br"),
+      ("chrome", "de")
     )
 
-    val expected = List[OutputTuple](
-      ("firefox", 1, 1),
-      ("chrome", 1, 0),
-      ("safari", 0, 1)
+    val expected = Set[OutputTuple](
+      ("firefox", 2, 1),
+      ("safari", 1, 0),
+      ("chrome", 1, 1)
     )
 
-    countGzipByBrowser(input) { _ should equal(expected) }
+    count(input) { _.toSet should equal(expected) }
   }
 
 }
 
 object ComplicatedJobTests {
-  type InputTuple = (String, Boolean)
+  type InputTuple = (String, String)
   type OutputTuple = (String, Int, Int)
 
-  def countGzipByBrowser(input: List[InputTuple])(fn: List[OutputTuple] => Unit) {
-    import Dsl._
-    JobTest[CountGzipByBrowser]
-      .source(Tsv("input", ('browser, 'gzip)), input)
-      .sink[OutputTuple](Tsv("output")) { b => fn(b.toList) }
-      .run
-      .finish
-  }
+  // this is a helper job to set up the inputs and outputs
+  // for the chunk of code we're trying to test
+  class CountCountryByBrowser(args: Args) extends Job(args) {
 
-  class CountGzipByBrowser(args: Args) extends Job(args) {
-
-    Tsv("input", ('browser, 'gzip))
+    Tsv("input", ('browser, 'country))
       .read
-      .countGzipByBrowser()
-      .project('browser, 'yes, 'no)
+      .countCountryByBrowser() // this is what we're testing
+      .project('browser, 'us, 'other)
       .write(Tsv("output"))
 
   }
 
+  // helper method to run our test job
+  def count(input: List[InputTuple])(fn: List[OutputTuple] => Unit) {
+    import Dsl._
+    JobTest[CountCountryByBrowser]
+      .source(Tsv("input", ('browser, 'country)), input)
+      .sink[OutputTuple](Tsv("output")) { b => fn(b.toList) }
+      .run
+      .finish
+  }
 }
 ```
