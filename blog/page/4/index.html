@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="I recently read the book Coders at Work on tmont’s recommendation. It was a good read, and at 500+ pages you can repurpose it as a monitor stand when &hellip;">
+  <meta name="description" content="A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,99 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/automatic-deployment-from-teamcity-using-webdeploy/">Automatic Deployment From TeamCity Using WebDeploy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-27T11:07:00-07:00" pubdate data-updated="true">Oct 27<span>th</span>, 2010</time>
+        
+         | <a href="/automatic-deployment-from-teamcity-using-webdeploy/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
+
+<p><img class="plain" src="/images/posts/tcp1.jpg"></p>
+
+<ol>
+<li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
+<li><strong>Run integration tests</strong>  – these are tests that have a dependency on a database. The primarily purpose is to test NHibernate mappings.</li>
+<li><strong>Run acceptance tests</strong> – these tests are written in the Given, When, Then style. We write the tests in BehaveN, but we expect that a stakeholder could read them and verify the business rules are correct.</li>
+<li><strong>Deploy to CI and run UI tests</strong> – these are qunit and Selenium tests. They require the code to be deployed to a real web server before the tests run. That’s what this article is about.</li>
+<li><strong>Deploy to QA</strong> – once the automated UI tests have passed, we deploy to our QA server for manual testing.</li>
+</ol>
+
+
+<p><strong>Step 1:</strong> <a href="http://weblogs.asp.net/scottgu/archive/2010/09/13/automating-deployment-with-microsoft-web-deploy.aspx">Install WebDeploy on the web server you want to deploy to.</a></p>
+
+<p><strong>Step 2:</strong> <a href="http://blogs.msdn.com/b/webdevtools/archive/2009/05/04/web-deployment-web-config-transformation.aspx">Configure Web.config transforms.</a> This will enable you to change connection strings and whatnot based on your build configuration.</p>
+
+<p>Currently this is only supported for web applications, but since it’s built on top of MSBuild tasks, you can do the same thing to an <code>App.config</code> with a little extra work. Take a peak at <code>Microsoft.Web.Publishing.targets</code> (C:\Program Files\MSBuild\Microsoft\VisualStudio\v10.0\Web) to see how to use the build tasks.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;TransformXml&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;UsingTask</span> <span class="na">TaskName=</span><span class="s">&quot;MSDeploy&quot;</span> <span class="na">AssemblyFile=</span><span class="s">&quot;Microsoft.Web.Publishing.Tasks.dll&quot;</span><span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Step 3:</strong> Figure out the MSBuild command line arguments that work for your application. This took a bit of trial and error before landing on this:</p>
+
+<pre>
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln 
+  /p:Configuration=QA
+  /p:OutputPath=bin
+  /p:DeployOnBuild=True 
+  /p:DeployTarget=MSDeployPublish 
+  /p:MsDeployServiceUrl=https://myserver:8172/msdeploy.axd 
+  /p:username=***** 
+  /p:password=***** 
+  /p:AllowUntrustedCertificate=True 
+  /p:DeployIisAppPath=ci
+  /p:MSDeployPublishMethod=WMSVC
+</pre>
+
+
+<p><strong>Step 4:</strong> Configure the Build Runner in TeamCity</p>
+
+<p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
+
+<p><img class="plain" src="/images/posts/teamcity2.jpg"></p>
+
+<p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
+
+<p><img class="plain" src="/images/posts/dep1.jpg"></p>
+
+<p><img class="plain" src="/images/posts/snap1.jpg"></p>
+
+<p><strong>Step 6:</strong> Write some code.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -566,104 +659,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Interfaces (No Excuses!)</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-01-13T22:24:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2010</time>
-        
-         | <a href="/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><span style="font-size: 70%">
-The title of this article was inspired by <a href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!) </a>
-by Joel Spolsky
-</span></p>
-
-<p>I recently saw this question on stackoverflow:</p>
-
-<p><img src="/images/posts/quest.png"></p>
-
-<p>There were good points on both sides, but the majority of responses were from closet interface haters succumbing to the mob effect to say &ldquo;me too&rdquo;. On the other side of the argument, many took cover behind regurgitated responses like interfaces are for mocking dependencies in unit tests and because people that write books say you should use them. So how is it that scores of professional software developers don’t understand or can’t communicate why and how to use the most fundamental of object-oriented language features? Perhaps there is a clue in the details of the original question:</p>
-
-<blockquote><p>Is there some hidden benefit of using an interface when you have 1 version of a class and no immediate need to create an interface?</p></blockquote>
-
-<p>The scattered and ineffectual responses are an unfortunate casualty of the ubiquitous poor online examples found on the Internet. No doubt you’ve seen something like this before:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IVehicle</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Car</span> <span class="p">:</span> <span class="n">IVehicle</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="m">4</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Bus</span> <span class="p">:</span> <span class="n">IVehicle</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="m">20</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I can’t help but have visions of rich objects that model the physical world so well they put an end to wars and world hunger. You know, methods like <code>Bark()</code> on a <code>Dog</code> object. These examples aren’t wrong per se, but they usher the reader down a predictable and dead-end path. It’s like the horribly cliché <a href="http://en.wikipedia.org/wiki/Thinking_outside_the_box">nine dots puzzle</a> in which the goal is to link all 9 dots using four straight lines or less, without lifting the pen.</p>
-
-<p>Common sense suggests it can’t be done because we have subconsciously imposed a false restriction that the lines must be within the boundaries of the square (I won’t insult you with the hopelessly worn out catch phrase). The point I’m trying to make here is the examples out there unwittingly set us up for failure. In social science this is called <a href="http://en.wikipedia.org/wiki/Framing_(social_sciences">framing</a>. The human brain is an impressive problem solving machine, but we can be easily fooled by framing a problem in a way that our stereotypes and assumptions obscure the often obvious answer.</p>
-
-<p>In the case of interfaces, the examples suggest the concrete implementations are mutually exclusive physical concepts like <em>Car</em> and <em>Bus</em>, or perhaps <code>SqlUserStore</code> and <code>LdapUserStore</code>. It’s an easy concept to latch on to, and it’s the bane of good object oriented design.</p>
-
-<p>To think of a user store as a thing is a mistake. <code>IUserStore</code> defines a seam in which responsibility crosses a boundary. In an MVC application, it’s the seam between the controller’s routing responsibility and the model’s business logic. If you only have one implementation of <code>IUserStore</code>, then you’d better take another look because that’s a smell.</p>
-
-<p>The place to start looking is within your one and only implementation. Where is the logic about sending a confirmation email or checking if the username is available? Chances are it ended up in the controller leaving your model anemic or it ended up in your model violating the single responsibility principle. Either way it’s a big fail sandwich.</p>
-
-<p>Again, this is because of the false assumption that implementations are mutually exclusive as in the <em>Car</em> and <em>Bus</em> example. In other words, if I have a <em>Car</em>, then I don’t have a <em>Bus</em>. This is the wrong way to think of objects. Of course they can be mutually exclusive, but they are far more powerful when they are composable. Consider these implementations of <code>IUserService</code>:</p>
-
-<ul>
-<li><code>EmailConfirmationUserService</code></li>
-<li><code>ValidatingUserService</code></li>
-<li><code>SqlUserService</code></li>
-<li><code>CachingUserService</code></li>
-</ul>
-
-
-<p>Each concern is orthogonal to each other concern and they are combined together to create the overall behavior of the system. The interface facilitates composition which is the key to high-quality, robust software. So the real problem isn’t that interfaces are overused, it’s that interfaces are squandered.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -679,6 +674,10 @@ by Joel Spolsky
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
+      </li>
     
       <li class="post">
         <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
@@ -706,10 +705,6 @@ by Joel Spolsky
     
       <li class="post">
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
   </ul>

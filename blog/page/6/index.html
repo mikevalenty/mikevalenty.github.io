@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="As pressure increases, testing decreases. As the testing decreases, errors increase and as errors increase, pressure increases more. This is what’s &hellip;">
+  <meta name="description" content="There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,131 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/a-class-isnt-always-a-noun/">A Class Isn’t Always a Noun</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-12-04T12:45:00-08:00" pubdate data-updated="true">Dec 4<span>th</span>, 2009</time>
+        
+         | <a href="/a-class-isnt-always-a-noun/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
+
+<p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>
+
+<p><img src="/images/posts/yext1.png"></p>
+
+<p>I don’t expect you to understand how the app works, but you should at least get a feel right away for the things that are important. Knowing it’s a console app, you could find the entry point and quickly navigate to the meat and potatoes of the application.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SyncListingJob</span> <span class="p">:</span> <span class="n">MarshalByRefObject</span><span class="p">,</span> <span class="n">IJob</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">YextListing</span> <span class="n">listing</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">SyncListingJob</span><span class="p">(</span><span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">locator</span> <span class="p">=</span> <span class="n">locator</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Init</span><span class="p">(</span><span class="n">YextListing</span> <span class="n">listing</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">listing</span> <span class="p">=</span> <span class="n">listing</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [UnitOfWork]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">GuardAgainstNotInitialized</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">SyncListing</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">SyncListing</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">new</span> <span class="n">LocatorChain</span><span class="p">&lt;</span><span class="n">Yextlisting</span><span class="p">&gt;(</span><span class="n">locator</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RevertDiscontinuedListing</span><span class="p">&gt;()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RefreshLinkedBusiness</span><span class="p">&gt;()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateLinkToExistingBusiness</span><span class="p">&gt;()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateNewBusinessAndLink</span><span class="p">&gt;()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">Process</span><span class="p">(</span><span class="n">listing</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">GuardAgainstNotInitialized</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">listing</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">Exception</span><span class="p">(</span><span class="s">&quot;Job not initialized!&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>* <em>The <code>LocatorChain&lt;T&gt;</code> is an implementation of the chain of responsibility pattern.</em></p>
+
+<p>I do everything I can to push out all the noise and bring the behavior to the surface. Sometimes the right way to name a class is after a feature or behavior. I want my code to read like a DSL and making everything a noun just doesn’t cut it. The drivers for me are context and readability.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -545,148 +670,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/domain-driven-design-in-the-small/">Domain Driven Design in the Small</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-08-08T06:24:00-07:00" pubdate data-updated="true">Aug 8<span>th</span>, 2009</time>
-        
-         | <a href="/domain-driven-design-in-the-small/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>A few months ago we built a <a href="http://www.magentocommerce.com/">Magento</a> extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking. As part of the process, a contact record was created in the affiliate’s CRM account.</p>
-
-<p> <img src="/images/posts/SubmitYourIdea1.jpg"></p>
-
-<p>Recently, the stake holders came up with a twist that went something like this: If the order contains a gift card, add the contact to a specific folder in the CRM application. No big deal, we had a nicely abstracted <code>OrderGateway</code> interface and I was already envisioning a quick addition to the existing decorator chain.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">OrderWithGiftCardGateway</span> <span class="k">extends</span> <span class="nx">OrderGatewayDecorator</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="o">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I had a few minutiae questions like what happens with duplicates, etc. It took me nearly an hour to track down the right person and get real answers. During the conversation, a subtle comment was made that I almost missed.</p>
-
-<p>Stake holder: We should check with the product supplier to make sure the gift card sku I made up isn’t for a real product.</p>
-
-<p><strong>Me:</strong> Say what?</p>
-
-<p><strong>Stake holder:</strong> The gift card is not fulfilled by the product supplier, it’s fulfilled by the affiliate.</p>
-
-<p><strong>Me:</strong> %$@!&amp;, I’m glad we had this conversation.</p>
-
-<p>We talked about what it meant for the the affiliate to fulfill the product and basically the folder stuff was okay, but I recommended we remove the fake sku from the order before sending it through.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I didn’t have a buddy to pair with so I just grabbed Keith for a minute at the end of the day to walk through things. I recapped the stake holder discussion and we looked through the code. He pointed out I was missing the concept of fulfillment and that was hard earned knowledge that would be lost!</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">sendToAffiliateForFulfillment</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<blockquote><p>That was huge. – Paris Hilton</p></blockquote>
-
-<iframe class="plain" width="640" height="360" src="//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
-
-
-<p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
-
-<p>It tells an important story for the next guy looking at the code and it changes the role of the programmer from code monkey to business partner. Maybe you think I’m crazy, but this stuff matters to me.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/7/">&larr; Older</a>
@@ -702,6 +685,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
+      </li>
     
       <li class="post">
         <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
@@ -729,10 +716,6 @@
     
       <li class="post">
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
   </ul>

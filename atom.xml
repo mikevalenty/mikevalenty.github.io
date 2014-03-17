@@ -4,7 +4,7 @@
   <title><![CDATA[Mike Valenty]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2014-03-16T19:29:01-07:00</updated>
+  <updated>2014-03-16T19:35:25-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -12,6 +12,259 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Unit testing scalding jobs]]></title>
+    <link href="http://www.agileatwork.com/unit-testing-scalding-jobs/"/>
+    <updated>2014-03-15T15:27:00-07:00</updated>
+    <id>http://www.agileatwork.com/unit-testing-scalding-jobs</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/twitter/scalding">Scalding</a> is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive &ndash; almost to a fault. It&rsquo;s dangerously easy to pack gobs of subtle business logic into just a few lines of code. If you&rsquo;re writing real data processing applications and not just ad-hoc reports, unit testing is a must. However tests can get unwieldy to manage as job complexity grows and the arity of data increases.</p>
+
+<p>For example, consider this scalding job:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">class</span> <span class="nc">ComplicatedJob</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Args</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Job</span><span class="o">(</span><span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">bloatedTsv</span> <span class="k">=</span> <span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="o">(</span><span class="-Symbol">&#39;user_id</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;timestamp</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;host</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;referer</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;remote_addr</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;user_agent</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;cookie</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;connection</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;accept_encoding</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;accept_language</span><span class="o">)).</span><span class="n">read</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">bloatedTsv</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;timestamp</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;timestamp</span><span class="o">)</span> <span class="o">{</span> <span class="n">ts</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="n">toDateTime</span><span class="o">(</span><span class="n">ts</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="-Symbol">&#39;timestamp</span><span class="o">)</span> <span class="o">{</span> <span class="n">ts</span><span class="k">:</span> <span class="kt">DateTime</span> <span class="o">=&gt;</span> <span class="n">ts</span><span class="o">.</span><span class="n">isAfter</span><span class="o">(</span><span class="nc">DateTime</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">minusDays</span><span class="o">(</span><span class="mi">30</span><span class="o">))</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;user_agent</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;browser</span><span class="o">)</span> <span class="o">{</span> <span class="n">userAgent</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="n">toBrowser</span><span class="o">(</span><span class="n">userAgent</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;remote_addr</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="n">ip</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="n">toCountry</span><span class="o">(</span><span class="n">ip</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;country</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="n">c</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="s">&quot;us&quot;</span><span class="o">)</span> <span class="n">c</span> <span class="k">else</span> <span class="s">&quot;other&quot;</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">size</span><span class="o">(</span><span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">pivot</span><span class="o">((</span><span class="-Symbol">&#39;country</span><span class="o">,</span> <span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">-&gt;(</span><span class="-Symbol">&#39;us</span><span class="o">,</span> <span class="-Symbol">&#39;other</span><span class="o">))</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">toDateTime</span><span class="o">(</span><span class="n">ts</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">DateTime</span> <span class="o">=</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">...</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Testing this job end-to-end would be fragile because there is so much going on and it would be tedious and noisy to build fake data to isolate and highlight edge cases. The pivot operations on lines 20-22 only deal with <code>browser</code> and <code>country</code> yet test data with all 10 fields is required including valid timestamps and user agents just to get to the pivot logic.</p>
+
+<p> There are a few ways to tackle this and an approach I like is to use extension methods to breakdown the logic into smaller chunks of testable code. The result might look something like this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">class</span> <span class="nc">ComplicatedJob</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Args</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Job</span><span class="o">(</span><span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">bloatedTsv</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">timestampIsAfter</span><span class="o">(</span><span class="nc">DateTime</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">minusDays</span><span class="o">(</span><span class="mi">30</span><span class="o">))</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">userAgentToBrowser</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">remoteAddrToCountry</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">countCountryByBrowser</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Each block of code depends on only a few fields so it doesn&rsquo;t require mocking the entire input set.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">Dsl._</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">object</span> <span class="nc">ComplicatedJob</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">implicit</span> <span class="k">class</span> <span class="nc">ComplicatedJobRichPipe</span><span class="o">(</span><span class="n">pipe</span><span class="k">:</span> <span class="kt">Pipe</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// this chunk of code is testable in isolation</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">countCountryByBrowser</span><span class="o">()</span><span class="k">:</span> <span class="kt">Pipe</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">pipe</span>
+</span><span class='line'>        <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;country</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="n">c</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="s">&quot;us&quot;</span><span class="o">)</span> <span class="n">c</span> <span class="k">else</span> <span class="s">&quot;other&quot;</span> <span class="o">}</span>
+</span><span class='line'>        <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">size</span><span class="o">(</span><span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>        <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">pivot</span><span class="o">((</span><span class="-Symbol">&#39;country</span><span class="o">,</span> <span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">-&gt;(</span><span class="-Symbol">&#39;us</span><span class="o">,</span> <span class="-Symbol">&#39;other</span><span class="o">))</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this example only <code>browser</code> and <code>country</code> are required so setting up test data is reasonably painless and the intent of the test case isn&rsquo;t lost in a sea of tuples. Granted, this approach requires creating a helper job to set up the input and capture the output for test assertions, but I think it&rsquo;s a worthwhile trade off to reveal such a clear test case.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">ComplicatedJob._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">ComplicatedJobTests._</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@RunWith</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">JUnitRunner</span><span class="o">])</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ComplicatedJobTests</span> <span class="k">extends</span> <span class="nc">FunSuite</span> <span class="k">with</span> <span class="nc">ShouldMatchers</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">test</span><span class="o">(</span><span class="s">&quot;should count and pivot rows into columns&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">input</span> <span class="k">=</span> <span class="nc">List</span><span class="o">[</span><span class="kt">InputTuple</span><span class="o">](</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;chrome&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;safari&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="s">&quot;br&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;chrome&quot;</span><span class="o">,</span> <span class="s">&quot;de&quot;</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">expected</span> <span class="k">=</span> <span class="nc">Set</span><span class="o">[</span><span class="kt">OutputTuple</span><span class="o">](</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;safari&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">0</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;chrome&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">count</span><span class="o">(</span><span class="n">input</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">toSet</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">expected</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">object</span> <span class="nc">ComplicatedJobTests</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">type</span> <span class="kt">InputTuple</span> <span class="o">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">type</span> <span class="kt">OutputTuple</span> <span class="o">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">,</span> <span class="nc">Int</span><span class="o">,</span> <span class="nc">Int</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// this is a helper job to set up the inputs and outputs</span>
+</span><span class='line'>  <span class="c1">// for the chunk of code we&#39;re trying to test</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">CountCountryByBrowser</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Args</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Job</span><span class="o">(</span><span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">,</span> <span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">))</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">read</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">countCountryByBrowser</span><span class="o">()</span> <span class="c1">// this is what we&#39;re testing</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">project</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;us</span><span class="o">,</span> <span class="-Symbol">&#39;other</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// helper method to run our test job</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">count</span><span class="o">(</span><span class="n">input</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">InputTuple</span><span class="o">])(</span><span class="n">fn</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">OutputTuple</span><span class="o">]</span> <span class="k">=&gt;</span> <span class="nc">Unit</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">import</span> <span class="nn">Dsl._</span>
+</span><span class='line'>    <span class="nc">JobTest</span><span class="o">[</span><span class="kt">CountCountryByBrowser</span><span class="o">]</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">source</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">,</span> <span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">)),</span> <span class="n">input</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">sink</span><span class="o">[</span><span class="kt">OutputTuple</span><span class="o">](</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span> <span class="o">{</span> <span class="n">b</span> <span class="k">=&gt;</span> <span class="n">fn</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">toList</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">run</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">finish</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Parsing json with defaults in scala]]></title>
@@ -2602,75 +2855,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
 
 <p>The point is that this is an obvious scenario to consider when looking at such a special purpose object. All too often though, bits of logic are mixed together like 32 kindergarteners sitting next to each other on a rug during a lesson. The room is one fart or tickle away from erupting into total kaos. It’s roughly half teaching and half crowd control, only without the rubber bullets and pepper spray. Not surprisingly, overcrowded classrooms don’t work that well and over-ambitous functions don’t work that well either. Each little bit of logic needs some one on one with you. Give it a chance to be all it can be by pulling it aside and getting to know it a little better. You might be surprised.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Interfaces (No Excuses!)]]></title>
-    <link href="http://www.agileatwork.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/"/>
-    <updated>2010-01-13T22:24:00-08:00</updated>
-    <id>http://www.agileatwork.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses</id>
-    <content type="html"><![CDATA[<p><span style="font-size: 70%">
-The title of this article was inspired by <a href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!) </a>
-by Joel Spolsky
-</span></p>
-
-<p>I recently saw this question on stackoverflow:</p>
-
-<p><img src="http://www.agileatwork.com/images/posts/quest.png"></p>
-
-<p>There were good points on both sides, but the majority of responses were from closet interface haters succumbing to the mob effect to say &ldquo;me too&rdquo;. On the other side of the argument, many took cover behind regurgitated responses like interfaces are for mocking dependencies in unit tests and because people that write books say you should use them. So how is it that scores of professional software developers don’t understand or can’t communicate why and how to use the most fundamental of object-oriented language features? Perhaps there is a clue in the details of the original question:</p>
-
-<blockquote><p>Is there some hidden benefit of using an interface when you have 1 version of a class and no immediate need to create an interface?</p></blockquote>
-
-<p>The scattered and ineffectual responses are an unfortunate casualty of the ubiquitous poor online examples found on the Internet. No doubt you’ve seen something like this before:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IVehicle</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Car</span> <span class="p">:</span> <span class="n">IVehicle</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="m">4</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Bus</span> <span class="p">:</span> <span class="n">IVehicle</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="m">20</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I can’t help but have visions of rich objects that model the physical world so well they put an end to wars and world hunger. You know, methods like <code>Bark()</code> on a <code>Dog</code> object. These examples aren’t wrong per se, but they usher the reader down a predictable and dead-end path. It’s like the horribly cliché <a href="http://en.wikipedia.org/wiki/Thinking_outside_the_box">nine dots puzzle</a> in which the goal is to link all 9 dots using four straight lines or less, without lifting the pen.</p>
-
-<p>Common sense suggests it can’t be done because we have subconsciously imposed a false restriction that the lines must be within the boundaries of the square (I won’t insult you with the hopelessly worn out catch phrase). The point I’m trying to make here is the examples out there unwittingly set us up for failure. In social science this is called <a href="http://en.wikipedia.org/wiki/Framing_(social_sciences">framing</a>. The human brain is an impressive problem solving machine, but we can be easily fooled by framing a problem in a way that our stereotypes and assumptions obscure the often obvious answer.</p>
-
-<p>In the case of interfaces, the examples suggest the concrete implementations are mutually exclusive physical concepts like <em>Car</em> and <em>Bus</em>, or perhaps <code>SqlUserStore</code> and <code>LdapUserStore</code>. It’s an easy concept to latch on to, and it’s the bane of good object oriented design.</p>
-
-<p>To think of a user store as a thing is a mistake. <code>IUserStore</code> defines a seam in which responsibility crosses a boundary. In an MVC application, it’s the seam between the controller’s routing responsibility and the model’s business logic. If you only have one implementation of <code>IUserStore</code>, then you’d better take another look because that’s a smell.</p>
-
-<p>The place to start looking is within your one and only implementation. Where is the logic about sending a confirmation email or checking if the username is available? Chances are it ended up in the controller leaving your model anemic or it ended up in your model violating the single responsibility principle. Either way it’s a big fail sandwich.</p>
-
-<p>Again, this is because of the false assumption that implementations are mutually exclusive as in the <em>Car</em> and <em>Bus</em> example. In other words, if I have a <em>Car</em>, then I don’t have a <em>Bus</em>. This is the wrong way to think of objects. Of course they can be mutually exclusive, but they are far more powerful when they are composable. Consider these implementations of <code>IUserService</code>:</p>
-
-<ul>
-<li><code>EmailConfirmationUserService</code></li>
-<li><code>ValidatingUserService</code></li>
-<li><code>SqlUserService</code></li>
-<li><code>CachingUserService</code></li>
-</ul>
-
-
-<p>Each concern is orthogonal to each other concern and they are combined together to create the overall behavior of the system. The interface facilitates composition which is the key to high-quality, robust software. So the real problem isn’t that interfaces are overused, it’s that interfaces are squandered.</p>
 ]]></content>
   </entry>
   

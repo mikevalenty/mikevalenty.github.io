@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="We had just rolled out a new system for a client and they were doing a high profile launch of their product. We had all our normal monitoring in &hellip;">
+  <meta name="description" content="A few months ago we built a Magento extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,148 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/domain-driven-design-in-the-small/">Domain Driven Design in the Small</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-08-08T06:24:00-07:00" pubdate data-updated="true">Aug 8<span>th</span>, 2009</time>
+        
+         | <a href="/domain-driven-design-in-the-small/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A few months ago we built a <a href="http://www.magentocommerce.com/">Magento</a> extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking. As part of the process, a contact record was created in the affiliate’s CRM account.</p>
+
+<p> <img src="/images/posts/SubmitYourIdea1.jpg"></p>
+
+<p>Recently, the stake holders came up with a twist that went something like this: If the order contains a gift card, add the contact to a specific folder in the CRM application. No big deal, we had a nicely abstracted <code>OrderGateway</code> interface and I was already envisioning a quick addition to the existing decorator chain.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">OrderWithGiftCardGateway</span> <span class="k">extends</span> <span class="nx">OrderGatewayDecorator</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I had a few minutiae questions like what happens with duplicates, etc. It took me nearly an hour to track down the right person and get real answers. During the conversation, a subtle comment was made that I almost missed.</p>
+
+<p>Stake holder: We should check with the product supplier to make sure the gift card sku I made up isn’t for a real product.</p>
+
+<p><strong>Me:</strong> Say what?</p>
+
+<p><strong>Stake holder:</strong> The gift card is not fulfilled by the product supplier, it’s fulfilled by the affiliate.</p>
+
+<p><strong>Me:</strong> %$@!&amp;, I’m glad we had this conversation.</p>
+
+<p>We talked about what it meant for the the affiliate to fulfill the product and basically the folder stuff was okay, but I recommended we remove the fake sku from the order before sending it through.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">addContactToFolder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I didn’t have a buddy to pair with so I just grabbed Keith for a minute at the end of the day to walk through things. I recapped the stake holder discussion and we looked through the code. He pointed out I was missing the concept of fulfillment and that was hard earned knowledge that would be lost!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">createOrder</span><span class="p">(</span><span class="nx">CreateOrderRequest</span> <span class="nv">$order</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">containsGiftCard</span><span class="p">(</span><span class="nv">$order</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">sendToAffiliateForFulfillment</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">removeGiftCardFromOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="k">parent</span><span class="o">::</span><span class="na">createOrder</span><span class="p">(</span><span class="nv">$order</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>That was huge. – Paris Hilton</p></blockquote>
+
+<iframe class="plain" width="640" height="360" src="//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+
+
+<p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
+
+<p>It tells an important story for the next guy looking at the code and it changes the role of the programmer from code monkey to business partner. Maybe you think I’m crazy, but this stuff matters to me.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -975,170 +1117,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/auto-mocking-unity-container-extension/">Auto-Mocking Unity Container Extension</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-06-26T20:13:00-07:00" pubdate data-updated="true">Jun 26<span>th</span>, 2009</time>
-        
-         | <a href="/auto-mocking-unity-container-extension/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Using a container for unit testing is a good way to insulate your tests from changes in object construction. Typically my first test will be something pretty boring just to get the process started. A few tests later, the real behavior comes out along with new dependencies. Rather than having to go back and add the dependencies to all the tests I’ve already written, I like to use a container to build up the object I’m testing.</p>
-
-<p>To streamline this process, I thought it would be handy to use a container extension to auto generate mocks for any required interface that wasn’t explicitly registered. The best way I can explain this is with code, so here it is:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[SetUp]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">SetUp</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">()</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">AutoMockingContainerExtension</span><span class="p">&gt;();</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="na"> </span>
-</span><span class='line'><span class="na">[Test]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_be_really_easy_to_test</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">container</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IDependencyThatNeedsExplicitMocking</span><span class="p">&gt;()</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">d</span> <span class="p">=&gt;</span> <span class="n">d</span><span class="p">.</span><span class="n">MyMethod</span><span class="p">(</span><span class="n">It</span><span class="p">.</span><span class="n">IsAny</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;()))</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">Returns</span><span class="p">(</span><span class="s">&quot;I want to specify the return value&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">service</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ServiceWithThreeDependencies</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="n">service</span><span class="p">.</span><span class="n">DoSomething</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="s">&quot;I didn&#39;t have to mock the other 2 dependencies!&quot;</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It really reduces the noise level in tests and lets you focus on the interesting parts of your application. Here’s the code for the container extension:</p>
-
-<p><img src="/images/posts/luigi1.jpg"></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AutoMockingContainerExtension</span> <span class="p">:</span> <span class="n">UnityContainerExtension</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Initialize</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">strategy</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AutoMockingBuilderStrategy</span><span class="p">(</span><span class="n">Container</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">Context</span><span class="p">.</span><span class="n">Strategies</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">UnityBuildStage</span><span class="p">.</span><span class="n">PreCreation</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">class</span> <span class="nc">AutoMockingBuilderStrategy</span> <span class="p">:</span> <span class="n">BuilderStrategy</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">private</span> <span class="k">readonly</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">public</span> <span class="nf">AutoMockingBuilderStrategy</span><span class="p">(</span><span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">this</span><span class="p">.</span><span class="n">container</span> <span class="p">=</span> <span class="n">container</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">PreBuildUp</span><span class="p">(</span><span class="n">IBuilderContext</span> <span class="n">context</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="kt">var</span> <span class="n">key</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">OriginalBuildKey</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="n">Type</span><span class="p">.</span><span class="n">IsInterface</span> <span class="p">&amp;&amp;</span> <span class="p">!</span><span class="n">container</span><span class="p">.</span><span class="n">IsRegistered</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="n">Type</span><span class="p">))</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="n">context</span><span class="p">.</span><span class="n">Existing</span> <span class="p">=</span> <span class="n">CreateDynamicMock</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="n">Type</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">CreateDynamicMock</span><span class="p">(</span><span class="n">Type</span> <span class="n">type</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="kt">var</span> <span class="n">genericMockType</span> <span class="p">=</span> <span class="k">typeof</span><span class="p">(</span><span class="n">Mock</span><span class="p">&lt;&gt;).</span><span class="n">MakeGenericType</span><span class="p">(</span><span class="n">type</span><span class="p">);</span>
-</span><span class='line'>            <span class="kt">var</span> <span class="n">mock</span> <span class="p">=</span> <span class="p">(</span><span class="n">Mock</span><span class="p">)</span><span class="n">Activator</span><span class="p">.</span><span class="n">CreateInstance</span><span class="p">(</span><span class="n">genericMockType</span><span class="p">);</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">mock</span><span class="p">.</span><span class="n">Object</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In case you’re wondering about <code>container.RegisterMock&lt;&gt;</code>, it’s just extension method that you can read about <a href="/moq-extension-methods-for-unity/">here</a>.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -1154,6 +1132,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
+      </li>
     
       <li class="post">
         <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
@@ -1181,10 +1163,6 @@
     
       <li class="post">
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
   </ul>

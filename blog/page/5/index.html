@@ -9,17 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="The DataAnnotationsModelBinder is a pretty neat little class that enforces validation attributes on models like this one: 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-public &hellip;">
+  <meta name="description" content="The title of this article was inspired by The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -86,6 +76,104 @@ public &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Interfaces (No Excuses!)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-01-13T22:24:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2010</time>
+        
+         | <a href="/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><span style="font-size: 70%">
+The title of this article was inspired by <a href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!) </a>
+by Joel Spolsky
+</span></p>
+
+<p>I recently saw this question on stackoverflow:</p>
+
+<p><img src="/images/posts/quest.png"></p>
+
+<p>There were good points on both sides, but the majority of responses were from closet interface haters succumbing to the mob effect to say &ldquo;me too&rdquo;. On the other side of the argument, many took cover behind regurgitated responses like interfaces are for mocking dependencies in unit tests and because people that write books say you should use them. So how is it that scores of professional software developers don’t understand or can’t communicate why and how to use the most fundamental of object-oriented language features? Perhaps there is a clue in the details of the original question:</p>
+
+<blockquote><p>Is there some hidden benefit of using an interface when you have 1 version of a class and no immediate need to create an interface?</p></blockquote>
+
+<p>The scattered and ineffectual responses are an unfortunate casualty of the ubiquitous poor online examples found on the Internet. No doubt you’ve seen something like this before:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IVehicle</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Car</span> <span class="p">:</span> <span class="n">IVehicle</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="m">4</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Bus</span> <span class="p">:</span> <span class="n">IVehicle</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">NumberOfPassengers</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="m">20</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I can’t help but have visions of rich objects that model the physical world so well they put an end to wars and world hunger. You know, methods like <code>Bark()</code> on a <code>Dog</code> object. These examples aren’t wrong per se, but they usher the reader down a predictable and dead-end path. It’s like the horribly cliché <a href="http://en.wikipedia.org/wiki/Thinking_outside_the_box">nine dots puzzle</a> in which the goal is to link all 9 dots using four straight lines or less, without lifting the pen.</p>
+
+<p>Common sense suggests it can’t be done because we have subconsciously imposed a false restriction that the lines must be within the boundaries of the square (I won’t insult you with the hopelessly worn out catch phrase). The point I’m trying to make here is the examples out there unwittingly set us up for failure. In social science this is called <a href="http://en.wikipedia.org/wiki/Framing_(social_sciences">framing</a>. The human brain is an impressive problem solving machine, but we can be easily fooled by framing a problem in a way that our stereotypes and assumptions obscure the often obvious answer.</p>
+
+<p>In the case of interfaces, the examples suggest the concrete implementations are mutually exclusive physical concepts like <em>Car</em> and <em>Bus</em>, or perhaps <code>SqlUserStore</code> and <code>LdapUserStore</code>. It’s an easy concept to latch on to, and it’s the bane of good object oriented design.</p>
+
+<p>To think of a user store as a thing is a mistake. <code>IUserStore</code> defines a seam in which responsibility crosses a boundary. In an MVC application, it’s the seam between the controller’s routing responsibility and the model’s business logic. If you only have one implementation of <code>IUserStore</code>, then you’d better take another look because that’s a smell.</p>
+
+<p>The place to start looking is within your one and only implementation. Where is the logic about sending a confirmation email or checking if the username is available? Chances are it ended up in the controller leaving your model anemic or it ended up in your model violating the single responsibility principle. Either way it’s a big fail sandwich.</p>
+
+<p>Again, this is because of the false assumption that implementations are mutually exclusive as in the <em>Car</em> and <em>Bus</em> example. In other words, if I have a <em>Car</em>, then I don’t have a <em>Bus</em>. This is the wrong way to think of objects. Of course they can be mutually exclusive, but they are far more powerful when they are composable. Consider these implementations of <code>IUserService</code>:</p>
+
+<ul>
+<li><code>EmailConfirmationUserService</code></li>
+<li><code>ValidatingUserService</code></li>
+<li><code>SqlUserService</code></li>
+<li><code>CachingUserService</code></li>
+</ul>
+
+
+<p>Each concern is orthogonal to each other concern and they are combined together to create the overall behavior of the system. The interface facilitates composition which is the key to high-quality, robust software. So the real problem isn’t that interfaces are overused, it’s that interfaces are squandered.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -988,131 +1076,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/a-class-isnt-always-a-noun/">A Class Isn’t Always a Noun</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-12-04T12:45:00-08:00" pubdate data-updated="true">Dec 4<span>th</span>, 2009</time>
-        
-         | <a href="/a-class-isnt-always-a-noun/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
-
-<p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>
-
-<p><img src="/images/posts/yext1.png"></p>
-
-<p>I don’t expect you to understand how the app works, but you should at least get a feel right away for the things that are important. Knowing it’s a console app, you could find the entry point and quickly navigate to the meat and potatoes of the application.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SyncListingJob</span> <span class="p">:</span> <span class="n">MarshalByRefObject</span><span class="p">,</span> <span class="n">IJob</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">YextListing</span> <span class="n">listing</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">SyncListingJob</span><span class="p">(</span><span class="n">IServiceProvider</span> <span class="n">locator</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">locator</span> <span class="p">=</span> <span class="n">locator</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Init</span><span class="p">(</span><span class="n">YextListing</span> <span class="n">listing</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">listing</span> <span class="p">=</span> <span class="n">listing</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [UnitOfWork]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">GuardAgainstNotInitialized</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">SyncListing</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">SyncListing</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">new</span> <span class="n">LocatorChain</span><span class="p">&lt;</span><span class="n">Yextlisting</span><span class="p">&gt;(</span><span class="n">locator</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RevertDiscontinuedListing</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">RefreshLinkedBusiness</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateLinkToExistingBusiness</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">AddNew</span><span class="p">&lt;</span><span class="n">CreateNewBusinessAndLink</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Process</span><span class="p">(</span><span class="n">listing</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">GuardAgainstNotInitialized</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">listing</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">Exception</span><span class="p">(</span><span class="s">&quot;Job not initialized!&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>* <em>The <code>LocatorChain&lt;T&gt;</code> is an implementation of the chain of responsibility pattern.</em></p>
-
-<p>I do everything I can to push out all the noise and bring the behavior to the surface. Sometimes the right way to name a class is after a feature or behavior. I want my code to read like a DSL and making everything a noun just doesn’t cut it. The drivers for me are context and readability.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1128,6 +1091,10 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
+      </li>
     
       <li class="post">
         <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
@@ -1155,10 +1122,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     
       <li class="post">
         <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
-      <li class="post">
-        <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a>
       </li>
     
   </ul>

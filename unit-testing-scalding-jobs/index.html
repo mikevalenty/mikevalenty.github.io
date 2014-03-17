@@ -1,0 +1,498 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Unit testing scalding jobs - Mike Valenty</title>
+  <meta name="author" content="Mike Valenty">
+
+  
+  <meta name="description" content="Scalding is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive &ndash; almost &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://www.agileatwork.com/unit-testing-scalding-jobs">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Mike Valenty" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-2314490-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">&gt; Mike Valenty</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:www.agileatwork.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about-mike-valenty">Contact Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Unit Testing Scalding Jobs</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-15T15:27:00-07:00" pubdate data-updated="true">Mar 15<span>th</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="https://github.com/twitter/scalding">Scalding</a> is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive &ndash; almost to a fault. It&rsquo;s dangerously easy to pack gobs of subtle business logic into just a few lines of code. If you&rsquo;re writing real data processing applications and not just ad-hoc reports, unit testing is a must. However tests can get unwieldy to manage as job complexity grows and the arity of data increases.</p>
+
+<p>For example, consider this scalding job:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">class</span> <span class="nc">ComplicatedJob</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Args</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Job</span><span class="o">(</span><span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">bloatedTsv</span> <span class="k">=</span> <span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="o">(</span><span class="-Symbol">&#39;user_id</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;timestamp</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;host</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;referer</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;remote_addr</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;user_agent</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;cookie</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;connection</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;accept_encoding</span><span class="o">,</span>
+</span><span class='line'>      <span class="-Symbol">&#39;accept_language</span><span class="o">)).</span><span class="n">read</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">bloatedTsv</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;timestamp</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;timestamp</span><span class="o">)</span> <span class="o">{</span> <span class="n">ts</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="n">toDateTime</span><span class="o">(</span><span class="n">ts</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="-Symbol">&#39;timestamp</span><span class="o">)</span> <span class="o">{</span> <span class="n">ts</span><span class="k">:</span> <span class="kt">DateTime</span> <span class="o">=&gt;</span> <span class="n">ts</span><span class="o">.</span><span class="n">isAfter</span><span class="o">(</span><span class="nc">DateTime</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">minusDays</span><span class="o">(</span><span class="mi">30</span><span class="o">))</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;user_agent</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;browser</span><span class="o">)</span> <span class="o">{</span> <span class="n">userAgent</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="n">toBrowser</span><span class="o">(</span><span class="n">userAgent</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;remote_addr</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="n">ip</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="n">toCountry</span><span class="o">(</span><span class="n">ip</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;country</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="n">c</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="s">&quot;us&quot;</span><span class="o">)</span> <span class="n">c</span> <span class="k">else</span> <span class="s">&quot;other&quot;</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">size</span><span class="o">(</span><span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">pivot</span><span class="o">((</span><span class="-Symbol">&#39;country</span><span class="o">,</span> <span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">-&gt;(</span><span class="-Symbol">&#39;us</span><span class="o">,</span> <span class="-Symbol">&#39;other</span><span class="o">))</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">toDateTime</span><span class="o">(</span><span class="n">ts</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">DateTime</span> <span class="o">=</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">...</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Testing this job end-to-end would be fragile because there is so much going on and it would be tedious and noisy to build fake data to isolate and highlight edge cases. The pivot operations on lines 20-22 only deal with <code>browser</code> and <code>country</code> yet test data with all 10 fields is required including valid timestamps and user agents just to get to the pivot logic.</p>
+
+<p> There are a few ways to tackle this and an approach I like is to use extension methods to breakdown the logic into smaller chunks of testable code. The result might look something like this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">class</span> <span class="nc">ComplicatedJob</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Args</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Job</span><span class="o">(</span><span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">bloatedTsv</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">timestampIsAfter</span><span class="o">(</span><span class="nc">DateTime</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">minusDays</span><span class="o">(</span><span class="mi">30</span><span class="o">))</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">userAgentToBrowser</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">remoteAddrToCountry</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">countCountryByBrowser</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Each block of code depends on only a few fields so it doesn&rsquo;t require mocking the entire input set.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">Dsl._</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">object</span> <span class="nc">ComplicatedJob</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">implicit</span> <span class="k">class</span> <span class="nc">ComplicatedJobRichPipe</span><span class="o">(</span><span class="n">pipe</span><span class="k">:</span> <span class="kt">Pipe</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// this chunk of code is testable in isolation</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">countCountryByBrowser</span><span class="o">()</span><span class="k">:</span> <span class="kt">Pipe</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">pipe</span>
+</span><span class='line'>        <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="-Symbol">&#39;country</span> <span class="o">-&gt;</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="n">c</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">c</span> <span class="o">==</span> <span class="s">&quot;us&quot;</span><span class="o">)</span> <span class="n">c</span> <span class="k">else</span> <span class="s">&quot;other&quot;</span> <span class="o">}</span>
+</span><span class='line'>        <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">size</span><span class="o">(</span><span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>        <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">pivot</span><span class="o">((</span><span class="-Symbol">&#39;country</span><span class="o">,</span> <span class="-Symbol">&#39;count</span><span class="o">)</span> <span class="o">-&gt;(</span><span class="-Symbol">&#39;us</span><span class="o">,</span> <span class="-Symbol">&#39;other</span><span class="o">))</span> <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this example only <code>browser</code> and <code>country</code> are required so setting up test data is reasonably painless and the intent of the test case isn&rsquo;t lost in a sea of tuples. Granted, this approach requires creating a helper job to set up the input and capture the output for test assertions, but I think it&rsquo;s a worthwhile trade off to reveal such a clear test case.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">ComplicatedJob._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">ComplicatedJobTests._</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@RunWith</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">JUnitRunner</span><span class="o">])</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ComplicatedJobTests</span> <span class="k">extends</span> <span class="nc">FunSuite</span> <span class="k">with</span> <span class="nc">ShouldMatchers</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">test</span><span class="o">(</span><span class="s">&quot;should count and pivot rows into columns&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">input</span> <span class="k">=</span> <span class="nc">List</span><span class="o">[</span><span class="kt">InputTuple</span><span class="o">](</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;chrome&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;safari&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="s">&quot;us&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="s">&quot;br&quot;</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;chrome&quot;</span><span class="o">,</span> <span class="s">&quot;de&quot;</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">expected</span> <span class="k">=</span> <span class="nc">Set</span><span class="o">[</span><span class="kt">OutputTuple</span><span class="o">](</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;firefox&quot;</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;safari&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">0</span><span class="o">),</span>
+</span><span class='line'>      <span class="o">(</span><span class="s">&quot;chrome&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">count</span><span class="o">(</span><span class="n">input</span><span class="o">)</span> <span class="o">{</span> <span class="k">_</span><span class="o">.</span><span class="n">toSet</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">expected</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">object</span> <span class="nc">ComplicatedJobTests</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">type</span> <span class="kt">InputTuple</span> <span class="o">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">type</span> <span class="kt">OutputTuple</span> <span class="o">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">,</span> <span class="nc">Int</span><span class="o">,</span> <span class="nc">Int</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// this is a helper job to set up the inputs and outputs</span>
+</span><span class='line'>  <span class="c1">// for the chunk of code we&#39;re trying to test</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">CountCountryByBrowser</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Args</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Job</span><span class="o">(</span><span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">,</span> <span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">))</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">read</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">countCountryByBrowser</span><span class="o">()</span> <span class="c1">// this is what we&#39;re testing</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">project</span><span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;us</span><span class="o">,</span> <span class="-Symbol">&#39;other</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// helper method to run our test job</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">count</span><span class="o">(</span><span class="n">input</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">InputTuple</span><span class="o">])(</span><span class="n">fn</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">OutputTuple</span><span class="o">]</span> <span class="k">=&gt;</span> <span class="nc">Unit</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">import</span> <span class="nn">Dsl._</span>
+</span><span class='line'>    <span class="nc">JobTest</span><span class="o">[</span><span class="kt">CountCountryByBrowser</span><span class="o">]</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">source</span><span class="o">(</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">,</span> <span class="o">(</span><span class="-Symbol">&#39;browser</span><span class="o">,</span> <span class="-Symbol">&#39;country</span><span class="o">)),</span> <span class="n">input</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">sink</span><span class="o">[</span><span class="kt">OutputTuple</span><span class="o">](</span><span class="nc">Tsv</span><span class="o">(</span><span class="s">&quot;output&quot;</span><span class="o">))</span> <span class="o">{</span> <span class="n">b</span> <span class="k">=&gt;</span> <span class="n">fn</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">toList</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">run</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">finish</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Mike Valenty</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-15T15:27:00-07:00" pubdate data-updated="true">Mar 15<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://www.agileatwork.com/unit-testing-scalding-jobs/" data-via="mikevalenty" data-counturl="http://www.agileatwork.com/unit-testing-scalding-jobs/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/parsing-json-with-defaults-in-scala/" title="Previous Post: Parsing json with defaults in scala">&laquo; Parsing json with defaults in scala</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
+      </li>
+    
+      <li class="post">
+        <a href="/parsing-json-with-defaults-in-scala/">Parsing Json With Defaults in Scala</a>
+      </li>
+    
+      <li class="post">
+        <a href="/web-framework-scaffolding-considered-harmful/">Web Framework Scaffolding Considered Harmful</a>
+      </li>
+    
+      <li class="post">
+        <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Using Scala to Perform a Multi-Key Get on a Couchbase View</a>
+      </li>
+    
+      <li class="post">
+        <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a>
+      </li>
+    
+      <li class="post">
+        <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
+      </li>
+    
+      <li class="post">
+        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
+      </li>
+    
+      <li class="post">
+        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Mike Valenty -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'agileatwork';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://www.agileatwork.com/unit-testing-scalding-jobs/';
+        var disqus_url = 'http://www.agileatwork.com/unit-testing-scalding-jobs/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
