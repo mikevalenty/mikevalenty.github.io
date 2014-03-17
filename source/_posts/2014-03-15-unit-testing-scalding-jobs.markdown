@@ -4,7 +4,6 @@ title: "Unit testing scalding jobs"
 date: 2014-03-15 15:27
 comments: true
 categories: 
-published: false
 ---
 [Scalding](https://github.com/twitter/scalding) is a powerful framework for writing complex data processing applications on Apache Hadoop. It's concise and expressive - almost to a fault. It's dangerously easy to pack gobs of subtle business logic into just a few lines of code. If you're writing real data processing applications and not just ad-hoc reports, unit testing is a must. However tests can get unwieldy to manage as job complexity grows and the arity of data increases.
 
