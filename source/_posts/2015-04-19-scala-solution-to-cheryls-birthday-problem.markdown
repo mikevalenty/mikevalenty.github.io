@@ -6,9 +6,9 @@ comments: true
 categories: 
 ---
 
-I ran across a [Java 8 solution](https://github.com/mad4j/puzzles/blob/master/src/dolmisani/puzzles/CherylBirthday.java) to [Cheryl's birthday problem](http://www.nytimes.com/2015/04/15/science/a-math-problem-from-singapore-goes-viral-when-is-cheryls-birthday.html) and just had to write a Scala version since this is one of those problems the language was made for. Also, I've been on the Java train for a few months and this was good excuse to brush off the dust and work on my Scala chops.
+I ran across a [Java 8 solution](https://github.com/mad4j/puzzles/blob/master/src/dolmisani/puzzles/CherylBirthday.java) to [Cheryl's birthday problem](http://www.nytimes.com/2015/04/15/science/a-math-problem-from-singapore-goes-viral-when-is-cheryls-birthday.html) and just had to write a Scala version since this is one of those problems the language was made for. Also, I've been on the Java train for a few months and this was a good excuse to brush off the dust and work on my Scala chops.
 
-#### Cheryl's Birthday problem.
+#### Cheryl's Birthday Problem
 >Albert and Bernard just become friends with Cheryl, and they want to know when her birthday is. Cheryl gives them a list of 10 possible dates.
 
     May 15, May 16, May 19
