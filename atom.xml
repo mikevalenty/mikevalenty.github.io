@@ -4,7 +4,7 @@
   <title><![CDATA[Mike Valenty]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2015-04-19T23:46:38-07:00</updated>
+  <updated>2015-04-19T23:50:39-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -18,9 +18,9 @@
     <link href="http://www.agileatwork.com/scala-solution-to-cheryls-birthday-problem/"/>
     <updated>2015-04-19T14:54:00-07:00</updated>
     <id>http://www.agileatwork.com/scala-solution-to-cheryls-birthday-problem</id>
-    <content type="html"><![CDATA[<p>I ran across a <a href="https://github.com/mad4j/puzzles/blob/master/src/dolmisani/puzzles/CherylBirthday.java">Java 8 solution</a> to <a href="http://www.nytimes.com/2015/04/15/science/a-math-problem-from-singapore-goes-viral-when-is-cheryls-birthday.html">Cheryl&rsquo;s birthday problem</a> and just had to write a Scala version since this is one of those problems the language was made for. Also, I&rsquo;ve been on the Java train for a few months and this was good excuse to brush off the dust and work on my Scala chops.</p>
+    <content type="html"><![CDATA[<p>I ran across a <a href="https://github.com/mad4j/puzzles/blob/master/src/dolmisani/puzzles/CherylBirthday.java">Java 8 solution</a> to <a href="http://www.nytimes.com/2015/04/15/science/a-math-problem-from-singapore-goes-viral-when-is-cheryls-birthday.html">Cheryl&rsquo;s birthday problem</a> and just had to write a Scala version since this is one of those problems the language was made for. Also, I&rsquo;ve been on the Java train for a few months and this was a good excuse to brush off the dust and work on my Scala chops.</p>
 
-<h4>Cheryl&rsquo;s Birthday problem.</h4>
+<h4>Cheryl&rsquo;s Birthday Problem</h4>
 
 <blockquote><p>Albert and Bernard just become friends with Cheryl, and they want to know when her birthday is. Cheryl gives them a list of 10 possible dates.</p></blockquote>
 
