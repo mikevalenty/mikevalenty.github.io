@@ -9,7 +9,21 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="A few months ago we built a Magento extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking &hellip;">
+  <meta name="description" content="A few people have asked about the RegisterMock extension method used in another post. The usage looks like this: 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +90,134 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/moq-extension-methods-for-unity/">Moq Extension Methods for Unity</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-10-31T06:21:00-07:00" pubdate data-updated="true">Oct 31<span>st</span>, 2009</time>
+        
+         | <a href="/moq-extension-methods-for-unity/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A few people have asked about the <code>RegisterMock</code> extension method used in another post. The usage looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Test]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_delete_removed_image</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IFileRepository</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">r</span> <span class="p">=&gt;</span> <span class="n">r</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">It</span><span class="p">.</span><span class="n">IsAny</span><span class="p">&lt;</span><span class="n">IFile</span><span class="p">&gt;()))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Verifiable</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">IBusinessRepository</span><span class="p">&gt;()</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Setup</span><span class="p">(</span><span class="n">r</span> <span class="p">=&gt;</span> <span class="n">r</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">3</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">Returns</span><span class="p">(</span><span class="n">CreateBusinessWith</span><span class="p">(</span><span class="k">new</span> <span class="n">BusinessImage</span> <span class="p">{</span> <span class="n">ImageId</span> <span class="p">=</span> <span class="m">4</span> <span class="p">}));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">controller</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">BusinessGalleryController</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="n">controller</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">container</span><span class="p">.</span><span class="n">VerifyMockFor</span><span class="p">&lt;</span><span class="n">IFileRepository</span><span class="p">&gt;();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It’s just a few helper extensions for using <a href="http://code.google.com/p/moq/">Moq</a> with <a href="http://www.codeplex.com/unity/">Unity</a> that cut down on the noise in tests. My friend Keith came up with it, I just happen to blog about it first. Here it is:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">MoqExtensions</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">RegisterMock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">mock</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;(</span><span class="n">mock</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">mock</span><span class="p">.</span><span class="n">Object</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mock</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">/// &lt;summary&gt;</span>
+</span><span class='line'>    <span class="c1">/// Use this to add additional setups for a mock that is already registered</span>
+</span><span class='line'>    <span class="c1">/// &lt;/summary&gt;</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">ConfigureMockFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="n">VerifyMockFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="k">class</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Mock</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;().</span><span class="n">VerifyAll</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -873,250 +1015,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/what-happens-when-you-actually-use-aop-for-logging/">What Happens When You Actually Use AOP for Logging?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-07-05T20:10:00-07:00" pubdate data-updated="true">Jul 5<span>th</span>, 2009</time>
-        
-         | <a href="/what-happens-when-you-actually-use-aop-for-logging/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s something everyone can relate to. Well, what happens when you actually use it for logging?</p>
-
-<p>I can tell you what happened to me last week. Things were going great until it came time to port our credit card charging program from the stone age to .NET. It occurred to me that our fancy AOP logging would unknowingly log decrypted credit cards!</p>
-
-<p> <img class="plain" src="/images/posts/credit_cards1.jpg"></p>
-
-<p>An obvious solution was to do a regex on log messages and mask credit card numbers – and that’s pretty much what we did, but I didn’t want to perform a regex on every message when I knew only a tiny percentage would contain sensitive data. The solution of course, was to fight fire with fire and use more AOP.</p>
-
-<p>This is how I wanted it to look:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IPayPalGateway</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'><span class="na">    [MaskCredCardForLogging]</span>
-</span><span class='line'>    <span class="kt">string</span> <span class="nf">Submit</span><span class="p">(</span><span class="kt">string</span> <span class="n">request</span><span class="p">,</span> <span class="kt">string</span> <span class="n">id</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This way I could specifically mark an interface that I knew would accept sensitive data and apply an appropriate filter to it. The log filtering is implemented as a decorator to a log4net-like ILogger interface.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggerWithFilterFixture</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'><span class="na">    [Test]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Should_apply_filter_to_message</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="k">new</span> <span class="n">InterceptingLogger</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">loggerWithFilter</span> <span class="p">=</span> <span class="k">new</span> <span class="n">LoggerWithFilter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="k">new</span> <span class="n">AppendBangToMessage</span><span class="p">());</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">loggerWithFilter</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="s">&quot;This is a message&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">Assert</span><span class="p">.</span><span class="n">AreEqual</span><span class="p">(</span><span class="s">&quot;This is a message!&quot;</span><span class="p">,</span> <span class="n">logger</span><span class="p">.</span><span class="n">LastMessage</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AppendBangToMessage</span> <span class="p">:</span> <span class="n">ILogFilter</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">Filter</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">message</span> <span class="p">+</span> <span class="s">&quot;!&quot;</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The decorator is then applied in the call handler by looking for custom attributes of type LogFilterAttribute like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggerCallHandler</span> <span class="p">:</span> <span class="n">ICallHandler</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">ILogger</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">GetLogger</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">.</span><span class="n">IsDebugEnabled</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="n">CreateLogMessage</span><span class="p">(</span><span class="n">input</span><span class="p">));</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">Stopwatch</span> <span class="n">stopWatch</span> <span class="p">=</span> <span class="n">Stopwatch</span><span class="p">.</span><span class="n">StartNew</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">IMethodReturn</span> <span class="n">result</span> <span class="p">=</span> <span class="n">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">stopWatch</span><span class="p">.</span><span class="n">Stop</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">.</span><span class="n">IsDebugEnabled</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">logger</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="n">CreateLogMessage</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">stopWatch</span><span class="p">));</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ILogger</span> <span class="nf">GetLogger</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">CreateLogger</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">filter</span> <span class="p">=</span> <span class="n">CreateLogFilter</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">LoggerWithFilter</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">filter</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="n">ILogFilter</span> <span class="nf">CreateLogFilter</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">composite</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CompositeLogFilter</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">LogFilterAttribute</span> <span class="n">attribute</span>
-</span><span class='line'>            <span class="k">in</span> <span class="n">input</span><span class="p">.</span><span class="n">MethodBase</span><span class="p">.</span><span class="n">GetCustomAttributes</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">LogFilterAttribute</span><span class="p">),</span> <span class="k">true</span><span class="p">))</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">composite</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">attribute</span><span class="p">.</span><span class="n">CreateLogFilter</span><span class="p">());</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="n">composite</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I’ll spare you the actual credit card masking logic:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MaskCreditCardForLoggingAttribute</span> <span class="p">:</span> <span class="n">LogFilterAttribute</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="n">ILogFilter</span> <span class="nf">CreateLogFilter</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">CreditCardMaskingLogFilter</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">CreditCardMaskingLogFilter</span> <span class="p">:</span> <span class="n">ILogFilter</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="nf">Filter</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="p">...</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -1132,6 +1030,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
+      </li>
     
       <li class="post">
         <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
@@ -1161,10 +1063,6 @@
         <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
-      <li class="post">
-        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -1174,7 +1072,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Mike Valenty -
+  Copyright &copy; 2015 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

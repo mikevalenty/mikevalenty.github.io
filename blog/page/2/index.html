@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="Given a url like http://www.google.com/?q=tld+uk, extract the root domain. In this case, it would be google.com. Sounds easy, right? Well it is, but &hellip;">
+  <meta name="description" content="Doing a join in hadoop with Java is painful. A one-liner in Pig Latin can easily explode into hundreds of lines of Java. However, the additional &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,230 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-15T22:49:00-07:00" pubdate data-updated="true">Oct 15<span>th</span>, 2013</time>
+        
+         | <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Doing a join in hadoop with Java is painful. A one-liner in <a href="http://pig.apache.org/">Pig Latin</a> can easily explode into hundreds of lines of Java. However, the additional control in Java can yield significant performance gains and simplify complex logic that is difficult to express in Pig Latin.</p>
+
+<p>In my case, the left side of the join contained about 100K records while the right side was closer to 1B. Emitting all join keys from the mapper means that all 1B records from the right side of the join are shuffled, sorted and sent to a reducer. The reducer then ends up discarding most of join keys that don&rsquo;t match the left side.</p>
+
+<p>Any best practices guide will tell you to push more work into the mapper. In the case of a join, that means dropping records in the mapper that will end up getting dropped by the reducer anyway. In order to do that, the mapper needs to know if a particular join key exists on the left hand side.</p>
+
+<p>An easy way to accomplish this is to put the smaller dataset into the <code>DistributedCache</code> and then load all the join keys into a <code>HashSet</code> that the mapper can do a lookup against.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">for</span> <span class="o">(</span><span class="n">FileStatus</span> <span class="n">status</span> <span class="o">:</span> <span class="n">fileSystem</span><span class="o">.</span><span class="na">globStatus</span><span class="o">(</span><span class="n">theSmallSideOfTheJoin</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">DistributedCache</span><span class="o">.</span><span class="na">addCacheFile</span><span class="o">(</span><span class="n">status</span><span class="o">.</span><span class="na">getPath</span><span class="o">().</span><span class="na">toUri</span><span class="o">(),</span> <span class="n">job</span><span class="o">.</span><span class="na">getConfiguration</span><span class="o">());</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">setup</span><span class="o">(</span><span class="n">Mapper</span><span class="o">.</span><span class="na">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">buildJoinKeyHashMap</span><span class="o">(</span><span class="n">context</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">map</span><span class="o">(</span><span class="n">LongWritable</span> <span class="n">key</span><span class="o">,</span> <span class="n">Text</span> <span class="n">value</span><span class="o">,</span> <span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">joinKeys</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">joinKey</span><span class="o">))</span>
+</span><span class='line'>      <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">context</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">outKey</span><span class="o">,</span> <span class="n">outVal</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This totally works, but consumes enough memory that I was occassionally getting <code>java.lang.OutOfMemoryError: Java heap space</code> from the mappers. Enter the <a href="http://en.wikipedia.org/wiki/Bloom_filter">Bloom filter</a>.</p>
+
+<blockquote><p>A Bloom filter is a space-efficient probabilistic data structure that is used to test whether an element is a member of a set. False positive matches are possible, but false negatives are not. Elements can be added to the set, but not removed. The more elements that are added to the set, the larger the probability of false positives. -Wikipedia</p></blockquote>
+
+<p>I hadn&rsquo;t heard of a Bloom filter before taking <a href="https://www.coursera.org/course/algo">Algorithms: Design and Analysis, Part 1</a>. If not for the course, I&rsquo;m pretty sure I would have skimmed over the innocuous reference while pilfering around the hadoop <a href="http://hadoop.apache.org/docs/current/api/org/apache/hadoop/util/bloom/BloomFilter.html">documentation</a>. Fortunately, recent exposure made the term jump out at me and I quickly recognized it was exactly what I was looking for.</p>
+
+<p>When I took the course, I thought the Bloom filter was an interesting idea that I wasn&rsquo;t likely to use anytime soon because I haven&rsquo;t needed one yet and I&rsquo;ve been programming professionally for more than a few years. But you don&rsquo;t know what you don&rsquo;t know, right? It&rsquo;s like thinking about buying a car you didn&rsquo;t notice before and now seeing it everywhere.</p>
+
+<h3>Configuration</h3>
+
+<p>The documentation is thin, with little more than variable names to glean meaning from.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="nf">BloomFilter</span><span class="o">(</span><span class="kt">int</span> <span class="n">vectorSize</span><span class="o">,</span>
+</span><span class='line'>                   <span class="kt">int</span> <span class="n">nbHash</span><span class="o">,</span>
+</span><span class='line'>                   <span class="kt">int</span> <span class="n">hashType</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>vectorSize</code> &ndash; The vector size of this filter.</li>
+<li><code>nbHash</code> &ndash; The number of hash function to consider.</li>
+<li><code>hashType</code> &ndash; type of the hashing function (see Hash).</li>
+</ul>
+
+
+<p>I know what you&rsquo;re thinking. What could be more helpful than <em>The vector size of this filter</em> as a description for <code>vectorSize</code>? Well, the basic idea is there&rsquo;s a trade-off between space, speed and probability of a false positive. Here&rsquo;s how I think about it:</p>
+
+<ul>
+<li><code>vectorSize</code> &ndash; The amount of memory used to store hash keys. Larger values are less likey to yield false positives. If the value is too large, you might as well use a <code>HashSet</code>.</li>
+<li><code>nbHash</code> &ndash; The number of times to hash the key. Larger numbers are less likely to yeild false positives at the expense of additional computation effort. Expect deminishing returns on larger values.</li>
+<li><code>hashType</code> &ndash; type of the hashing function (see Hash). The Hash documentation was reasonable so I&rsquo;m not going to add anything.</li>
+</ul>
+
+
+<p>I used trial and error to figure out numbers that were good for my constraints.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BloomFilterTests</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">BloomFilter</span> <span class="n">bloomFilter</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">knownKey</span> <span class="o">=</span> <span class="n">newGuid</span><span class="o">();</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">numberOfKeys</span> <span class="o">=</span> <span class="mi">500000</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@BeforeClass</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">before</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">bloomFilter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BloomFilter</span><span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="n">Hash</span><span class="o">.</span><span class="na">MURMUR_HASH</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">));</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Test</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">should_contain_known_key</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">),</span> <span class="n">is</span><span class="o">(</span><span class="kc">true</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Test</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">false_positive_probability_should_be_low</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()))</span>
+</span><span class='line'>                <span class="n">count</span><span class="o">++;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">onePercent</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="o">.</span><span class="mi">01</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">count</span><span class="o">,</span> <span class="n">is</span><span class="o">(</span><span class="n">lessThan</span><span class="o">(</span><span class="n">onePercent</span><span class="o">)));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">newGuid</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">UUID</span><span class="o">.</span><span class="na">randomUUID</span><span class="o">().</span><span class="na">toString</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Key</span> <span class="nf">newKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">Key</span><span class="o">(</span><span class="n">key</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">hasKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">bloomFilter</span><span class="o">.</span><span class="na">membershipTest</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">key</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When you have your numbers worked out, simply swap out the <code>HashMap</code> with the <code>BloomFilter</code> and then blog about it.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -794,347 +1018,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-05-14T13:09:00-07:00" pubdate data-updated="true">May 14<span>th</span>, 2011</time>
-        
-         | <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>The Mission:</h3>
-
-<p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
-
-<h3>The Plan:</h3>
-
-<p>To pull this off, we’re going to have to rely on our SOLID design principles, especially Single Responsibility and Dependency Inversion. We’ll get some help from these frameworks:</p>
-
-<ul>
-<li><a href="http://www.asp.net/mvc">ASP.NET MVC</a></li>
-<li><a href="http://unity.codeplex.com/">Unity</a></li>
-<li><a href="http://nhforge.org/Default.aspx">NHibernate</a></li>
-</ul>
-
-
-<h3>Game on:</h3>
-
-<p>Let’s take a look at a controller that uses NHibernate to talk to the database. I’m not going to get into whether you should talk directly to NHibernate from the controller or go through a service layer or repository because it doesn’t affect how we’re going to add multi-tenancy. The important thing here is that the <code>ISession</code> is injected into the controller, and we aren’t using the service locator pattern to request the <code>ISession</code> from a singleton.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UserController</span> <span class="p">:</span> <span class="n">Controller</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ISession</span> <span class="n">session</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">UserController</span><span class="p">(</span><span class="n">ISession</span> <span class="n">session</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">session</span> <span class="p">=</span> <span class="n">session</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Edit</span><span class="p">(</span><span class="kt">int</span> <span class="n">id</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">user</span> <span class="p">=</span> <span class="n">session</span><span class="p">.</span><span class="n">Load</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;(</span><span class="n">id</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Alright, now it’s time to write some new code and make our web application connect to the correct database based on the host header in the http request. First, we’ll need a database to store a list of tenants along with the connection string for that tenant’s database. Here’s my entity:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Tenant</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Host</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">ConnectionString</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I’ll use the repository pattern here so there is a crisp consumer of the <code>ISession</code> that connects to the lookup database rather than one of the tenant shards. This will be important later when we go to configure Unity.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">NHibernateTenantRepository</span> <span class="p">:</span> <span class="n">ITenantRepository</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ISession</span> <span class="n">session</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">NHibernateTenantRepository</span><span class="p">(</span><span class="n">ISession</span> <span class="n">session</span><span class="p">,</span> <span class="n">HttpContextBase</span> <span class="n">context</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">session</span> <span class="p">=</span> <span class="n">session</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">context</span> <span class="p">=</span> <span class="n">context</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">Tenant</span> <span class="n">Current</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="kt">var</span> <span class="n">host</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s">&quot;Host&quot;</span><span class="p">];</span>
-</span><span class='line'>            <span class="k">return</span> <span class="nf">FindByHost</span><span class="p">(</span><span class="n">host</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">Tenant</span> <span class="nf">FindByHost</span><span class="p">(</span><span class="kt">string</span> <span class="n">host</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">session</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Query</span><span class="p">&lt;</span><span class="n">Tenant</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">SingleOrDefault</span><span class="p">(</span><span class="n">t</span> <span class="p">=&gt;</span> <span class="n">t</span><span class="p">.</span><span class="n">Host</span> <span class="p">==</span> <span class="n">host</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So now we need a dedicated <code>ISessionFactory</code> for the lookup database and make sure that our <code>NHibernateTenantRepository</code> gets the right <code>ISession</code>. It’s not too bad, we just need to name them in the container so we can refer to them explicitly.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;(</span>
-</span><span class='line'>        <span class="s">&quot;tenant_session_factory&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">ContainerControlledLifetimeManager</span><span class="p">(),</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
-</span><span class='line'>            <span class="k">new</span> <span class="n">NHibernate</span><span class="p">.</span><span class="n">Cfg</span><span class="p">.</span><span class="n">Configuration</span><span class="p">().</span><span class="n">Configure</span><span class="p">().</span><span class="n">BuildSessionFactory</span><span class="p">())</span>
-</span><span class='line'>    <span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Container</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span>
-</span><span class='line'>        <span class="s">&quot;tenant_session&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">PerRequestLifetimeManager</span><span class="p">(),</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
-</span><span class='line'>            <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;(</span><span class="s">&quot;tenant_session_factory&quot;</span><span class="p">).</span><span class="n">OpenSession</span><span class="p">())</span>
-</span><span class='line'>    <span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Container</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ITenantRepository</span><span class="p">,</span> <span class="n">NHibernateTenantRepository</span><span class="p">&gt;()</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">NHibernateTenantRepository</span><span class="p">&gt;(</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionConstructor</span><span class="p">(</span>
-</span><span class='line'>            <span class="k">new</span> <span class="n">ResolvedParameter</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span><span class="s">&quot;tenant_session&quot;</span><span class="p">),</span>
-</span><span class='line'>            <span class="k">new</span> <span class="n">ResolvedParameter</span><span class="p">&lt;</span><span class="n">HttpContextBase</span><span class="p">&gt;()</span>
-</span><span class='line'>        <span class="p">)</span>
-</span><span class='line'>    <span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Hopefully that’s about what you were expecting since it’s not really the interesting part. The more interesting part is configuring the <code>ISession</code> that gets injected into the <code>UserController</code> to connect to a different database based on the host header in the http request. The Unity feature we’re going to leverage for this is the <code>LifetimeManager</code>. This is an often overlooked feature of IoC containers.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;(</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">PerHostLifetimeManager</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">HttpContextWrapper</span><span class="p">(</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Current</span><span class="p">)),</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="kt">var</span> <span class="n">connString</span> <span class="p">=</span> <span class="n">c</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ITenantRepository</span><span class="p">&gt;()</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">Current</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">ConnectionString</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="n">NHibernate</span><span class="p">.</span><span class="n">Cfg</span><span class="p">.</span><span class="n">Configuration</span><span class="p">()</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">Configure</span><span class="p">()</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">SetProperty</span><span class="p">(</span><span class="n">NHibernate</span><span class="p">.</span><span class="n">Cfg</span><span class="p">.</span><span class="n">Environment</span><span class="p">.</span><span class="n">ConnectionString</span><span class="p">,</span> <span class="n">connString</span><span class="p">)</span>
-</span><span class='line'>                <span class="p">.</span><span class="n">BuildSessionFactory</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}));</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Container</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">PerRequestLifetimeManager</span><span class="p">(),</span>
-</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span> <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;().</span><span class="n">OpenSession</span><span class="p">())</span>
-</span><span class='line'>    <span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Here we’re using a custom <code>PerHostLifetimeManager</code>. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the <code>InjectionFactory</code> block to create one using the connection string associated with that tenant.</p>
-
-<p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> <a href="http://stackoverflow.com/questions/157933/whats-the-best-way-of-implementing-a-thread-safe-dictionary-in-net">isn’t thread safe</a>.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">PerHostLifetimeManager</span> <span class="p">:</span> <span class="n">SynchronizedLifetimeManager</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">HttpContextBase</span><span class="p">&gt;</span> <span class="n">context</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IDictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span> <span class="n">store</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">PerHostLifetimeManager</span><span class="p">(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">HttpContextBase</span><span class="p">&gt;</span> <span class="n">context</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">context</span> <span class="p">=</span> <span class="n">context</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">store</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">SynchronizedGetValue</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">host</span> <span class="p">=</span> <span class="n">GetHost</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(!</span><span class="n">store</span><span class="p">.</span><span class="n">ContainsKey</span><span class="p">(</span><span class="n">host</span><span class="p">))</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">null</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="n">host</span><span class="p">];</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">SynchronizedSetValue</span><span class="p">(</span><span class="kt">object</span> <span class="n">newValue</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">store</span><span class="p">[</span><span class="n">GetHost</span><span class="p">()]</span> <span class="p">=</span> <span class="n">newValue</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="nf">GetHost</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">context</span><span class="p">().</span><span class="n">Request</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s">&quot;Host&quot;</span><span class="p">];</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So what did we accomplish? Well we didn’t touch any of our existing application code. We just wrote new code and through configuration we added multi-tenancy! That’s pretty cool, but was it worth it? Well, the goal in itself isn’t super important, but this exercise can certainly highlight areas of your codebase where you might be violating the single responsibility principle or leaking too many infrastructure concepts into your application logic.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1150,6 +1033,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
+      </li>
     
       <li class="post">
         <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
@@ -1179,10 +1066,6 @@
         <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
-      <li class="post">
-        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -1192,7 +1075,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Mike Valenty -
+  Copyright &copy; 2015 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

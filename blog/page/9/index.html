@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="These are the lunch-n-learn videos we’ve watched in the last few months (that I can remember). They are listed roughly in the order watched with the &hellip;">
+  <meta name="description" content="If you don’t know where you are going, you will wind up somewhere else. – Yogi Berra When asked how a project is going, most programmers will offer &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,70 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/definition-of-done/">Definition of Done</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-05-30T21:09:00-07:00" pubdate data-updated="true">May 30<span>th</span>, 2009</time>
+        
+         | <a href="/definition-of-done/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>If you don’t know where you are going, you will wind up somewhere else. – Yogi Berra</p></blockquote>
+
+<p>When asked how a project is going, most programmers will offer one of two discreet responses. It’s either “I just started looking at the code” or “I’m done, I just need to clean up a few things.” Upon further investigation, I have found that done means the hard part has been figured out and there is usually an IDE output window or a funky test web page running on localhost that can demonstrate this status.</p>
+
+<p>The problem is that the hard part is really the fun part, and the actual hart part is the “…I just need to clean up a few things.” So, to remind me and the rest of the team what done means, we have the following definition posted prominently on the wall.</p>
+
+<h3>1) Unit Tested</h3>
+
+<p>This doesn’t need much of an explanation, but having a formal definition posted on the wall is a good reminder for a team new to unit testing.</p>
+
+<p>Unit testing by itself is important, but the real boost comes from using a CI server. We use TeamCity for our .NET projects and phpUnderControl for php projects.</p>
+
+<h3>2) Acceptance Tested</h3>
+
+<p>For our team, acceptance testing means that we deploy our new code to a demo server and write Selenium tests for it. We export the selenium tests as phpUnit fixtures that CruiseControl will run whenever our svn repository is updated. Before the selenium tests are run, we need to update our demo server, so we have CruiseControl call <code>http://ourdemoserver.com/svn-update.php</code> first.</p>
+
+<h3>3) Packaged For Deployment</h3>
+
+<p>For our .NET projects, we use a homegrown tool for packaging and deploying. It can stop/start IIS register/unregister COM+ objects and rollback across a farm. For php projects, we simply hand roll a zip file and use some lightweight scripts to unpack the files on the server with rollback ability.</p>
+
+<h3>4) No Increased Technical Debt</h3>
+
+<p>I ask myself if this code is going to be an asset that makes us stronger and able to respond more quickly to future business opportunities, or is it going to be a fragile liability that I will need to carefully tip-toe around 30 seconds after it’s deployed.</p>
+
+<p>Just like a parent thinks their kid is the cutest kid ever, it can be hard to look at your own work when you’ve got your head wrapped around it and come to terms with the fact that you’re about to deploy some legacy code. I usually grab a coworker and walk through things while paying close attention to the <a href="http://www.osnews.com/story/19266/WTFs_m">only valid measurement of code quality</a>.</p>
+
+<p><img src="/images/posts/wtfm.jpg"></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -311,288 +375,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/unit-of-work-with-unity-and-aspnet-mvc/">Unit of Work With Unity and ASP.NET MVC</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-05-09T21:42:00-07:00" pubdate data-updated="true">May 9<span>th</span>, 2009</time>
-        
-         | <a href="/unit-of-work-with-unity-and-aspnet-mvc/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I was recently asked how I get the context of  “this” in the UoW relating to the current page request.</p>
-
-<p><img class="plain" src="/images/posts/howididit-thumb.jpg"></p>
-
-<p>Before I get into the guts, I would like to provide a little context. My application has 20+ databases scattered across 4 machines.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Customer</span><span class="p">&gt;</span> <span class="n">customerRepository</span><span class="p">;</span> <span class="c1">// customer database on server 1</span>
-</span><span class='line'><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Package</span><span class="p">&gt;</span>  <span class="n">packageRepository</span><span class="p">;</span> <span class="c1">// customer database on server 1</span>
-</span><span class='line'><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Contact</span><span class="p">&gt;</span>  <span class="n">contactRepository</span><span class="p">;</span> <span class="c1">// contact database on server 2</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So, I might ask for a <code>Customer</code> object and a <code>Package</code> object and I want to get the same <code>ISession</code> for both and if I ask for the same Customer twice, I want to get the one from the 1st level cache (I’m using NHibernate). If I ask for a Contact object, I will get a different ISession. All opened sessions are managed by my UoW. So, when the page request is complete, I call <code>UoW.Commit</code> and all sessions are committed.</p>
-
-<p>The “magic” if you will, happens in the global.asax. I was nosing around in Rhino.Commons for inspiration and adapted a technique I saw there. This is how it looks:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">GlobalApplication</span> <span class="p">:</span> <span class="n">HttpApplication</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">static</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">GlobalApplication</span><span class="p">()</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">BeginRequest</span> <span class="p">+=</span> <span class="k">new</span> <span class="n">EventHandler</span><span class="p">(</span><span class="n">GlobalApplication_BeginRequest</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">EndRequest</span> <span class="p">+=</span> <span class="k">new</span> <span class="n">EventHandler</span><span class="p">(</span><span class="n">GlobalApplication_EndRequest</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Start</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">RegisterRoutes</span><span class="p">(</span><span class="n">RouteTable</span><span class="p">.</span><span class="n">Routes</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">();</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">PolicyInjectorContainerExtension</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">HttpRequestLifetimeCoreContainerExtension</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">WebMvcContainerExtension</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">ControllerBuilder</span><span class="p">.</span><span class="n">Current</span><span class="p">.</span><span class="n">SetControllerFactory</span><span class="p">(</span><span class="k">new</span> <span class="n">UnityControllerFactory</span><span class="p">(</span><span class="n">container</span><span class="p">));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">void</span> <span class="nf">GlobalApplication_BeginRequest</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">unitOfWork</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IUnitOfWork</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">void</span> <span class="nf">GlobalApplication_EndRequest</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">unitOfWork</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IUnitOfWork</span><span class="p">&gt;();</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I register the UoW with an <code>HttpRequestLifetimeManager</code> so I get a new instance for each request.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span><span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;,</span>
-</span><span class='line'>  <span class="n">NHibernateUnitOfWork</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">HttpRequestLifetimeManager</span><span class="p">());</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>My <code>NHibernateRepository</code> gets injected with the UoW for the current <code>HttpRequest</code> and when the request is complete, the <code>global.asax</code> commits the whole thing.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">NHibernateRepository</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IRepository</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">protected</span> <span class="n">ISession</span> <span class="n">session</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">NHibernateRepository</span><span class="p">(</span><span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;</span> <span class="n">unitOfWork</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">session</span> <span class="p">=</span> <span class="n">unitOfWork</span><span class="p">.</span><span class="n">GetContextFor</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Save</span><span class="p">(</span><span class="n">T</span> <span class="n">obj</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">session</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now, this is all the context of an ASP.NET MVC Controller, but I have a similar issue for other (non-web) services. In that context I am using AOP and decorating a particular method with <code>[UnitOfWork]</code>, which looks like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UnitOfWorkCallHander</span> <span class="p">:</span> <span class="n">ICallHandler</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;</span> <span class="n">unitOfWork</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">UnitOfWorkCallHander</span><span class="p">(</span><span class="n">IUnitOfWork</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;</span> <span class="n">unitOfWork</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">unitOfWork</span> <span class="p">=</span> <span class="n">unitOfWork</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Order</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">try</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="nf">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">finally</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In that context I use a <code>PerThreadLifetimeManager</code> for the <code>NHibernateUnitOfWork</code>, and code ends up looking like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Process</span><span class="p">(</span><span class="n">Job</span> <span class="n">job</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You know, there is really no reason why you couldn’t do the same thing in the MVC context. You could basically ditch the <code>global.asax</code> event hooha and just annotate the Controller task:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
-</span><span class='line'><span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">ControllerTaskThatRequiresUoW</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It’s more explicit than using the <code>global.asax</code> technique and it would allow you to specify different UoW behavior on each controller task:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork(IsolationLevel.ReadCommitted]</span>
-</span><span class='line'><span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">SomeTaskThatShouldNotReadUncommitedData</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">[UnitOfWork(IsolationLevel.ReadUncommitted)]</span>
-</span><span class='line'><span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">AnotherTaskWithDifferentRequirements</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I’d like to try this out next time I get back into ASP.NET MVC, the global.asax event technique felt a little too magical and I don’t think Uncle Bob would approve.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/10/">&larr; Older</a>
@@ -608,6 +390,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
+      </li>
     
       <li class="post">
         <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
@@ -637,10 +423,6 @@
         <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
-      <li class="post">
-        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -650,7 +432,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Mike Valenty -
+  Copyright &copy; 2015 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

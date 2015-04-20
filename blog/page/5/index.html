@@ -9,7 +9,24 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="The title of this article was inspired by The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character &hellip;">
+  <meta name="description" content="Take a look at this function: 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+public UserIndexViewModel GetIndexViewModel(int pageSize, int pageNumber) { &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +93,179 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/rafactoring-introduce-parameter-object/">Refactoring: Introduce Parameter Object</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-02-15T06:49:00-08:00" pubdate data-updated="true">Feb 15<span>th</span>, 2010</time>
+        
+         | <a href="/rafactoring-introduce-parameter-object/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Take a look at this function:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="n">UserIndexViewModel</span> <span class="nf">GetIndexViewModel</span><span class="p">(</span><span class="kt">int</span> <span class="n">pageSize</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pageNumber</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">model</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UserIndexViewModel</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">allUsers</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">CreateCriteria</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">model</span><span class="p">.</span><span class="n">Total</span> <span class="p">=</span> <span class="n">CriteriaTransformer</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">TransformToRowCount</span><span class="p">(</span><span class="n">allUsers</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">UniqueResult</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">model</span><span class="p">.</span><span class="n">Users</span> <span class="p">=</span> <span class="n">allUsers</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">SetFirstResult</span><span class="p">(</span><span class="n">pageSize</span> <span class="p">*</span> <span class="p">(</span><span class="n">pageNumber</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span> <span class="p">+</span> <span class="m">1</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">SetMaxResults</span><span class="p">(</span><span class="n">pageSize</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">AddOrder</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;(</span><span class="n">u</span> <span class="p">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">LastName</span><span class="p">,</span> <span class="n">Order</span><span class="p">.</span><span class="n">Asc</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">List</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">model</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There isn’t much going on here, but it could be better. I’m looking at the arguments <code>pageSize</code> and <code>pageNumber</code>. Notice how they both start with the prefix “page”. That’s a smell. The common prefix means the arguments are related, so let’s apply the <em>Introduce Parameter Object</em> refactoring and see what happens.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Page</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">number</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">Page</span><span class="p">(</span><span class="kt">int</span> <span class="n">number</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">number</span> <span class="p">=</span> <span class="n">number</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">size</span> <span class="p">=</span> <span class="n">size</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Size</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">size</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Number</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">number</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">FirstResult</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">size</span> <span class="p">*</span> <span class="p">(</span><span class="n">number</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span> <span class="p">+</span> <span class="m">1</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What did we accomplish?</p>
+
+<ul>
+<li>Creating the parameter object gave us a place to put the logic of calculating the first result of the current page. This logic would otherwise be scattered around the application and even though it’s simple, it’s error prone.</li>
+<li>The logic of calculating the first result is testable.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Test]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_calculate_first_result_of_current_page</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">2</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">21</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">3</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">41</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It’s not rocket science, but it still deserves a test. Our other option is spinning up Cassini and clicking around to make sure we got it right. That’s just silly. A little piece of me dies each time I press F5 to run a manual test.</p>
+
+<p>Anyway, there is this thing that happens with single responsibility classes. Because their purpose is crisp, it draws out robustness. In this case, I’m thinking about what we should we do if we get zero or a negative value for page number. I’m a fail fast kind of guy, so I’d probably go with a guard clause.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="nf">Page</span><span class="p">(</span><span class="kt">int</span> <span class="n">number</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">GuardAgainstLessThanOne</span><span class="p">(</span><span class="n">number</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But you could silently correct it if that’s how you roll:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="kt">int</span> <span class="n">Number</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Math</span><span class="p">.</span><span class="n">Max</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="n">number</span><span class="p">);</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The point is that this is an obvious scenario to consider when looking at such a special purpose object. All too often though, bits of logic are mixed together like 32 kindergarteners sitting next to each other on a rug during a lesson. The room is one fart or tickle away from erupting into total kaos. It’s roughly half teaching and half crowd control, only without the rubber bullets and pepper spray. Not surprisingly, overcrowded classrooms don’t work that well and over-ambitous functions don’t work that well either. Each little bit of logic needs some one on one with you. Give it a chance to be all it can be by pulling it aside and getting to know it a little better. You might be surprised.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1026,56 +1216,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/definition-of-enterprise-software/">Definition of Enterprise Software</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-12-06T12:41:00-08:00" pubdate data-updated="true">Dec 6<span>th</span>, 2009</time>
-        
-         | <a href="/definition-of-enterprise-software/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The difference between Enterprise software and regular software is like the difference between a start-up and a public company. Enterprise software has lots of bureaucracy and red tape (indirection and configuration) to support transparency and top-down policy. You pay a price up front to create all these layers and well-defined communication channels between departments, but once the whole thing is up and running, it’s powerful.</p>
-
-<p>Big companies can throw time and money at problems to produce activity diagrams, advisory boards and flow charts. Sure there’s bloat, but you need that kind of oversight to enforce corporate policy. Similarly, enterprise software can extravagantly use cpu cycles, disk space and memory, but this is a fair price to pay when complexity is king. Enterprise software must be concerned with things like service level agreements and government regulations. So how do you do that?</p>
-
-<p>You do that by dissecting your application into composable units of behavior. This is the essence of the single-responsibility-principle and while the concept is deceptively simple, it can have a profound effect on your software. Yes, the end result is lots of little classes, but it’s much more than that. These classes capture individual business concepts and overtime your software becomes a domain-specific-language (DSL). I don’t mean the kind of DSL that a business person would use directly, but more like xpath and regular expressions except your DSL is focused on your business domain.</p>
-
-<p>Over time, software becomes an asset or a liability. The difference is your ability to respond to the needs of the business and your toolbox for that is your DSL or lack thereof. You need to compose, decompose, rearrange and built-out bits of behavior in ways impossible to predict. Single responsibility gives you that ability and dependency inversion creates seams throughout your code to spin off in unpredictable directions. These seams are the key to longevity and the difference between enterprise software and regular software.</p>
-
-<p>I’ll share an experience I had this weekend. I was about to deploy a new application and I thought it would be cool to use a performance counter to watch throughput. Within about 20 minutes I was able to add a performance counter by only modifying the <code>App.config</code> and this was the result:</p>
-
-<p><img class="plain" src="/images/posts/perfmon3.png"></p>
-
-<p>This was possible because of IoC among other things. The app is composed of many small pieces and you’d be hard pressed to find the <code>new</code> keyword where it matters. <code>SyncListingJob</code> was already being built-up by Unity Container, so I was able take advantage of an off-the-shelf performance monitor aspect in the Enterprise Library 4.1 Policy Injection Application Block and wire it in via the <code>App.config</code>.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1091,6 +1231,10 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
+      </li>
     
       <li class="post">
         <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
@@ -1120,10 +1264,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
         <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
-      <li class="post">
-        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -1133,7 +1273,7 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Mike Valenty -
+  Copyright &copy; 2015 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Mike Valenty]]></title>
   <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
   <link href="http://www.agileatwork.com/"/>
-  <updated>2014-03-16T19:35:25-07:00</updated>
+  <updated>2015-04-19T23:46:38-07:00</updated>
   <id>http://www.agileatwork.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -12,6 +12,142 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Scala Solution to Cheryl's Birthday Problem]]></title>
+    <link href="http://www.agileatwork.com/scala-solution-to-cheryls-birthday-problem/"/>
+    <updated>2015-04-19T14:54:00-07:00</updated>
+    <id>http://www.agileatwork.com/scala-solution-to-cheryls-birthday-problem</id>
+    <content type="html"><![CDATA[<p>I ran across a <a href="https://github.com/mad4j/puzzles/blob/master/src/dolmisani/puzzles/CherylBirthday.java">Java 8 solution</a> to <a href="http://www.nytimes.com/2015/04/15/science/a-math-problem-from-singapore-goes-viral-when-is-cheryls-birthday.html">Cheryl&rsquo;s birthday problem</a> and just had to write a Scala version since this is one of those problems the language was made for. Also, I&rsquo;ve been on the Java train for a few months and this was good excuse to brush off the dust and work on my Scala chops.</p>
+
+<h4>Cheryl&rsquo;s Birthday problem.</h4>
+
+<blockquote><p>Albert and Bernard just become friends with Cheryl, and they want to know when her birthday is. Cheryl gives them a list of 10 possible dates.</p></blockquote>
+
+<pre><code>May 15, May 16, May 19
+June 17, June 18
+July 14, July 16
+August 14, August 15, August 17
+</code></pre>
+
+<blockquote><p>Cheryl then tells Albert and Bernard separately the month and the day of her birthday respectively.</p></blockquote>
+
+<p><strong>Albert:</strong> I don’t know when Cheryl&rsquo;s birthday is, but I know that Bernard does not know too.</p>
+
+<p><strong>Bernard:</strong> At first I don&rsquo;t know when Cheryl&rsquo;s birthday is, but I know now.</p>
+
+<p><strong>Albert:</strong> Then I also know when Cheryl&rsquo;s birthday is.</p>
+
+<p>So when is Cheryl’s birthday?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="nd">@RunWith</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">JUnitRunner</span><span class="o">])</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">BirthdayProblem</span> <span class="k">extends</span> <span class="nc">FunSuite</span> <span class="k">with</span> <span class="nc">ShouldMatchers</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">case</span> <span class="k">class</span> <span class="nc">Birthday</span><span class="o">(</span><span class="n">month</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">day</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">object</span> <span class="nc">Birthday</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">apply</span><span class="o">(</span><span class="n">s</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Birthday</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;-&quot;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toInt</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">case</span> <span class="nc">Array</span><span class="o">(</span><span class="n">m</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Birthday</span><span class="o">(</span><span class="n">m</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">birthdays</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span>
+</span><span class='line'>    <span class="s">&quot;5-15&quot;</span><span class="o">,</span> <span class="s">&quot;5-16&quot;</span><span class="o">,</span> <span class="s">&quot;5-19&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="s">&quot;6-17&quot;</span><span class="o">,</span> <span class="s">&quot;6-18&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="s">&quot;7-14&quot;</span><span class="o">,</span> <span class="s">&quot;7-16&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="s">&quot;8-14&quot;</span><span class="o">,</span> <span class="s">&quot;8-15&quot;</span><span class="o">,</span> <span class="s">&quot;8-17&quot;</span>
+</span><span class='line'>  <span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">Birthday</span><span class="o">.</span><span class="n">apply</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">uniqueBy</span><span class="o">[</span><span class="kt">A</span>, <span class="kt">K</span><span class="o">](</span><span class="n">fn</span><span class="k">:</span> <span class="o">(</span><span class="kt">A</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">K</span><span class="o">)(</span><span class="n">b</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">A</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">groupSizeIs</span><span class="o">(</span><span class="n">size</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)(</span><span class="n">x</span><span class="k">:</span> <span class="o">(</span><span class="k">_</span><span class="o">,</span> <span class="kt">List</span><span class="o">[</span><span class="k">_</span><span class="o">]))</span> <span class="k">=</span> <span class="n">x</span><span class="o">.</span><span class="n">_2</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">size</span>
+</span><span class='line'>    <span class="n">b</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="n">fn</span><span class="o">).</span><span class="n">filter</span><span class="o">(</span><span class="n">groupSizeIs</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">flatMap</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">_2</span><span class="o">).</span><span class="n">toList</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">uniqueByDay</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="nc">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueBy</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">day</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">uniqueByMonth</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="nc">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueBy</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">month</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Bernard would know the answer if the day was unique for all birthdays, so this</span>
+</span><span class='line'>  <span class="c1">// is the list of birthdays for which Bernard would know the answer.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">birthdaysWithUniqueDay</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">birthdays</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Albert tells us that Bernard doesn&#39;t know the answer, so we know the answer</span>
+</span><span class='line'>  <span class="c1">// must be in a month that does not contain a birthday with a unique day.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">remainingBirthdays</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">monthsWithUniqueDay</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="n">birthdaysWithUniqueDay</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">month</span><span class="o">).</span><span class="n">toSet</span>
+</span><span class='line'>    <span class="n">birthdays</span><span class="o">.</span><span class="n">filterNot</span><span class="o">(</span><span class="n">b</span> <span class="k">=&gt;</span> <span class="n">monthsWithUniqueDay</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">month</span><span class="o">))</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Since Bernard now knows the answer, that tells us that the day must be</span>
+</span><span class='line'>  <span class="c1">// unique among the remaining birthdays.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">remainingWithUniqueDay</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">remainingBirthdays</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Since Albert now knows the answer, that tells us the answer has to be unique by month.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">answer</span><span class="k">:</span> <span class="kt">Birthday</span> <span class="o">=</span> <span class="n">uniqueByMonth</span><span class="o">(</span><span class="n">remainingWithUniqueDay</span><span class="o">).</span><span class="n">head</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">test</span><span class="o">(</span><span class="s">&quot;Cheryl&#39;s birthday&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">answer</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="nc">Birthday</span><span class="o">(</span><span class="s">&quot;xx-xx&quot;</span><span class="o">))</span> <span class="c1">// REDACTED</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yay.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Unit testing scalding jobs]]></title>
@@ -2711,150 +2847,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 <blockquote><p>In mathematics, computer science and economics, optimization, or mathematical programming, refers to choosing the best element from some set of available alternatives. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(mathematics)</p></blockquote>
 
 <p>This does a better job of capturing the trade-offs we make on a daily basis. I like the idea of choosing the best element rather than consuming the fewest resources. Instead of asking what you’re optimizing, a better question might be what are you maximizing? For a new iPhone game, maybe time to market is your number one concern. I work on enterprise SaaS applications that have a long shelf life so maintainability is a pretty big deal. I strive to maximize readability and testability when I write software. What are you maximizing?</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Refactoring: Introduce Parameter Object]]></title>
-    <link href="http://www.agileatwork.com/rafactoring-introduce-parameter-object/"/>
-    <updated>2010-02-15T06:49:00-08:00</updated>
-    <id>http://www.agileatwork.com/rafactoring-introduce-parameter-object</id>
-    <content type="html"><![CDATA[<p>Take a look at this function:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="n">UserIndexViewModel</span> <span class="nf">GetIndexViewModel</span><span class="p">(</span><span class="kt">int</span> <span class="n">pageSize</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pageNumber</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">model</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UserIndexViewModel</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">allUsers</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">CreateCriteria</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">model</span><span class="p">.</span><span class="n">Total</span> <span class="p">=</span> <span class="n">CriteriaTransformer</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">TransformToRowCount</span><span class="p">(</span><span class="n">allUsers</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">UniqueResult</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">model</span><span class="p">.</span><span class="n">Users</span> <span class="p">=</span> <span class="n">allUsers</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">SetFirstResult</span><span class="p">(</span><span class="n">pageSize</span> <span class="p">*</span> <span class="p">(</span><span class="n">pageNumber</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span> <span class="p">+</span> <span class="m">1</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">SetMaxResults</span><span class="p">(</span><span class="n">pageSize</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">AddOrder</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;(</span><span class="n">u</span> <span class="p">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">LastName</span><span class="p">,</span> <span class="n">Order</span><span class="p">.</span><span class="n">Asc</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">List</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="n">model</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There isn’t much going on here, but it could be better. I’m looking at the arguments <code>pageSize</code> and <code>pageNumber</code>. Notice how they both start with the prefix “page”. That’s a smell. The common prefix means the arguments are related, so let’s apply the <em>Introduce Parameter Object</em> refactoring and see what happens.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Page</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">number</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">Page</span><span class="p">(</span><span class="kt">int</span> <span class="n">number</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">number</span> <span class="p">=</span> <span class="n">number</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">size</span> <span class="p">=</span> <span class="n">size</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Size</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">size</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Number</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">number</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">FirstResult</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">size</span> <span class="p">*</span> <span class="p">(</span><span class="n">number</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span> <span class="p">+</span> <span class="m">1</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>What did we accomplish?</p>
-
-<ul>
-<li>Creating the parameter object gave us a place to put the logic of calculating the first result of the current page. This logic would otherwise be scattered around the application and even though it’s simple, it’s error prone.</li>
-<li>The logic of calculating the first result is testable.</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Test]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_calculate_first_result_of_current_page</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">2</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">21</span><span class="p">));</span>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">3</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">41</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It’s not rocket science, but it still deserves a test. Our other option is spinning up Cassini and clicking around to make sure we got it right. That’s just silly. A little piece of me dies each time I press F5 to run a manual test.</p>
-
-<p>Anyway, there is this thing that happens with single responsibility classes. Because their purpose is crisp, it draws out robustness. In this case, I’m thinking about what we should we do if we get zero or a negative value for page number. I’m a fail fast kind of guy, so I’d probably go with a guard clause.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="nf">Page</span><span class="p">(</span><span class="kt">int</span> <span class="n">number</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">GuardAgainstLessThanOne</span><span class="p">(</span><span class="n">number</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>But you could silently correct it if that’s how you roll:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="kt">int</span> <span class="n">Number</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Math</span><span class="p">.</span><span class="n">Max</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="n">number</span><span class="p">);</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The point is that this is an obvious scenario to consider when looking at such a special purpose object. All too often though, bits of logic are mixed together like 32 kindergarteners sitting next to each other on a rug during a lesson. The room is one fart or tickle away from erupting into total kaos. It’s roughly half teaching and half crowd control, only without the rubber bullets and pepper spray. Not surprisingly, overcrowded classrooms don’t work that well and over-ambitous functions don’t work that well either. Each little bit of logic needs some one on one with you. Give it a chance to be all it can be by pulling it aside and getting to know it a little better. You might be surprised.</p>
 ]]></content>
   </entry>
   

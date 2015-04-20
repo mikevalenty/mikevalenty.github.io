@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to &hellip;">
+  <meta name="description" content="The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,98 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/software-development-team-building-part-1/">Software Development Team Building – Part 1</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-11-13T17:26:00-08:00" pubdate data-updated="true">Nov 13<span>th</span>, 2010</time>
+        
+         | <a href="/software-development-team-building-part-1/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season because when playoffs start, it’s like watching a different sport. To win the coveted Stanley Cup, a team must battle through four grueling best-of-seven series, and when it’s all over, it’s not about a bad call by the referee or a fluke fumble or broken tackle. It’s not even about a hot goal-tender or superstar forward. It’s about the whole team digging deep and banding together to create a whole greater than the sum of its parts.</p>
+
+<p>If that wasn’t true, you could simply put all the best players on one team and watch them dominate. Russia tried it in the 2010 Winter Olympics and only walked away with the bronze medal. A successful team has an identity that transcends individuals. If you watch hockey, you’ll hear teams described as up-tempo, finesse, defensive or gritty and hard-hitting. One isn’t better than another, it really depends on what your core strengths are and then getting buy-in from everyone on the team.</p>
+
+<p>On a software team, maybe you’ve got some pre-family twenty-something developers that are wizards with Javascript. Or, maybe you’ve got a veteran team and company with deep enough pockets to invest in a long term product strategy. It really doesn’t matter, just identify your strengths and get buy-in.</p>
+
+<p>Developers are opinionated and not always team players; the cliché herding cats comes to mind. So how do you get developers to buy in? Try out this exercise. Get your team in front of a whiteboard and come up with a list of words that describe positive software quality factors. Here’s a start:</p>
+
+<ul>
+<li>Scalable</li>
+<li>Fast</li>
+<li>Efficient</li>
+<li>Reliable</li>
+<li>Maintainable</li>
+<li>Elegant</li>
+<li>Expressive</li>
+<li>Readable</li>
+<li>Portable</li>
+<li>Concise</li>
+<li>Testable</li>
+<li>Understandable</li>
+<li>Correct</li>
+<li>Consistent</li>
+<li>Clean</li>
+<li>Innovative</li>
+<li>Secure</li>
+<li>Extensible</li>
+<li>Reusable</li>
+<li>Composable</li>
+</ul>
+
+
+<p>Have each team member to pick their top 5 and write them on the board. Compare the lists and allow the team to negotiate with each other to come up with a common top 3. Why is a shared list important? Writing software is about trade-offs. We make dozens of decisions per day while writing code and sharing a set of values is essential to consistent forward progress in a team environment.</p>
+
+<blockquote><p>If you don’t know where you’re going, you might not get there – Yogi Berra</p></blockquote>
+
+<p>Consider this list:</p>
+
+<ul>
+<li>Testable</li>
+<li>Expressive</li>
+<li>Scalable</li>
+</ul>
+
+
+<p>Compare that with:</p>
+
+<ul>
+<li>Innovative</li>
+<li>Efficient</li>
+<li>Elegant</li>
+</ul>
+
+
+<p>Imagine you are sitting at the keyboard working on a feature. Can you see how the first list could influence completely different decisions than the second list? It’s not about right or wrong, it’s just about being explicit about how you make decisions and trusting the rest of your team to make similar choices.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -486,179 +578,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/rafactoring-introduce-parameter-object/">Refactoring: Introduce Parameter Object</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-02-15T06:49:00-08:00" pubdate data-updated="true">Feb 15<span>th</span>, 2010</time>
-        
-         | <a href="/rafactoring-introduce-parameter-object/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Take a look at this function:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="n">UserIndexViewModel</span> <span class="nf">GetIndexViewModel</span><span class="p">(</span><span class="kt">int</span> <span class="n">pageSize</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pageNumber</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">model</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UserIndexViewModel</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">allUsers</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">CreateCriteria</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">model</span><span class="p">.</span><span class="n">Total</span> <span class="p">=</span> <span class="n">CriteriaTransformer</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">TransformToRowCount</span><span class="p">(</span><span class="n">allUsers</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">UniqueResult</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">model</span><span class="p">.</span><span class="n">Users</span> <span class="p">=</span> <span class="n">allUsers</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">SetFirstResult</span><span class="p">(</span><span class="n">pageSize</span> <span class="p">*</span> <span class="p">(</span><span class="n">pageNumber</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span> <span class="p">+</span> <span class="m">1</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">SetMaxResults</span><span class="p">(</span><span class="n">pageSize</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">AddOrder</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;(</span><span class="n">u</span> <span class="p">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">LastName</span><span class="p">,</span> <span class="n">Order</span><span class="p">.</span><span class="n">Asc</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">.</span><span class="n">List</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="n">model</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There isn’t much going on here, but it could be better. I’m looking at the arguments <code>pageSize</code> and <code>pageNumber</code>. Notice how they both start with the prefix “page”. That’s a smell. The common prefix means the arguments are related, so let’s apply the <em>Introduce Parameter Object</em> refactoring and see what happens.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">Page</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">number</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">Page</span><span class="p">(</span><span class="kt">int</span> <span class="n">number</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">number</span> <span class="p">=</span> <span class="n">number</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">size</span> <span class="p">=</span> <span class="n">size</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Size</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">size</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Number</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">number</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">FirstResult</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">size</span> <span class="p">*</span> <span class="p">(</span><span class="n">number</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span> <span class="p">+</span> <span class="m">1</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>What did we accomplish?</p>
-
-<ul>
-<li>Creating the parameter object gave us a place to put the logic of calculating the first result of the current page. This logic would otherwise be scattered around the application and even though it’s simple, it’s error prone.</li>
-<li>The logic of calculating the first result is testable.</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Test]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">void</span> <span class="nf">Should_calculate_first_result_of_current_page</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">2</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">21</span><span class="p">));</span>
-</span><span class='line'>    <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="k">new</span> <span class="n">Page</span><span class="p">(</span><span class="m">3</span><span class="p">,</span> <span class="m">20</span><span class="p">).</span><span class="n">FirstResult</span><span class="p">,</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">41</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It’s not rocket science, but it still deserves a test. Our other option is spinning up Cassini and clicking around to make sure we got it right. That’s just silly. A little piece of me dies each time I press F5 to run a manual test.</p>
-
-<p>Anyway, there is this thing that happens with single responsibility classes. Because their purpose is crisp, it draws out robustness. In this case, I’m thinking about what we should we do if we get zero or a negative value for page number. I’m a fail fast kind of guy, so I’d probably go with a guard clause.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="nf">Page</span><span class="p">(</span><span class="kt">int</span> <span class="n">number</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">GuardAgainstLessThanOne</span><span class="p">(</span><span class="n">number</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">...</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>But you could silently correct it if that’s how you roll:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="kt">int</span> <span class="n">Number</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Math</span><span class="p">.</span><span class="n">Max</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="n">number</span><span class="p">);</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The point is that this is an obvious scenario to consider when looking at such a special purpose object. All too often though, bits of logic are mixed together like 32 kindergarteners sitting next to each other on a rug during a lesson. The room is one fart or tickle away from erupting into total kaos. It’s roughly half teaching and half crowd control, only without the rubber bullets and pepper spray. Not surprisingly, overcrowded classrooms don’t work that well and over-ambitous functions don’t work that well either. Each little bit of logic needs some one on one with you. Give it a chance to be all it can be by pulling it aside and getting to know it a little better. You might be surprised.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -674,6 +593,10 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
+      </li>
     
       <li class="post">
         <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
@@ -703,10 +626,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
         <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
-      <li class="post">
-        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -716,7 +635,7 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Mike Valenty -
+  Copyright &copy; 2015 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

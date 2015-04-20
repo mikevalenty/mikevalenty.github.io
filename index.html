@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="Scalding is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive &ndash; almost &hellip;">
+  <meta name="description" content="I ran across a Java 8 solution to Cheryl&rsquo;s birthday problem and just had to write a Scala version since this is one of those problems the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,171 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-19T14:54:00-07:00" pubdate data-updated="true">Apr 19<span>th</span>, 2015</time>
+        
+         | <a href="/scala-solution-to-cheryls-birthday-problem/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I ran across a <a href="https://github.com/mad4j/puzzles/blob/master/src/dolmisani/puzzles/CherylBirthday.java">Java 8 solution</a> to <a href="http://www.nytimes.com/2015/04/15/science/a-math-problem-from-singapore-goes-viral-when-is-cheryls-birthday.html">Cheryl&rsquo;s birthday problem</a> and just had to write a Scala version since this is one of those problems the language was made for. Also, I&rsquo;ve been on the Java train for a few months and this was good excuse to brush off the dust and work on my Scala chops.</p>
+
+<h4>Cheryl&rsquo;s Birthday problem.</h4>
+
+<blockquote><p>Albert and Bernard just become friends with Cheryl, and they want to know when her birthday is. Cheryl gives them a list of 10 possible dates.</p></blockquote>
+
+<pre><code>May 15, May 16, May 19
+June 17, June 18
+July 14, July 16
+August 14, August 15, August 17
+</code></pre>
+
+<blockquote><p>Cheryl then tells Albert and Bernard separately the month and the day of her birthday respectively.</p></blockquote>
+
+<p><strong>Albert:</strong> I don’t know when Cheryl&rsquo;s birthday is, but I know that Bernard does not know too.</p>
+
+<p><strong>Bernard:</strong> At first I don&rsquo;t know when Cheryl&rsquo;s birthday is, but I know now.</p>
+
+<p><strong>Albert:</strong> Then I also know when Cheryl&rsquo;s birthday is.</p>
+
+<p>So when is Cheryl’s birthday?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="nd">@RunWith</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">JUnitRunner</span><span class="o">])</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">BirthdayProblem</span> <span class="k">extends</span> <span class="nc">FunSuite</span> <span class="k">with</span> <span class="nc">ShouldMatchers</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">case</span> <span class="k">class</span> <span class="nc">Birthday</span><span class="o">(</span><span class="n">month</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">day</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">object</span> <span class="nc">Birthday</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">apply</span><span class="o">(</span><span class="n">s</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Birthday</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;-&quot;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toInt</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">case</span> <span class="nc">Array</span><span class="o">(</span><span class="n">m</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Birthday</span><span class="o">(</span><span class="n">m</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">birthdays</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span>
+</span><span class='line'>    <span class="s">&quot;5-15&quot;</span><span class="o">,</span> <span class="s">&quot;5-16&quot;</span><span class="o">,</span> <span class="s">&quot;5-19&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="s">&quot;6-17&quot;</span><span class="o">,</span> <span class="s">&quot;6-18&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="s">&quot;7-14&quot;</span><span class="o">,</span> <span class="s">&quot;7-16&quot;</span><span class="o">,</span>
+</span><span class='line'>    <span class="s">&quot;8-14&quot;</span><span class="o">,</span> <span class="s">&quot;8-15&quot;</span><span class="o">,</span> <span class="s">&quot;8-17&quot;</span>
+</span><span class='line'>  <span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">Birthday</span><span class="o">.</span><span class="n">apply</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">uniqueBy</span><span class="o">[</span><span class="kt">A</span>, <span class="kt">K</span><span class="o">](</span><span class="n">fn</span><span class="k">:</span> <span class="o">(</span><span class="kt">A</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">K</span><span class="o">)(</span><span class="n">b</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">A</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">groupSizeIs</span><span class="o">(</span><span class="n">size</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)(</span><span class="n">x</span><span class="k">:</span> <span class="o">(</span><span class="k">_</span><span class="o">,</span> <span class="kt">List</span><span class="o">[</span><span class="k">_</span><span class="o">]))</span> <span class="k">=</span> <span class="n">x</span><span class="o">.</span><span class="n">_2</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">size</span>
+</span><span class='line'>    <span class="n">b</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="n">fn</span><span class="o">).</span><span class="n">filter</span><span class="o">(</span><span class="n">groupSizeIs</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">flatMap</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">_2</span><span class="o">).</span><span class="n">toList</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">uniqueByDay</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="nc">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueBy</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">day</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">uniqueByMonth</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="nc">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueBy</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">month</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Bernard would know the answer if the day was unique for all birthdays, so this</span>
+</span><span class='line'>  <span class="c1">// is the list of birthdays for which Bernard would know the answer.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">birthdaysWithUniqueDay</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">birthdays</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Albert tells us that Bernard doesn&#39;t know the answer, so we know the answer</span>
+</span><span class='line'>  <span class="c1">// must be in a month that does not contain a birthday with a unique day.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">remainingBirthdays</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">monthsWithUniqueDay</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="n">birthdaysWithUniqueDay</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">month</span><span class="o">).</span><span class="n">toSet</span>
+</span><span class='line'>    <span class="n">birthdays</span><span class="o">.</span><span class="n">filterNot</span><span class="o">(</span><span class="n">b</span> <span class="k">=&gt;</span> <span class="n">monthsWithUniqueDay</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">month</span><span class="o">))</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Since Bernard now knows the answer, that tells us that the day must be</span>
+</span><span class='line'>  <span class="c1">// unique among the remaining birthdays.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">remainingWithUniqueDay</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">remainingBirthdays</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Since Albert now knows the answer, that tells us the answer has to be unique by month.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">answer</span><span class="k">:</span> <span class="kt">Birthday</span> <span class="o">=</span> <span class="n">uniqueByMonth</span><span class="o">(</span><span class="n">remainingWithUniqueDay</span><span class="o">).</span><span class="n">head</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">test</span><span class="o">(</span><span class="s">&quot;Cheryl&#39;s birthday&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">answer</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="nc">Birthday</span><span class="o">(</span><span class="s">&quot;xx-xx&quot;</span><span class="o">))</span> <span class="c1">// REDACTED</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yay.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -692,230 +857,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Hadoop MapReduce Join Optimization With a Bloom Filter</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-10-15T22:49:00-07:00" pubdate data-updated="true">Oct 15<span>th</span>, 2013</time>
-        
-         | <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Doing a join in hadoop with Java is painful. A one-liner in <a href="http://pig.apache.org/">Pig Latin</a> can easily explode into hundreds of lines of Java. However, the additional control in Java can yield significant performance gains and simplify complex logic that is difficult to express in Pig Latin.</p>
-
-<p>In my case, the left side of the join contained about 100K records while the right side was closer to 1B. Emitting all join keys from the mapper means that all 1B records from the right side of the join are shuffled, sorted and sent to a reducer. The reducer then ends up discarding most of join keys that don&rsquo;t match the left side.</p>
-
-<p>Any best practices guide will tell you to push more work into the mapper. In the case of a join, that means dropping records in the mapper that will end up getting dropped by the reducer anyway. In order to do that, the mapper needs to know if a particular join key exists on the left hand side.</p>
-
-<p>An easy way to accomplish this is to put the smaller dataset into the <code>DistributedCache</code> and then load all the join keys into a <code>HashSet</code> that the mapper can do a lookup against.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">for</span> <span class="o">(</span><span class="n">FileStatus</span> <span class="n">status</span> <span class="o">:</span> <span class="n">fileSystem</span><span class="o">.</span><span class="na">globStatus</span><span class="o">(</span><span class="n">theSmallSideOfTheJoin</span><span class="o">))</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">DistributedCache</span><span class="o">.</span><span class="na">addCacheFile</span><span class="o">(</span><span class="n">status</span><span class="o">.</span><span class="na">getPath</span><span class="o">().</span><span class="na">toUri</span><span class="o">(),</span> <span class="n">job</span><span class="o">.</span><span class="na">getConfiguration</span><span class="o">());</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
-</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">setup</span><span class="o">(</span><span class="n">Mapper</span><span class="o">.</span><span class="na">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">buildJoinKeyHashMap</span><span class="o">(</span><span class="n">context</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="nd">@Override</span>
-</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">map</span><span class="o">(</span><span class="n">LongWritable</span> <span class="n">key</span><span class="o">,</span> <span class="n">Text</span> <span class="n">value</span><span class="o">,</span> <span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="o">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(!</span><span class="n">joinKeys</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">joinKey</span><span class="o">))</span>
-</span><span class='line'>      <span class="k">return</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="o">...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">context</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">outKey</span><span class="o">,</span> <span class="n">outVal</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This totally works, but consumes enough memory that I was occassionally getting <code>java.lang.OutOfMemoryError: Java heap space</code> from the mappers. Enter the <a href="http://en.wikipedia.org/wiki/Bloom_filter">Bloom filter</a>.</p>
-
-<blockquote><p>A Bloom filter is a space-efficient probabilistic data structure that is used to test whether an element is a member of a set. False positive matches are possible, but false negatives are not. Elements can be added to the set, but not removed. The more elements that are added to the set, the larger the probability of false positives. -Wikipedia</p></blockquote>
-
-<p>I hadn&rsquo;t heard of a Bloom filter before taking <a href="https://www.coursera.org/course/algo">Algorithms: Design and Analysis, Part 1</a>. If not for the course, I&rsquo;m pretty sure I would have skimmed over the innocuous reference while pilfering around the hadoop <a href="http://hadoop.apache.org/docs/current/api/org/apache/hadoop/util/bloom/BloomFilter.html">documentation</a>. Fortunately, recent exposure made the term jump out at me and I quickly recognized it was exactly what I was looking for.</p>
-
-<p>When I took the course, I thought the Bloom filter was an interesting idea that I wasn&rsquo;t likely to use anytime soon because I haven&rsquo;t needed one yet and I&rsquo;ve been programming professionally for more than a few years. But you don&rsquo;t know what you don&rsquo;t know, right? It&rsquo;s like thinking about buying a car you didn&rsquo;t notice before and now seeing it everywhere.</p>
-
-<h3>Configuration</h3>
-
-<p>The documentation is thin, with little more than variable names to glean meaning from.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="nf">BloomFilter</span><span class="o">(</span><span class="kt">int</span> <span class="n">vectorSize</span><span class="o">,</span>
-</span><span class='line'>                   <span class="kt">int</span> <span class="n">nbHash</span><span class="o">,</span>
-</span><span class='line'>                   <span class="kt">int</span> <span class="n">hashType</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><code>vectorSize</code> &ndash; The vector size of this filter.</li>
-<li><code>nbHash</code> &ndash; The number of hash function to consider.</li>
-<li><code>hashType</code> &ndash; type of the hashing function (see Hash).</li>
-</ul>
-
-
-<p>I know what you&rsquo;re thinking. What could be more helpful than <em>The vector size of this filter</em> as a description for <code>vectorSize</code>? Well, the basic idea is there&rsquo;s a trade-off between space, speed and probability of a false positive. Here&rsquo;s how I think about it:</p>
-
-<ul>
-<li><code>vectorSize</code> &ndash; The amount of memory used to store hash keys. Larger values are less likey to yield false positives. If the value is too large, you might as well use a <code>HashSet</code>.</li>
-<li><code>nbHash</code> &ndash; The number of times to hash the key. Larger numbers are less likely to yeild false positives at the expense of additional computation effort. Expect deminishing returns on larger values.</li>
-<li><code>hashType</code> &ndash; type of the hashing function (see Hash). The Hash documentation was reasonable so I&rsquo;m not going to add anything.</li>
-</ul>
-
-
-<p>I used trial and error to figure out numbers that were good for my constraints.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BloomFilterTests</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">BloomFilter</span> <span class="n">bloomFilter</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">knownKey</span> <span class="o">=</span> <span class="n">newGuid</span><span class="o">();</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">numberOfKeys</span> <span class="o">=</span> <span class="mi">500000</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nd">@BeforeClass</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">before</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">bloomFilter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BloomFilter</span><span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="n">Hash</span><span class="o">.</span><span class="na">MURMUR_HASH</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">));</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
-</span><span class='line'>            <span class="n">bloomFilter</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()));</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nd">@Test</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">should_contain_known_key</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">knownKey</span><span class="o">),</span> <span class="n">is</span><span class="o">(</span><span class="kc">true</span><span class="o">));</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nd">@Test</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">false_positive_probability_should_be_low</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
-</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numberOfKeys</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
-</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">hasKey</span><span class="o">(</span><span class="n">newGuid</span><span class="o">()))</span>
-</span><span class='line'>                <span class="n">count</span><span class="o">++;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">int</span> <span class="n">onePercent</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">numberOfKeys</span> <span class="o">*</span> <span class="o">.</span><span class="mi">01</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">assertThat</span><span class="o">(</span><span class="n">count</span><span class="o">,</span> <span class="n">is</span><span class="o">(</span><span class="n">lessThan</span><span class="o">(</span><span class="n">onePercent</span><span class="o">)));</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">newGuid</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">UUID</span><span class="o">.</span><span class="na">randomUUID</span><span class="o">().</span><span class="na">toString</span><span class="o">();</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Key</span> <span class="nf">newKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">Key</span><span class="o">(</span><span class="n">key</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">hasKey</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">bloomFilter</span><span class="o">.</span><span class="na">membershipTest</span><span class="o">(</span><span class="n">newKey</span><span class="o">(</span><span class="n">key</span><span class="o">));</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When you have your numbers worked out, simply swap out the <code>HashMap</code> with the <code>BloomFilter</code> and then blog about it.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -929,6 +870,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
+      </li>
     
       <li class="post">
         <a href="/unit-testing-scalding-jobs/">Unit Testing Scalding Jobs</a>
@@ -958,10 +903,6 @@
         <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
-      <li class="post">
-        <a href="/configuring-decorators-with-google-guice/">Configuring Decorators With Google Guice</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -971,7 +912,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Mike Valenty -
+  Copyright &copy; 2015 - Mike Valenty -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
