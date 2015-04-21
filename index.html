@@ -180,6 +180,7 @@ August 14, August 15, August 17
 <span class='line-number'>49</span>
 <span class='line-number'>50</span>
 <span class='line-number'>51</span>
+<span class='line-number'>52</span>
 </pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="nd">@RunWith</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">JUnitRunner</span><span class="o">])</span>
 </span><span class='line'><span class="k">class</span> <span class="nc">BirthdayProblem</span> <span class="k">extends</span> <span class="nc">FunSuite</span> <span class="k">with</span> <span class="nc">ShouldMatchers</span> <span class="o">{</span>
 </span><span class='line'>
@@ -207,23 +208,24 @@ August 14, August 15, August 17
 </span><span class='line'>
 </span><span class='line'>  <span class="k">val</span> <span class="n">uniqueByMonth</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="nc">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueBy</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">month</span><span class="o">)</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="c1">// Bernard would know the answer if the day was unique for all birthdays, so this</span>
-</span><span class='line'>  <span class="c1">// is the list of birthdays for which Bernard would know the answer.</span>
-</span><span class='line'>  <span class="k">val</span> <span class="n">birthdaysWithUniqueDay</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">birthdays</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// Albert tells us that Bernard doesn&#39;t know the answer, so we know the answer</span>
-</span><span class='line'>  <span class="c1">// must be in a month that does not contain a birthday with a unique day.</span>
-</span><span class='line'>  <span class="k">val</span> <span class="n">remainingBirthdays</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">val</span> <span class="n">monthsWithUniqueDay</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="n">birthdaysWithUniqueDay</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">month</span><span class="o">).</span><span class="n">toSet</span>
+</span><span class='line'>  <span class="c1">// Albert tells us that Bernard doesn&#39;t know the answer, so we</span>
+</span><span class='line'>  <span class="c1">// know the answer must be in a month that does not contain a</span>
+</span><span class='line'>  <span class="c1">// birthday with a unique day.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">clue1</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">monthsWithUniqueDay</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">birthdays</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">month</span><span class="o">).</span><span class="n">toSet</span>
 </span><span class='line'>    <span class="n">birthdays</span><span class="o">.</span><span class="n">filterNot</span><span class="o">(</span><span class="n">b</span> <span class="k">=&gt;</span> <span class="n">monthsWithUniqueDay</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">month</span><span class="o">))</span>
 </span><span class='line'>  <span class="o">}</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="c1">// Since Bernard now knows the answer, that tells us that the day must be</span>
-</span><span class='line'>  <span class="c1">// unique among the remaining birthdays.</span>
-</span><span class='line'>  <span class="k">val</span> <span class="n">remainingWithUniqueDay</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">remainingBirthdays</span><span class="o">)</span>
+</span><span class='line'>  <span class="c1">// Since Bernard now knows the answer, that tells us that the</span>
+</span><span class='line'>  <span class="c1">// day must be unique among the remaining birthdays.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">clue2</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByDay</span><span class="o">(</span><span class="n">clue1</span><span class="o">)</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="c1">// Since Albert now knows the answer, that tells us the answer has to be unique by month.</span>
-</span><span class='line'>  <span class="k">val</span> <span class="n">answer</span><span class="k">:</span> <span class="kt">Birthday</span> <span class="o">=</span> <span class="n">uniqueByMonth</span><span class="o">(</span><span class="n">remainingWithUniqueDay</span><span class="o">).</span><span class="n">head</span>
+</span><span class='line'>  <span class="c1">// Since Albert now knows the answer, that tells us the answer</span>
+</span><span class='line'>  <span class="c1">// has to be unique by month.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">clue3</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Birthday</span><span class="o">]</span> <span class="k">=</span> <span class="n">uniqueByMonth</span><span class="o">(</span><span class="n">clue2</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// The only remaining birthday is the answer.</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">answer</span> <span class="k">=</span> <span class="n">clue3</span><span class="o">.</span><span class="n">head</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="n">test</span><span class="o">(</span><span class="s">&quot;Cheryl&#39;s birthday&quot;</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>
