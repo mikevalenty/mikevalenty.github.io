@@ -54,23 +54,24 @@ class BirthdayProblem extends FunSuite with ShouldMatchers {
   
   val uniqueByMonth: (List[Birthday]) => List[Birthday] = uniqueBy(_.month)
 
-  // Bernard would know the answer if the day was unique for all birthdays, so this
-  // is the list of birthdays for which Bernard would know the answer.
-  val birthdaysWithUniqueDay: List[Birthday] = uniqueByDay(birthdays)
-
-  // Albert tells us that Bernard doesn't know the answer, so we know the answer
-  // must be in a month that does not contain a birthday with a unique day.
-  val remainingBirthdays: List[Birthday] = {
-    val monthsWithUniqueDay: Set[Int] = birthdaysWithUniqueDay.map(_.month).toSet
+  // Albert tells us that Bernard doesn't know the answer, so we
+  // know the answer must be in a month that does not contain a
+  // birthday with a unique day.
+  val clue1: List[Birthday] = {
+    val monthsWithUniqueDay: Set[Int] = uniqueByDay(birthdays).map(_.month).toSet
     birthdays.filterNot(b => monthsWithUniqueDay.contains(b.month))
   }
 
-  // Since Bernard now knows the answer, that tells us that the day must be
-  // unique among the remaining birthdays.
-  val remainingWithUniqueDay: List[Birthday] = uniqueByDay(remainingBirthdays)
+  // Since Bernard now knows the answer, that tells us that the
+  // day must be unique among the remaining birthdays.
+  val clue2: List[Birthday] = uniqueByDay(clue1)
 
-  // Since Albert now knows the answer, that tells us the answer has to be unique by month.
-  val answer: Birthday = uniqueByMonth(remainingWithUniqueDay).head
+  // Since Albert now knows the answer, that tells us the answer
+  // has to be unique by month.
+  val clue3: List[Birthday] = uniqueByMonth(clue2)
+
+  // The only remaining birthday is the answer.
+  val answer = clue3.head
 
   test("Cheryl's birthday") {
 
