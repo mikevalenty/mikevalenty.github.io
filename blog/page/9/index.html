@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="If you don’t know where you are going, you will wind up somewhere else. – Yogi Berra When asked how a project is going, most programmers will offer &hellip;">
+  <meta name="description" content="Before Inversion of Control, I would use configuration for a connection string, port number or other boring piece of information. Nowadays however, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,248 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/testing-unity-container-configuration/">Testing Unity Container Configuration</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-05-31T21:04:00-07:00" pubdate data-updated="true">May 31<span>st</span>, 2009</time>
+        
+         | <a href="/testing-unity-container-configuration/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Before Inversion of Control, I would use configuration for a connection string, port number or other boring piece of information. Nowadays however, configuration can be a pretty hairy part of the application in its own right. Not necessarily the xml kind of configuration, just configuration. You know, the place where you use the “new “ keyword and essentially break all the principals you worked so hard to protect in the rest of your application. Uncle Bob referred to this as “the other side of the wall” in a <a href="http://hanselminutes.com/default.aspx?showID=163">podcast with Scott Hanselman</a>.</p>
+
+<p><img class="plain" src="/images/posts/afewgoodmenjacktruth-thumb.jpg"></p>
+
+<blockquote><p>Son, we live in a world that has walls, and those walls have to be guarded by men with guns. Who’s gonna do it? You? You, Lieutenant Weinberg? I have a greater responsibility than you can possibly fathom… – Colonel Nathan R. Jessep</p></blockquote>
+
+<p>In my case, I wanted to inject an encryption provider to do Rijndael encryption with a specific vector and all that. Since I already had another IEncryptionProvider registered with the container, I named the new one.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span><span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">InjectedMembers</span><span class="p">&gt;().</span><span class="n">ConfigureInjectionFor</span><span class="p">&lt;</span><span class="n">RijndaelEncryptionProvider</span><span class="p">&gt;(</span>
+</span><span class='line'>    <span class="s">&quot;MyEncryptionProvider&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nf">InjectionConstructor</span><span class="p">(</span>
+</span><span class='line'>        <span class="k">new</span> <span class="n">ResolvedParameter</span><span class="p">&lt;</span><span class="n">NoOpSaltStrategy</span><span class="p">&gt;(),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="n">RijndaelConfig</span> <span class="p">{</span> <span class="n">Hash</span> <span class="p">=</span> <span class="s">&quot;SHA1&quot;</span><span class="p">,</span> <span class="n">Vector</span> <span class="p">=</span> <span class="s">&quot;notreal&quot;</span><span class="p">,</span> <span class="n">Iterations</span> <span class="p">=</span> <span class="m">2</span><span class="p">,</span> <span class="n">Size</span> <span class="p">=</span> <span class="m">256</span> <span class="p">}));</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Container</span><span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">InjectedMembers</span><span class="p">&gt;().</span><span class="n">ConfigureInjectionFor</span><span class="p">&lt;</span><span class="n">MyService</span><span class="p">&gt;(</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nf">InjectionConstructor</span><span class="p">(</span>
+</span><span class='line'>        <span class="k">new</span> <span class="n">ResolvedParameter</span><span class="p">&lt;</span><span class="n">IEncryptionProvider</span><span class="p">&gt;(</span><span class="s">&quot;MyEncryptionProvider&quot;</span><span class="p">),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="n">ResolvedParameter</span><span class="p">&lt;</span><span class="n">DataDropConfigSection</span><span class="p">&gt;()));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What is a good way to make sure I’m wiring up Unity properly? I could just go black box and make sure my service can decrypt a string encrypted with a particular vector. That would be pretty BDDish and provide good insulation from volatile configuration code. In this application however, doing a legit integration test was a PITA for other reasons and I wanted some quick feedback on my Unity configuration.</p>
+
+<p>A coworker and I decided to use a container extension to watch all the dependencies that were resolved and then tell us if we got the right one. The unit test looked like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">EncryptionProviderTests</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IUnityContainer</span> <span class="n">container</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">WasResolvedContainerExtension</span> <span class="n">wasResolvedContainerExtension</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [SetUp]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">SetUp</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">wasResolvedContainerExtension</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WasResolvedContainerExtension</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddExtension</span><span class="p">(</span><span class="n">wasResolvedContainerExtension</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">WebMvcContainerExtension</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [TearDown]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">TearDown</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">container</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">    [Test]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Should_inject_named_instance_of_encryption_provider</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">service</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">MyService</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">AssertNamedInstanceWasResolved</span><span class="p">&lt;</span><span class="n">IEncryptionProvider</span><span class="p">&gt;(</span><span class="s">&quot;MyEncryptionProvider&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="n">AssertNamedInstanceWasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">Assert</span><span class="p">.</span><span class="n">IsTrue</span><span class="p">(</span><span class="n">wasResolvedContainerExtension</span><span class="p">.</span><span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">name</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Granted it’s a little magical, but at least it reads well and a failure is pretty easy to track down from that point.  This is what the container extension looks like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">WasResolvedContainerExtension</span> <span class="p">:</span> <span class="n">UnityContainerExtension</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">WasResolvedBuilderStrategy</span> <span class="n">strategy</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Initialize</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">strategy</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WasResolvedBuilderStrategy</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Context</span><span class="p">.</span><span class="n">Strategies</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">UnityBuildStage</span><span class="p">.</span><span class="n">Creation</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">null</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">strategy</span><span class="p">.</span><span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">name</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The real work is done in the <code>BuilderStrategy</code> which looks like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">WasResolvedBuilderStrategy</span> <span class="p">:</span> <span class="n">BuilderStrategy</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="n">IList</span><span class="p">&lt;</span><span class="n">NamedTypeBuildKey</span><span class="p">&gt;</span> <span class="n">buildKeys</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">NamedTypeBuildKey</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">PreBuildUp</span><span class="p">(</span><span class="n">IBuilderContext</span> <span class="n">context</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">buildKeys</span><span class="p">.</span><span class="n">Add</span><span class="p">((</span><span class="n">NamedTypeBuildKey</span><span class="p">)</span><span class="n">context</span><span class="p">.</span><span class="n">BuildKey</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">null</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="n">WasResolved</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">buildKey</span> <span class="p">=</span> <span class="p">(</span><span class="n">buildKeys</span><span class="p">.</span><span class="n">FirstOrDefault</span><span class="p">(</span><span class="n">k</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="k">typeof</span><span class="p">(</span><span class="n">T</span><span class="p">).</span><span class="n">IsAssignableFrom</span><span class="p">(</span><span class="n">k</span><span class="p">.</span><span class="n">Type</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="n">k</span><span class="p">.</span><span class="n">Name</span> <span class="p">==</span> <span class="n">name</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">buildKey</span><span class="p">.</span><span class="n">Type</span> <span class="p">!=</span> <span class="k">null</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And there you have it, a pretty quick way to test Unity configuration.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -297,84 +539,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/5-ways-to-fail-at-pair-programming/">5 Ways to Fail at Pair Programming</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-05-10T21:37:00-07:00" pubdate data-updated="true">May 10<span>th</span>, 2009</time>
-        
-         | <a href="/5-ways-to-fail-at-pair-programming/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img class="plain" src="/images/posts/shoes.jpg"></p>
-
-<p>The only hard part is convincing your boss that it’s not a colossal waste of time, right? Well that’s the first hurdle and yes it’s a doosie, but it’s just the price of admission. The real fun starts when you sit next to your partner and try to prove your boss wrong. After a year or so in the trenches, I’ve learned a thing or two on how to mess it up.</p>
-
-<h3>5. Researching new technology</h3>
-
-<p>“Click on that link, no wait scroll up, over there, wait I wasn’t done reading that…” That’s not pair programming, that’s insanity. Recently we were working on a project that involved a custom Firefox browser skin. Neither of us had experience with browser skins, so there was a lot of Googling and tutorial reading. As soon as we caught ourselves reading blogs and whatnot, we would split up for 15 minutes and then compare notes.</p>
-
-<h3>4. Getting your environment going</h3>
-
-<p>“Hey buddy, are you ready to start pairing on that project? Let’s see, now where is the source code for the project we’re working on… Hmm, this doesn’t compile – I think I need to install the latest version of that library.” Kill me now.</p>
-
-<h3>3. Paralysis</h3>
-
-<p><img class="plain right" src="/images/posts/FrightenedMan400.jpg"></p>
-
-<p>One of my favorite authors, Kurt Vonnegut would write clever things like “The man looked… guilty isn’t the right word, but it’s the first one that comes to mind.”</p>
-
-<p>With pair programming, you can’t just sit there because you don’t know where to start or you can’t think of the right variable name. Just type something. You have to get the problem solving out of your head and into a medium that two people can have a conversation about it. Maybe people are afraid to type something in front of a peer if it’s not perfect. Borrow a technique from Kurt Vonnegut and as you are type, just say “I don’t want the code to look like this…” and write some awful switch case statement.</p>
-
-<p>Once there is something on the screen, you and your partner are instantly aligned and solving the same problem. Now you can discuss factories and polymorphism and all kinds of heady solutions.</p>
-
-<h3>2. Not doing TDD</h3>
-
-<p>Have you ever watched an artist paint a picture and thought to yourself “what the heck is that”. Then with the next brush stroke you realize you’re looking at the profile of someone’s face. Well watching someone write code can be horribly worse than that.</p>
-
-<p>Pair programming is a conversation, not a seminar or window into someone’s brain. The best way to keep things at a conversational level is to work top down which is exactly what TDD forces you to do. You must consider your code from the client perspective and challenge yourself to keep your code on purpose.</p>
-
-<p>Even more importantly, TDD gives you and your buddy an “out” at regular intervals. You write a test, you make a test pass. Either way, you have many small victories over the course of a few hours and you can switch pairs at well defined feel-good stopping points.</p>
-
-<h3>1. Not using a timer</h3>
-
-<p><img class="plain left" src="/images/posts/pprobot.jpg"></p>
-
-<p>I used to work with a guy that was always competing with something. A mutual friend at the office was doing the 3-day breast cancer walk. If anyone in the office donated money, he would up his donation $1 higher. On the softball team, his jersey number was #1. When we started playing ping-pong at lunch, he bought a $600 ping-pong robot to practice with at home. So when he started using a timer while programming I just figured it was good old Paul racing against time.</p>
-
-<p>Then I paired with him on a project. Right after wanting to strangle him for not having his environment ready, we set his timer for 30 minutes and got going. When the timer went off, we stopped mid keystroke and switched seats. This did a few things. First, it kept Paul engaged the whole time because he knew he would be in the hot seat in a few minutes, and I can be a bit of a bully so it was easier for me to back off knowing I’d get my chance soon enough. One of the more surprising benefits, however, was simply the fact that we would sit for a minute and agree exactly what we were doing before starting the timer which really got us in gear and drastically cut down on tangents.</p>
-
-<p>Using a timer creates a magical dynamic that I cannot do justice with words. It’s like TDD, it’s not about the tests – it’s about the code you write to make it testable. You have to try it. Period.</p>
-
-<blockquote><p>If you can do a half-assed job of anything, you’re a one-eyed man in a kingdom of the blind. – Kurt Vonnegut</p></blockquote>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/10/">&larr; Older</a>
@@ -390,6 +554,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-finding-happy-numbers/">Scala Solution to Finding Happy Numbers</a>
+      </li>
     
       <li class="post">
         <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
@@ -417,10 +585,6 @@
     
       <li class="post">
         <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
-      </li>
-    
-      <li class="post">
-        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
   </ul>

@@ -9,21 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="A few people have asked about the RegisterMock extension method used in another post. The usage looks like this: 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15 &hellip;">
+  <meta name="description" content="While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +76,215 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/integration-testing-with-nhibernate/">Integration Testing With NHibernate</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-11-06T21:59:00-08:00" pubdate data-updated="true">Nov 6<span>th</span>, 2009</time>
+        
+         | <a href="/integration-testing-with-nhibernate/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure my mapping works and that when I save an entity it goes to the database.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MyIntegrationFixture</span> <span class="p">:</span> <span class="n">IntegrationFixture</span> <span class="p">{</span>
+</span><span class='line'><span class="na">    [Test]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Can_add_elements</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">repository</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">MyEntity</span><span class="p">&gt;&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="n">repository</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">entity</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">Element</span> <span class="p">{</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&quot;The Description&quot;</span> <span class="p">});</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Assert</span><span class="p">.</span><span class="n">That</span><span class="p">(</span><span class="n">repository</span><span class="p">.</span><span class="n">FindById</span><span class="p">(</span><span class="m">1</span><span class="p">).</span><span class="n">Elements</span><span class="p">.</span><span class="n">Count</span><span class="p">(),</span> <span class="n">Is</span><span class="p">.</span><span class="n">EqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The problem is the next time I call <code>FindById()</code> I get my object back from the first level cache <code>ISession</code>, so the Assert passes but looking at the SQL output by NHibernate I can see that no INSERT statement is happening. There are two things that NHibernate needs to do in order for the integration test to work as expected.</p>
+
+<ol>
+<li>There needs to be an explicit transaction and it needs to be committed in order to actually send the INSERT statements to the database.</li>
+<li>The entity needs to be evicted from the session in order to ensure that the next call to <code>FindById()</code> actually goes to the database.</li>
+</ol>
+
+
+<p>It’s the job of the application to manage the scope of the unit of work. Typically this is per web request in a web app. In a test, it’s per test. This turns into a bunch of boiler-plate noise. Also, this business about evicting the session is an NHibernate specific thing and doesn’t belong in a test that is dealing with an IRepository abstraction.</p>
+
+<p>Since I solve all my problems with a pipeline or decorator, I figured I’d decorate the <code>ISession</code> and commit and evict on the operations I care about:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">AutoCommitAndEvictSession</span> <span class="p">:</span> <span class="n">SessionDecorator</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">AutoCommitAndEvictSession</span><span class="p">(</span><span class="n">ISession</span> <span class="n">session</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">session</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">Save</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">object</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">tx</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">BeginTransaction</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">result</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">tx</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">Session</span><span class="p">.</span><span class="n">Evict</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Update</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">Update</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">SaveOrUpdate</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">SaveOrUpdate</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Delete</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">CommitAndEvict</span><span class="p">(</span><span class="k">base</span><span class="p">.</span><span class="n">Delete</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">void</span> <span class="nf">CommitAndEvict</span><span class="p">(</span><span class="n">Action</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;</span> <span class="n">action</span><span class="p">,</span> <span class="kt">object</span> <span class="n">entity</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">tx</span> <span class="p">=</span> <span class="n">Session</span><span class="p">.</span><span class="n">BeginTransaction</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">tx</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">Session</span><span class="p">.</span><span class="n">Evict</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I just work it into a test fixture like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[TestFixture]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">IntegrationFixture</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="n">IUnityContainer</span> <span class="n">Container</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">private</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [TestFixtureSetUp]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TestFixtureSetUp</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Container</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UnityContainer</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">ConfigureNHibernate</span><span class="p">&gt;();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [TestFixtureTearDown]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TestFixtureTearDown</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">Dispose</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [SetUp]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">SetUp</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">session</span> <span class="p">=</span> <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;().</span><span class="n">OpenSession</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">RegisterInstance</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">AutoCommitAndEvictSession</span><span class="p">(</span><span class="n">session</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="na"> </span>
+</span><span class='line'><span class="na">    [TearDown]</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">TearDown</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Container</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;().</span><span class="n">Dispose</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -749,272 +944,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/validation-with-unity-interception/">Validation With Unity Interception</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-07-18T18:20:00-07:00" pubdate data-updated="true">Jul 18<span>th</span>, 2009</time>
-        
-         | <a href="/validation-with-unity-interception/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
-
-<p>This is how I want things to look:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">UpdateUserRequest</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'><span class="na">    [AuthorizedUserPublisherRequired]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">UserId</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [Required(&quot;Name is required&quot;)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [ValidZipCodeRequired(&quot;Invalid zip code&quot;)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">string</span> <span class="n">ZipCode</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">interface</span> <span class="n">IUserService</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">void</span> <span class="nf">Update</span><span class="p">(</span><span class="n">UpdateUserRequest</span> <span class="n">request</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There are validation frameworks out there that will do this, so what’s my beef? Well, first of all I want to inject the validators with dependencies to implement the juicier rules. And second, I’m treating validation as a core concern so I don’t want a dependency on a framework like Enterprise Library. I had several questions like:</p>
-
-<ol>
-<li>How do I get dependencies into the validators?</li>
-<li>How do I get <code>ValidZipCodeRequired</code> to fire with the value of the <code>ZipCode</code> property</li>
-<li>How do I initiate this on <code>userService.Update()</code>?</li>
-</ol>
-
-
-<p>Let’s take a look at building up the validators.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">ValidZipCodeRequiredAttribute</span> <span class="p">:</span> <span class="n">ValidatorAttribute</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="n">IValidator</span> <span class="nf">CreateValidator</span><span class="p">(</span><span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="n">factory</span><span class="p">.</span><span class="n">Create</span><span class="p">&lt;</span><span class="n">ValidZipCodeRequiredValidator</span><span class="p">&gt;();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This allows me to make a <code>UnityValidatorFactory</code> that can supply all my dependencies. Now how about this business of running the <code>ValidZipCodeRequiredValidator</code> with the value of the <code>ZipCode</code> property? For that I made a composite validator that loops through each property and runs the annotated validator against it’s property value.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">CompositeValidator</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IValidator</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">CompositeValidator</span><span class="p">(</span><span class="n">IValidatorFactory</span> <span class="n">factory</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">factory</span> <span class="p">=</span> <span class="n">factory</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">Validate</span><span class="p">(</span><span class="n">T</span> <span class="n">subject</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">exceptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">PropertyInfo</span> <span class="n">property</span> <span class="k">in</span> <span class="k">typeof</span><span class="p">(</span><span class="n">T</span><span class="p">).</span><span class="n">GetProperties</span><span class="p">())</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">validator</span> <span class="k">in</span> <span class="n">GetValidatorsFor</span><span class="p">(</span><span class="n">property</span><span class="p">))</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="n">exceptions</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">validator</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">property</span><span class="p">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="k">null</span><span class="p">)));</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="n">exceptions</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">IValidator</span><span class="p">&gt;</span> <span class="n">GetValidatorsFor</span><span class="p">(</span><span class="n">ICustomAttributeProvider</span> <span class="n">provider</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="n">ValidatorAttribute</span> <span class="n">attribute</span>
-</span><span class='line'>            <span class="k">in</span> <span class="n">provider</span><span class="p">.</span><span class="n">GetCustomAttributes</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">ValidatorAttribute</span><span class="p">),</span> <span class="k">true</span><span class="p">))</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">yield</span> <span class="k">return</span> <span class="n">attribute</span><span class="p">.</span><span class="n">CreateValidator</span><span class="p">(</span><span class="n">factory</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now I just need to run the <code>CompositeValidator</code> on <code>userService.Update()</code>. For that I use Unity Interception:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">ValidationCallHandler</span> <span class="p">:</span> <span class="n">ICallHandler</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IValidator</span> <span class="n">validator</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">ValidationCallHandler</span><span class="p">(</span><span class="n">IValidator</span> <span class="n">validator</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">validator</span> <span class="p">=</span> <span class="n">validator</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">IMethodReturn</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">IMethodInvocation</span> <span class="n">input</span><span class="p">,</span> <span class="n">GetNextHandlerDelegate</span> <span class="n">getNext</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">ruleExceptions</span> <span class="p">=</span> <span class="n">ValidateEachArgument</span><span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">Arguments</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">ruleExceptions</span><span class="p">.</span><span class="n">Count</span><span class="p">()</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">ValidationException</span><span class="p">(</span><span class="n">ruleExceptions</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">getNext</span><span class="p">()(</span><span class="n">input</span><span class="p">,</span> <span class="n">getNext</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;</span> <span class="n">ValidateEachArgument</span><span class="p">(</span><span class="n">IParameterCollection</span> <span class="n">arguments</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">ruleExceptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">RuleException</span><span class="p">&gt;();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">arg</span> <span class="k">in</span> <span class="n">arguments</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">ruleExceptions</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">validator</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="n">arg</span><span class="p">));</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="n">ruleExceptions</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">int</span> <span class="n">Order</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Phew, we’re almost done. The only thing left is to apply this validator in configuration so I can keep the Unity reference out of my core domain. That looks like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">container</span><span class="p">.</span><span class="n">AddNewExtension</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">Interception</span><span class="p">&gt;()</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">SetInterceptorFor</span><span class="p">&lt;</span><span class="n">IUserService</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">InterfaceInterceptor</span><span class="p">())</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">AddPolicy</span><span class="p">(</span><span class="s">&quot;UserServiceValidationPolicy&quot;</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">AddCallHandler</span><span class="p">&lt;</span><span class="n">ValidationCallHandler</span><span class="p">&gt;()</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">AddMatchingRule</span><span class="p">&lt;</span><span class="n">AlwaysApplyMatchingRule</span><span class="p">&gt;();</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -1030,6 +959,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-finding-happy-numbers/">Scala Solution to Finding Happy Numbers</a>
+      </li>
     
       <li class="post">
         <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
@@ -1057,10 +990,6 @@
     
       <li class="post">
         <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
-      </li>
-    
-      <li class="post">
-        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
   </ul>

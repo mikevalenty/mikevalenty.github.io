@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="I ran across a Java 8 solution to Cheryl&rsquo;s birthday problem and just had to write a Scala version since this is one of those problems the &hellip;">
+  <meta name="description" content="What is a Happy Number? Starting with any positive integer, replace the number by the sum of the squares of its digits, and repeat the process until &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,113 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/scala-solution-to-finding-happy-numbers/">Scala Solution to Finding Happy Numbers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-03T10:45:00-07:00" pubdate data-updated="true">May 3<span>rd</span>, 2015</time>
+        
+         | <a href="/scala-solution-to-finding-happy-numbers/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>What is a Happy Number?</p>
+
+<blockquote><p>Starting with any positive integer, replace the number by the sum of the squares of its digits, and repeat the process until the number equals 1 (where it will stay), or it loops endlessly in a cycle which does not include 1.</p>
+
+<p><a href="http://en.wikipedia.org/wiki/Happy_number">http://en.wikipedia.org/wiki/Happy_number</a></p></blockquote>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="nd">@RunWith</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">JUnitRunner</span><span class="o">])</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">HappyTests</span> <span class="k">extends</span> <span class="nc">FunSuite</span> <span class="k">with</span> <span class="nc">ShouldMatchers</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">happy</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="n">sumOfSquares</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">def</span> <span class="n">digits</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Seq</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">)</span> <span class="nc">Seq</span><span class="o">(</span><span class="n">x</span><span class="o">)</span> <span class="k">else</span> <span class="n">digits</span><span class="o">(</span><span class="n">x</span> <span class="o">/</span> <span class="mi">10</span><span class="o">)</span> <span class="o">:+</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">10</span>
+</span><span class='line'>      <span class="k">def</span> <span class="n">squared</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+</span><span class='line'>      <span class="n">digits</span><span class="o">(</span><span class="n">x</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">squared</span><span class="o">).</span><span class="n">sum</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="n">loop</span><span class="o">(</span><span class="n">seen</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">Int</span><span class="o">],</span> <span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">x</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">case</span> <span class="mi">1</span> <span class="k">=&gt;</span> <span class="kc">true</span>
+</span><span class='line'>        <span class="k">case</span> <span class="k">_</span> <span class="k">if</span> <span class="n">seen</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">x</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="kc">false</span>
+</span><span class='line'>        <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="n">loop</span><span class="o">(</span><span class="n">seen</span> <span class="o">+</span> <span class="n">x</span><span class="o">,</span> <span class="n">sumOfSquares</span><span class="o">(</span><span class="n">x</span><span class="o">))</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">loop</span><span class="o">(</span><span class="nc">Set</span><span class="o">(),</span> <span class="n">x</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">test</span><span class="o">(</span><span class="s">&quot;happy numbers&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">actual</span> <span class="k">=</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">50</span> <span class="n">filter</span> <span class="n">happy</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">expected</span> <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">7</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">13</span><span class="o">,</span> <span class="mi">19</span><span class="o">,</span> <span class="mi">23</span><span class="o">,</span> <span class="mi">28</span><span class="o">,</span> <span class="mi">31</span><span class="o">,</span> <span class="mi">32</span><span class="o">,</span> <span class="mi">44</span><span class="o">,</span> <span class="mi">49</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">actual</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">expected</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -720,145 +827,6 @@ August 14, August 15, August 17
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Using Scala to Perform a Multi-Key Get on a Couchbase View</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-16T15:26:00-08:00" pubdate data-updated="true">Nov 16<span>th</span>, 2013</time>
-        
-         | <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>To retrieve documents from Couchbase by anything other than the document key requires querying a <a href="http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html">view</a> and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">key</span>         <span class="nx">value</span>
-</span><span class='line'><span class="o">---</span>         <span class="o">-----</span>
-</span><span class='line'><span class="s2">&quot;key1&quot;</span>      <span class="p">{</span> <span class="s2">&quot;term&quot;</span><span class="o">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="o">:</span> <span class="mi">2</span> <span class="p">}</span>
-</span><span class='line'><span class="s2">&quot;key2&quot;</span>      <span class="p">{</span> <span class="s2">&quot;term&quot;</span><span class="o">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="o">:</span> <span class="mi">1</span> <span class="p">}</span>
-</span><span class='line'><span class="s2">&quot;key3&quot;</span>      <span class="p">{</span> <span class="s2">&quot;term&quot;</span><span class="o">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="o">:</span> <span class="mi">4</span> <span class="p">}</span>
-</span><span class='line'><span class="p">...</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And this Scala <code>case class</code> to hold the documents retrieved from the view.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">TermOccurrence</span><span class="o">(</span><span class="n">term</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">count</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It&rsquo;s a common scenario to retrieve multiple documents at once and the <a href="http://www.couchbase.com/communities/java/getting-started">Java driver</a> has a pretty straight forward api for that. The desired keys are simply specified as a json array.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">com.couchbase.client.CouchbaseClient</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.json.Json</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">CouchbaseExtensions._</span>
-</span><span class='line'>
-</span><span class='line'><span class="nd">@Log</span>
-</span><span class='line'><span class="k">def</span> <span class="n">findByTerms</span><span class="o">(</span><span class="n">terms</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">TermOccurrence</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">val</span> <span class="n">keys</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">stringify</span><span class="o">(</span><span class="nc">Json</span><span class="o">.</span><span class="n">toJson</span><span class="o">(</span><span class="n">terms</span> <span class="n">map</span> <span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toLowerCase</span><span class="o">)))</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">val</span> <span class="n">view</span> <span class="k">=</span> <span class="n">client</span><span class="o">.</span><span class="n">getView</span><span class="o">(</span><span class="s">&quot;view1&quot;</span><span class="o">,</span> <span class="s">&quot;by_term&quot;</span><span class="o">)</span>
-</span><span class='line'>  <span class="k">val</span> <span class="n">query</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Query</span><span class="o">()</span>
-</span><span class='line'>  <span class="n">query</span><span class="o">.</span><span class="n">setIncludeDocs</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-</span><span class='line'>  <span class="n">query</span><span class="o">.</span><span class="n">setKeys</span><span class="o">(</span><span class="n">keys</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">val</span> <span class="n">response</span> <span class="k">=</span> <span class="n">client</span><span class="o">.</span><span class="n">query</span><span class="o">(</span><span class="n">view</span><span class="o">,</span> <span class="n">query</span><span class="o">).</span><span class="n">asScala</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">response</span><span class="o">.</span><span class="n">toList</span> <span class="n">map</span> <span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">TermOccurrence</span><span class="o">])</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The Java driver deals with strings so it&rsquo;s up to the client application to handle the json parsing. That was an excellent design decision and makes using the Java driver from Scala pretty painless. I&rsquo;m using the <a href="http://www.playframework.com/">Play Framework</a> json libraries and an extension method <code>_.as[TermOccurrence]</code> defined on <code>ViewRow</code> to simplify the mapping of the response documents to Scala objects.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">CouchbaseExtensions</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">implicit</span> <span class="k">class</span> <span class="nc">RichViewRow</span><span class="o">(</span><span class="n">row</span><span class="k">:</span> <span class="kt">ViewRow</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">def</span> <span class="n">as</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="k">implicit</span> <span class="n">format</span><span class="k">:</span> <span class="kt">Format</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class='line'>      <span class="k">val</span> <span class="n">document</span> <span class="k">=</span> <span class="n">row</span><span class="o">.</span><span class="n">getValue</span>
-</span><span class='line'>      <span class="k">val</span> <span class="n">modelJsValue</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">parse</span><span class="o">(</span><span class="n">document</span><span class="o">)</span>
-</span><span class='line'>      <span class="nc">Json</span><span class="o">.</span><span class="n">fromJson</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">modelJsValue</span><span class="o">).</span><span class="n">get</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In order for this extension method to work, it requires an implicit <code>Format[TermOccurrence]</code> which is defined on of the <code>TermOccurrence</code> compainion object.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">TermOccurrence</span> <span class="o">{</span>
-</span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">formatTermOccurrence</span> <span class="k">=</span> <span class="nc">Json</span><span class="o">.</span><span class="n">format</span><span class="o">[</span><span class="kt">TermOccurrence</span><span class="o">]</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -872,6 +840,10 @@ August 14, August 15, August 17
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-finding-happy-numbers/">Scala Solution to Finding Happy Numbers</a>
+      </li>
     
       <li class="post">
         <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
@@ -899,10 +871,6 @@ August 14, August 15, August 17
     
       <li class="post">
         <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
-      </li>
-    
-      <li class="post">
-        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
   </ul>

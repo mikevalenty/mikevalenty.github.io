@@ -9,7 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="The Mission: Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new &hellip;">
+  <meta name="description" content="Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,310 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">Bolt-on Multi-Tenancy in ASP.NET MVC With Unity and NHibernate: Part II – Commingled Data</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-06-18T11:08:00-07:00" pubdate data-updated="true">Jun 18<span>th</span>, 2011</time>
+        
+         | <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add <code>tenant_id</code> to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;hibernate-mapping</span> <span class="na">xmlns=</span><span class="s">&quot;urn:nhibernate-mapping-2.2&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;filter-def</span> <span class="na">name=</span><span class="s">&quot;tenant&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;filter-param</span> <span class="na">name=</span><span class="s">&quot;id&quot;</span> <span class="na">type=</span><span class="s">&quot;System.Int32&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/filter-def&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;/hibernate-mapping&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And then apply it to each entity:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;class</span> <span class="na">name=</span><span class="s">&quot;User&quot;</span> <span class="na">table=</span><span class="s">&quot;[user]&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;id</span> <span class="na">name=</span><span class="s">&quot;Id&quot;</span> <span class="na">column=</span><span class="s">&quot;user_id&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;generator</span> <span class="na">class=</span><span class="s">&quot;identity&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/id&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;Username&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;Email&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;filter</span> <span class="na">name=</span><span class="s">&quot;tenant&quot;</span> <span class="na">condition=</span><span class="s">&quot;tenant_id = :id&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;/class&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The last step is to set the value of the filter at runtime. This is done on the <code>ISession</code> like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISession</span><span class="p">&gt;(</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">PerRequestLifetimeManager</span><span class="p">(),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="kt">var</span> <span class="n">session</span> <span class="p">=</span> <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;().</span><span class="n">OpenSession</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">session</span><span class="p">.</span><span class="n">EnableFilter</span><span class="p">(</span><span class="s">&quot;tenant&quot;</span><span class="p">).</span><span class="n">SetParameter</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Tenant</span><span class="p">&gt;().</span><span class="n">Id</span><span class="p">);</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">session</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>    <span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The current tenant comes from <code>c.Resolve&lt;Tenant&gt;()</code>. In order for that to work, you have to tell Unity how to find the current tenant. In ASP.NET MVC, we can look at the host header on the request and find our tenant that way. We could just as easily use another strategy though. Maybe if this were a WCF service, we could use an authentication header to establish the current tenant context. You could build out some interfaces and strategies around establishing the current tenant context, however for this article I’ll just bang it out.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">Tenant</span><span class="p">&gt;(</span><span class="k">new</span> <span class="n">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">repository</span> <span class="p">=</span> <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">ITenantRepository</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">context</span> <span class="p">=</span> <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">HttpContextBase</span><span class="p">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">host</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s">&quot;Host&quot;</span><span class="p">]</span> <span class="p">??</span> <span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Url</span><span class="p">.</span><span class="n">Host</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">repository</span><span class="p">.</span><span class="n">FindByHost</span><span class="p">(</span><span class="n">host</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Second, we have to set the <code>tenant_id</code> when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">User</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="kt">int?</span> <span class="n">tenantId</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">int</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Username</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Email</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It’s private because I don’t want the business logic to deal with it and it’s nullable because my tenant table is in a separate database which means I can’t lean on the data model to enforce referential integrity. That’s a problem because the default value for an integer is zero which could be happily saved by the database. By making it nullable I can be sure the database will blow up if the <code>tenant_id</code> is not set.</p>
+
+<p>So, back to the issue at hand. The <code>tenant_id</code> needs to be set when the entity is saved. For this, I’m using an interceptor and setting the value in the <code>OnSave</code> method:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MultiTenantInterceptor</span> <span class="p">:</span> <span class="n">EmptyInterceptor</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">Tenant</span><span class="p">&gt;</span> <span class="n">tenant</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="nf">MultiTenantInterceptor</span><span class="p">(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">Tenant</span><span class="p">&gt;</span> <span class="n">tenant</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">tenant</span> <span class="p">=</span> <span class="n">tenant</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">OnSave</span><span class="p">(</span><span class="kt">object</span> <span class="n">entity</span><span class="p">...</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">state</span><span class="p">,</span> <span class="kt">string</span><span class="p">[]</span> <span class="n">propertyNames</span><span class="p">...)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">index</span> <span class="p">=</span> <span class="n">Array</span><span class="p">.</span><span class="n">IndexOf</span><span class="p">(</span><span class="n">propertyNames</span><span class="p">,</span> <span class="s">&quot;tenantId&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="p">==</span> <span class="p">-</span><span class="m">1</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">tenantId</span> <span class="p">=</span> <span class="n">tenant</span><span class="p">().</span><span class="n">Id</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">state</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">=</span> <span class="n">tenantId</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">entity</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">GetType</span><span class="p">()</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">GetField</span><span class="p">(</span><span class="s">&quot;tenantId&quot;</span><span class="p">,</span> <span class="n">BindingFlags</span><span class="p">.</span><span class="n">Instance</span> <span class="p">|</span> <span class="n">BindingFlags</span><span class="p">.</span><span class="n">NonPublic</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">tenantId</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This <code>IInterceptor</code> mechanism is a little wonky. If you change any data, you have to do it in both the entity instance and the state array that NHibernate uses to hydrate entities. It’s not a big deal, it’s just one of those things you have to accept like the fact that Apple and Google are tracking your every move via your smart phone. Oh, and the interceptor gets wired up like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="n">Container</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">RegisterType</span><span class="p">&lt;</span><span class="n">ISessionFactory</span><span class="p">&gt;(</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">ContainerControlledLifetimeManager</span><span class="p">(),</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">InjectionFactory</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="n">NHibernate</span><span class="p">.</span><span class="n">Cfg</span><span class="p">.</span><span class="n">Configuration</span><span class="p">()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">Configure</span><span class="p">()</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">SetInterceptor</span><span class="p">(</span><span class="k">new</span> <span class="n">MultiTenantInterceptor</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">c</span><span class="p">.</span><span class="n">Resolve</span><span class="p">&lt;</span><span class="n">Tenant</span><span class="p">&gt;()))</span>
+</span><span class='line'>                <span class="p">.</span><span class="n">BuildSessionFactory</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>    <span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We’re almost done. There is one more case that needs to be handled. When NHibernate loads an entity by its primary key, it doesn’t run through the query engine which means the tenant filter isn’t applied. Fortunately, we can take care of this in the interceptor:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">MultiTenantInterceptor</span> <span class="p">:</span> <span class="n">EmptyInterceptor</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">OnLoad</span><span class="p">(</span><span class="kt">object</span> <span class="n">entity</span><span class="p">...</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">state</span><span class="p">,</span> <span class="kt">string</span><span class="p">[]</span> <span class="n">propertyNames</span><span class="p">...)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">index</span> <span class="p">=</span> <span class="n">Array</span><span class="p">.</span><span class="n">IndexOf</span><span class="p">(</span><span class="n">propertyNames</span><span class="p">,</span> <span class="s">&quot;tenantId&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="p">==</span> <span class="p">-</span><span class="m">1</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">entityTenantId</span> <span class="p">=</span> <span class="n">Convert</span><span class="p">.</span><span class="n">ToInt32</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">index</span><span class="p">]);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">var</span> <span class="n">currentTenantId</span> <span class="p">=</span> <span class="n">tenant</span><span class="p">().</span><span class="n">Id</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">entityTenantId</span> <span class="p">!=</span> <span class="n">currentTenantId</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">AuthorizationException</span><span class="p">(</span><span class="s">&quot;Permission denied to {0}&quot;</span><span class="p">,</span> <span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That’s it. Have fun and happy commingling.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -975,303 +1279,6 @@ It’s pretty simple, there is just one interface to implement and it looks like
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/refactoring-c-style/">Refactoring C# Style</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-11-27T09:51:00-08:00" pubdate data-updated="true">Nov 27<span>th</span>, 2010</time>
-        
-         | <a href="/refactoring-c-style/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Take a look a this function.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After doing some performance profiling, it quickly popped up as the top offender. Why? Because it’s holding a database transaction open while saving a file. In order to fix it, we have to ditch our <code>UnitOfWork</code> aspect and implement a finer-grained transaction. Basically what needs to happen is saving the entity and saving the file need to be separate operations so we can commit the transaction as soon as the entity is saved. And since saving the file could fail, we might have to clean up an orphaned file entity.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">SaveEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">TryDeleteEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">TryDeleteEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>That wasn’t too bad except that the number of lines of code exploded and we have a few private methods in our service that only deal with plumbing. It would be nice to push them into the framework. Since C# is awesome, we can use a combination of delegates and extension methods to do that.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Execute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">try</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">catch</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">TryExecute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
-</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">DocumentRepositoryExtensions</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="k">this</span> <span class="n">IDocumentRepository</span> <span class="n">repository</span><span class="p">,</span> <span class="n">Document</span> <span class="n">document</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">UnitOfWorkExtensions</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">try</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">catch</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>            <span class="k">throw</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">TryExecute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
-</span><span class='line'>        <span class="k">try</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">catch</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now we can move the extension methods into the framework and out of our service. In a less awesome language we could define these convenience methods on the <code>IUnitOfWork</code> interface and implement them in an abstract base class, but inheritance is evil and it’s a tradeoff we don’t have to make in C#.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1287,6 +1294,10 @@ It’s pretty simple, there is just one interface to implement and it looks like
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-finding-happy-numbers/">Scala Solution to Finding Happy Numbers</a>
+      </li>
     
       <li class="post">
         <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
@@ -1314,10 +1325,6 @@ It’s pretty simple, there is just one interface to implement and it looks like
     
       <li class="post">
         <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
-      </li>
-    
-      <li class="post">
-        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
   </ul>

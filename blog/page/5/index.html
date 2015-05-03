@@ -9,24 +9,7 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="Take a look at this function: 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-public UserIndexViewModel GetIndexViewModel(int pageSize, int pageNumber) { &hellip;">
+  <meta name="description" content="Lately I’ve been wrapping up interviews with the question “What makes software maintainable?” I usually catch a glimpse that says “hmm… I’ve never &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -93,6 +76,62 @@ public UserIndexViewModel GetIndexViewModel(int pageSize, int pageNumber) { &hel
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/my-favorite-interview-question/">My Favorite Interview Question</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-09-04T08:12:00-07:00" pubdate data-updated="true">Sep 4<span>th</span>, 2010</time>
+        
+         | <a href="/my-favorite-interview-question/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Lately I’ve been wrapping up interviews with the question “What makes software maintainable?” I usually catch a glimpse that says “hmm… I’ve never really thought about maintainability” followed by a response to the question “What makes software good?”, which I didn’t actually ask, but most programmers have thought enough about to give an on the spot answer. The bland responses inevitably involve documentation (fail) and maybe something about consistency (meh).</p>
+
+<p><img src="/images/posts/trump_thumb.jpg"></p>
+
+<p>The underlying question I’m asking is a question you should ask yourself every time you write a line of line of code. That question is “What are you optimizing?” Most programmers have mentally hard-coded the term optimize to mean efficient use of memory and cpu, however it’s a horribly myopic definition. In fact, it’s just plain wrong unless you’re writing an iPhone game or maybe you work at Google and saving a few cpu cycles translates to kilowatts of power and possibly saving a small rain forest.</p>
+
+<p>Let’s see what Wikipedia has to say.</p>
+
+<blockquote><p>In computer science, program optimization or software optimization is the process of modifying a software system to make some aspect of it work more efficiently or use fewer resources.[1] In general, a computer program may be optimized so that it executes more rapidly, or is capable of operating with less memory storage or other resources, or draw less power. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(computer_science)</p></blockquote>
+
+<p><img src="/images/posts/conserve_thumb1.jpg"></p>
+
+<p>It’s not wrong, but it reinforces the notion that less is more and the precious resources are physical resources like memory and cpu. Is it better to have fewer files in your project, fewer dlls in your bin directory, or use fewer semicolons? I recently debugged a chain of jQuery statements that was 430 characters long (un-minified) and used one semicolon. Is that optimized?</p>
+
+<p>Consider this definition:</p>
+
+<blockquote><p>In mathematics, computer science and economics, optimization, or mathematical programming, refers to choosing the best element from some set of available alternatives. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(mathematics)</p></blockquote>
+
+<p>This does a better job of capturing the trade-offs we make on a daily basis. I like the idea of choosing the best element rather than consuming the fewest resources. Instead of asking what you’re optimizing, a better question might be what are you maximizing? For a new iPhone game, maybe time to market is your number one concern. I work on enterprise SaaS applications that have a long shelf life so maintainability is a pretty big deal. I strive to maximize readability and testability when I write software. What are you maximizing?</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -676,546 +715,6 @@ by Joel Spolsky
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/where-does-it-hurt/">Where Does It Hurt?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2009-12-26T20:30:00-08:00" pubdate data-updated="true">Dec 26<span>th</span>, 2009</time>
-        
-         | <a href="/where-does-it-hurt/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Notes from my Brown Bag Learning Forum Presentation. <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">Download the source code</a>, or just sit back and relax.</p>
-
-<h3>GoF Patterns:</h3>
-
-<ul>
-<li>Chain of Responsibility</li>
-<li>Decorator</li>
-<li>Adapter</li>
-</ul>
-
-
-<h3>Buzz Phrases:</h3>
-
-<ul>
-<li>Single Responsibility Principle</li>
-<li>Open-Closed Principle</li>
-<li>Inversion of Control</li>
-<li>Aspect Oriented Programming</li>
-</ul>
-
-
-<p>Embracing the Single Responsibility Principle, Open-Closed Principle and Inversion of Control results in trading fragile application logic for fragile configuration logic. That’s a pretty good trade.</p>
-
-<p>Fragile application logic is costly and it will come back to hurt you repeatedly. It goes without saying that fragile application logic is not testable, otherwise it wouldn’t be fragile. No tests mean changes are scary, so you have to compensate by regaining an intimate understanding of all the twists and turns in order to have enough confidence to make the change. The time and mental energy it takes to work through delicate and subtle conditional logic is enormous. My mediocre brain can only manage a short call stack and juggle a handful of variables at once.</p>
-
-<p>Let’s say you’re sold on the promise of pretentious acronyms like SRP, OCP, IoC and the like. So now you end up with a billion small classes and gobs of code dedicated to wiring-up your favorite inversion of control container (mine is Unity). Are we better for it? Let’s examine this trade-off by implementing the same functionality conventionally and using fancy patterns and principles.</p>
-
-<p>The Scenario: Implement captcha as the first step in some business process, like a registration form.</p>
-
-<p><img class="plain" src="/images/posts/captcha2.png"></p>
-
-<p>That’s pretty easy, I don’t need anything fancy to do that.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SimpleController</span> <span class="p">:</span> <span class="n">Controller</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">CaptchaTextKey</span> <span class="p">=</span> <span class="s">&quot;captcha_text&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Index</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CaptchaImage</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">CaptchaTextKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
-</span><span class='line'>                <span class="k">return</span> <span class="k">new</span> <span class="nf">FileContentResult</span><span class="p">(</span><span class="n">stream</span><span class="p">.</span><span class="n">ToArray</span><span class="p">(),</span> <span class="s">&quot;image/jpeg&quot;</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [AcceptVerbs(HttpVerbs.Post)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">actualText</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">CaptchaTextKey</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">captchaText</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">actualText</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;You are a human&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;fail&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="s">&quot;Index&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Fast forward 3 months and amazingly new requirements have crept into the simple captcha controller. Consider these contrived yet poignant scenarios:</p>
-
-<ul>
-<li>After the project goes to QA, you realize there needs to be a way to bypass the captcha check so automated Selenium tests can get to the rest of the application.</li>
-<li>After the project goes live, the business decides it wants to know how many users are hitting the form. So an audit log is added.</li>
-<li>After reviewing the audit log, it is discovered that some IPs are attacking the form, so we decide to implement a black list.</li>
-<li>After the black list is live, the servers begin to perform slowly, so detailed logging is added.</li>
-<li>The logs show the black list lookup is slow during attacks, so it is determined that caching should be implemented.</li>
-<li>The business is doing a television promotion and expects traffic spikes. IT wants real-time visibility to monitor the application during heavy load.</li>
-</ul>
-
-
-<p>Now our <code>SimpleController</code> has morphed into a <code>SmellyController</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SmellyController</span> <span class="p">:</span> <span class="n">Controller</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c1">// ...</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [AcceptVerbs(HttpVerbs.Post)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">ip</span> <span class="p">=</span> <span class="n">HttpContext</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">ServerVariables</span><span class="p">[</span><span class="s">&quot;REMOTE_ADDR&quot;</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">isBlackListed</span> <span class="p">=</span> <span class="n">IsBlackListed</span><span class="p">(</span><span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">IsMatch</span><span class="p">(</span><span class="n">captchaText</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="p">!</span><span class="n">isBlackListed</span> <span class="p">||</span> <span class="n">captchaText</span> <span class="p">==</span> <span class="s">&quot;selenium&quot;</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;You are a human&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="c1">// reset consecutive error count</span>
-</span><span class='line'>            <span class="n">ConsecutiveErrorCount</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;fail&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="c1">// add to black list</span>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">ConsecutiveErrorCount</span><span class="p">++</span> <span class="p">&gt;=</span> <span class="m">3</span> <span class="p">&amp;&amp;</span> <span class="p">!</span><span class="n">isBlackListed</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">AddToBlackList</span><span class="p">(</span><span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">WriteToAuditLog</span><span class="p">(</span><span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="s">&quot;Index&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">bool</span> <span class="nf">IsBlackListed</span><span class="p">(</span><span class="kt">string</span> <span class="n">ip</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">sessionKey</span> <span class="p">=</span> <span class="n">BlackListKey</span> <span class="p">+</span> <span class="n">ip</span><span class="p">;</span>
-</span><span class='line'>        <span class="kt">object</span> <span class="n">result</span> <span class="p">=</span> <span class="n">HttpContext</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">sessionKey</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">connection</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SqlConnection</span><span class="p">(</span><span class="n">connectionString</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">connection</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-</span><span class='line'>                <span class="kt">var</span> <span class="n">sql</span> <span class="p">=</span> <span class="s">&quot;select count(*) from blacklist where ip = @ip&quot;</span><span class="p">;</span>
-</span><span class='line'>                <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">command</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SqlCommand</span><span class="p">(</span><span class="n">sql</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>                    <span class="n">command</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">connection</span><span class="p">;</span>
-</span><span class='line'>                    <span class="n">command</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddWithValue</span><span class="p">(</span><span class="s">&quot;@ip&quot;</span><span class="p">,</span> <span class="n">ip</span><span class="p">);</span>
-</span><span class='line'>                    <span class="n">result</span> <span class="p">=</span> <span class="n">Convert</span><span class="p">.</span><span class="n">ToBoolean</span><span class="p">(</span><span class="n">command</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">());</span>
-</span><span class='line'>                <span class="p">}</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>            <span class="n">HttpContext</span><span class="p">.</span><span class="n">Cache</span><span class="p">[</span><span class="n">sessionKey</span><span class="p">]</span> <span class="p">=</span> <span class="n">result</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="kt">bool</span><span class="p">)</span><span class="n">result</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">int</span> <span class="n">ConsecutiveErrorCount</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Convert</span><span class="p">.</span><span class="n">ToInt32</span><span class="p">(</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">ErrorCountKey</span><span class="p">]</span> <span class="p">??</span> <span class="s">&quot;0&quot;</span><span class="p">);</span> <span class="p">}</span>
-</span><span class='line'>        <span class="k">set</span> <span class="p">{</span> <span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">ErrorCountKey</span><span class="p">]</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c1">// ...</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">bool</span> <span class="nf">IsMatch</span><span class="p">(</span><span class="n">IEquatable</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">actualText</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Session</span><span class="p">[</span><span class="n">CaptchaTextKey</span><span class="p">];</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">captchaText</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">actualText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>How does this smell? Let me count the ways:</p>
-
-<ol>
-<li><a href="http://xunitpatterns.com/Hard%20to%20Test%20Code.html">Hard to test</a></li>
-<li><a href="http://c2.com/cgi/wiki?MixingLevels">Mixed levels of abstraction</a></li>
-<li>No separation of concerns</li>
-</ol>
-
-
-<p>What if we had followed <a href="http://butunclebob.com/ArticleS.UncleBob.PrinciplesOfOod">Uncle Bob’s SOLID principles</a>? Our controller might look like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SolidController</span> <span class="p">:</span> <span class="n">Controller</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">SolidController</span><span class="p">(</span><span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">captchaProvider</span> <span class="p">=</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Index</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">();</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Render</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Render</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Jpeg</span><span class="p">);</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="nf">FileContentResult</span><span class="p">(</span><span class="n">stream</span><span class="p">.</span><span class="n">ToArray</span><span class="p">(),</span> <span class="s">&quot;image/jpeg&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">    [AcceptVerbs(HttpVerbs.Post)]</span>
-</span><span class='line'>    <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">captchaProvider</span><span class="p">.</span><span class="n">Verify</span><span class="p">(</span><span class="n">captchaText</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;You are a human&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">ViewData</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;fail&quot;</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">View</span><span class="p">(</span><span class="s">&quot;Index&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And our original simple captcha provider could look like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[Serializable]</span>
-</span><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SimpleCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="kt">string</span> <span class="n">captchaText</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span> <span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">var</span> <span class="n">captchaImage</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CaptchaImage</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">captchaText</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="n">Bitmap</span> <span class="n">bitmap</span> <span class="p">=</span> <span class="n">captchaImage</span><span class="p">.</span><span class="n">RenderImage</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">bitmap</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">format</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">text</span><span class="p">.</span><span class="n">Equals</span><span class="p">(</span><span class="n">captchaText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you’re wondering why we don’t have to store the captcha text in the session, it’s because we’re putting the onus on the container to give us the same instance of <code>SimpleCaptchaProvider</code> each time it’s requested in the same session.</p>
-
-<p>Let’s revisit the list of features that made our controller smelly and see how we could have done it open-closed style (by writing new code instead modifying old code). The go-to technique for this is the decorator pattern. So let’s make a decorator to look for a secret captcha password that our selenium test knows and let it through.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">SeleniumBypassCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">password</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">SeleniumBypassCaptchaProvider</span><span class="p">(</span>
-</span><span class='line'>        <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">,</span>
-</span><span class='line'>        <span class="kt">string</span> <span class="n">password</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">captchaProvider</span> <span class="p">=</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">password</span> <span class="p">=</span> <span class="n">password</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span> <span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Render</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">format</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">captchaText</span> <span class="p">==</span> <span class="n">password</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Verify</span><span class="p">(</span><span class="n">captchaText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next is the audit log, then the black list. These could be implemented as two more decorators, however we’re outgrowing this solution which means it’s time to refactor. Let’s switch hats for a few minutes and promote our decorator chain into an explicit chain of responsibility. This is like adding another lane to the freeway, it really opens things up. We’re modifying existing code so maybe you’re wondering what happened to our open-closed principle? It’s still there, I promise. The first point I’ll make is that refactoring is a special activity. It does not change the observable behavior of the application. When working with single responsibility classes, all we end up doing is adapting the logic to a different interface. In our case, we’re moving logic from <code>BlackListCaptchaProvider</code> to <code>BlackListVerifyFilter</code>. The logic stays intact and the unit tests are minimally impacted.</p>
-
-<p>The end result of this refactor might look like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">class</span> <span class="nc">VerifyChainCaptchaProvider</span> <span class="p">:</span> <span class="n">ICaptchaProvider</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IServiceProvider</span> <span class="n">serviceProvider</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="nf">VerifyChainCaptchaProvider</span><span class="p">(</span>
-</span><span class='line'>        <span class="n">ICaptchaProvider</span> <span class="n">captchaProvider</span><span class="p">,</span>
-</span><span class='line'>        <span class="n">IServiceProvider</span> <span class="n">serviceProvider</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">captchaProvider</span> <span class="p">=</span> <span class="n">captchaProvider</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">this</span><span class="p">.</span><span class="n">serviceProvider</span> <span class="p">=</span> <span class="n">serviceProvider</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="k">void</span> <span class="nf">Render</span><span class="p">(</span><span class="n">Stream</span> <span class="n">stream</span><span class="p">,</span> <span class="n">ImageFormat</span> <span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">captchaProvider</span><span class="p">.</span><span class="n">Render</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">format</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Verify</span><span class="p">(</span><span class="kt">string</span> <span class="n">captchaText</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="n">Pipeline</span><span class="p">&lt;</span><span class="kt">string</span> <span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;(</span><span class="n">serviceProvider</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">AuditLoggingFilter</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">BlackListingFilter</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">&lt;</span><span class="n">SeleniumBypassFilter</span><span class="p">&gt;()</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">CaptchaProviderAdapter</span><span class="p">(</span><span class="n">captchaProvider</span><span class="p">))</span>
-</span><span class='line'>            <span class="p">.</span><span class="n">Process</span><span class="p">(</span><span class="n">captchaText</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Was it worth it? Well, we’re left with all these little classes each with their single responsibility, however we still have to wire it up. I’m not going to lie, it’s ugly and it’s fragile. So why is this design any better? It’s better because troubleshooting bad configuration is better than troubleshooting bad application logic. Bad application logic can do really bad things. In a 24/7 business-critical application, this usually happens around 3 AM and involves you waking up and trying adjust your eyes to a harsh laptop screen. With bad configuration on the other hand, whole chunks of functionality are just missing. Chances are your app won’t even start, or maybe it starts but the black list or the audit logging isn’t wired in. These issues are easy to test and when you fix them, you have enormous confidence that the functionality you just wired-in will work and continue to work in the wee hours of the morning.</p>
-
-<p>The second point I’ll make is the code more closely follows the way we think about our application. This makes it easier to respond to change because new requirements are extensions of the way we already think about our application. Consider the scenario that our selenium secret passphrase is not secure enough for production and we want to add an IP restriction or signature to make sure it’s really our selenium test that is getting through. In our smelly controller, a selenium test bypass is not an explicit concept, it’s just an or-clause tacked on to the end of an already abused if statement. We’ll have to go into our smelly controller and do some thrashing around in the most important and delicate block of code. In our solid controller however, we have a nicely abstracted testable single responsibility class we can isolate our change to.</p>
-
-<p>As another example, consider the scenario that our black list caching is consuming too much memory on the web server. With our SOLID design we can surgically replace our <code>ICacheProvider</code> with an implementation backed by Memcached. Bits of functionality are free to evolve at their own pace. Some areas of your application will need a beefy solution and some will be just fine with a simple one. The important thing is that concerns are isolated from each other and allowed to fulfill their own destiny.</p>
-
-<h2>Aspect-Oriented Programming</h2>
-
-<p>I mentioned aspect oriented programming at the beginning of the article in a shallow attempt to pique your interest. So before I wrap things up I’ll show how it fits in. Since we’re already using an IoC container and faithfully employing our SOLID design principles, we pretty much get AOP for free. This is a big deal. Software running under service level agreements and government regulations demands visibility and having aspects in your toolbox is a must. Because aspects are reusable, they are typically higher quality and more mature than something hand-rolled for a one-off scenario. And because they are bolt-on, our core business logic stays focused on our business domain.</p>
-
-<p>Consider the cliché logging example. It’s overused, but works well not unlike the calculator example for unit testing or the singleton job interview question. The idea is that we tell our IoC container to apply a logging aspect to all objects it has registered. Here’s what my logging aspect produces:</p>
-
-<pre style="background-color: black; color: #ddd;">
-DEBUG VerifyChainCaptchaProvider.Render() stream = MemoryStream, format = Jpeg
-DEBUG SimpleCaptchaProvider.Render() stream = MemoryStream, format = Jpeg
-DEBUG SimpleCaptchaProvider.Render() [72 ms]
-DEBUG VerifyChainCaptchaProvider.Render() [74 ms]
-DEBUG VerifyChainCaptchaProvider.Verify() text = afds
-DEBUG AuditLoggingFilter.Process() input = afds
-DEBUG BlackListingFilter.Process() input = afds
-DEBUG CachingBlackListService.IsBlocked() ip = 127.0.0.1
-DEBUG CachingBlackListService.IsBlocked() > False [0 ms]
-DEBUG SeleniumBypassFilter.Process() input = afds
-DEBUG SimpleCaptchaProvider.Verify() text = afds
-DEBUG SimpleCaptchaProvider.Verify() > False [0 ms]
-DEBUG SeleniumBypassFilter.Process() > False [1 ms]
-DEBUG BlackListingFilter.Process() > False [4 ms]
-DEBUG AuditLoggingFilter.Process() > False [8 ms]
-DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
-</pre>
-
-
-<p>Again, this is powerful because we didn’t have to pollute our code with logging statements, yet we see quality log entries with input, output and execution time. In addition to logging, we can attach performance counters to meaningful events, add exception policies to notify us when things go wrong, selectively add caching at run-time and lots more. To see it all in action, you can <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">download the source code</a> for the examples used in this article.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1231,6 +730,10 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-finding-happy-numbers/">Scala Solution to Finding Happy Numbers</a>
+      </li>
     
       <li class="post">
         <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
@@ -1258,10 +761,6 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     
       <li class="post">
         <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
-      </li>
-    
-      <li class="post">
-        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
   </ul>

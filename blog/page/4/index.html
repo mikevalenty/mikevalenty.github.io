@@ -9,7 +9,19 @@
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season &hellip;">
+  <meta name="description" content="Take a look a this function. 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+[UnitOfWork]
+public virtual void Upload(DocumentDto dto)
+{ var entity = new Document().Merge(dto); &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +88,303 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/refactoring-c-style/">Refactoring C# Style</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-11-27T09:51:00-08:00" pubdate data-updated="true">Nov 27<span>th</span>, 2010</time>
+        
+         | <a href="/refactoring-c-style/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Take a look a this function.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="na">[UnitOfWork]</span>
+</span><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After doing some performance profiling, it quickly popped up as the top offender. Why? Because it’s holding a database transaction open while saving a file. In order to fix it, we have to ditch our <code>UnitOfWork</code> aspect and implement a finer-grained transaction. Basically what needs to happen is saving the entity and saving the file need to be separate operations so we can commit the transaction as soon as the entity is saved. And since saving the file could fail, we might have to clean up an orphaned file entity.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">SaveEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">TryDeleteEntity</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">private</span> <span class="k">void</span> <span class="nf">TryDeleteEntity</span><span class="p">(</span><span class="n">Document</span> <span class="n">entity</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That wasn’t too bad except that the number of lines of code exploded and we have a few private methods in our service that only deal with plumbing. It would be nice to push them into the framework. Since C# is awesome, we can use a combination of delegates and extension methods to do that.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+</pre></td><td class='code'><pre><code class='c#'><span class='line'><span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Upload</span><span class="p">(</span><span class="n">DocumentDto</span> <span class="n">dto</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">var</span> <span class="n">entity</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Document</span><span class="p">().</span><span class="n">Merge</span><span class="p">(</span><span class="n">dto</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Execute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">try</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">dto</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">TryExecute</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">repository</span><span class="p">.</span><span class="n">Delete</span><span class="p">(</span><span class="n">entity</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">throw</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">DocumentRepositoryExtensions</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="k">this</span> <span class="n">IDocumentRepository</span> <span class="n">repository</span><span class="p">,</span> <span class="n">Document</span> <span class="n">document</span><span class="p">,</span> <span class="kt">byte</span><span class="p">[]</span> <span class="n">data</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">stream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">repository</span><span class="p">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">stream</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">UnitOfWorkExtensions</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Execute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">try</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">catch</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
+</span><span class='line'>            <span class="k">throw</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">TryExecute</span><span class="p">(</span><span class="k">this</span> <span class="n">IUnitOfWork</span> <span class="n">unitOfWork</span><span class="p">,</span> <span class="n">Action</span> <span class="n">action</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Start</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">try</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">action</span><span class="p">.</span><span class="n">Invoke</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Commit</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">catch</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">unitOfWork</span><span class="p">.</span><span class="n">Rollback</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we can move the extension methods into the framework and out of our service. In a less awesome language we could define these convenience methods on the <code>IUnitOfWork</code> interface and implement them in an abstract base class, but inheritance is evil and it’s a tradeoff we don’t have to make in C#.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -522,62 +831,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/my-favorite-interview-question/">My Favorite Interview Question</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-09-04T08:12:00-07:00" pubdate data-updated="true">Sep 4<span>th</span>, 2010</time>
-        
-         | <a href="/my-favorite-interview-question/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Lately I’ve been wrapping up interviews with the question “What makes software maintainable?” I usually catch a glimpse that says “hmm… I’ve never really thought about maintainability” followed by a response to the question “What makes software good?”, which I didn’t actually ask, but most programmers have thought enough about to give an on the spot answer. The bland responses inevitably involve documentation (fail) and maybe something about consistency (meh).</p>
-
-<p><img src="/images/posts/trump_thumb.jpg"></p>
-
-<p>The underlying question I’m asking is a question you should ask yourself every time you write a line of line of code. That question is “What are you optimizing?” Most programmers have mentally hard-coded the term optimize to mean efficient use of memory and cpu, however it’s a horribly myopic definition. In fact, it’s just plain wrong unless you’re writing an iPhone game or maybe you work at Google and saving a few cpu cycles translates to kilowatts of power and possibly saving a small rain forest.</p>
-
-<p>Let’s see what Wikipedia has to say.</p>
-
-<blockquote><p>In computer science, program optimization or software optimization is the process of modifying a software system to make some aspect of it work more efficiently or use fewer resources.[1] In general, a computer program may be optimized so that it executes more rapidly, or is capable of operating with less memory storage or other resources, or draw less power. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(computer_science)</p></blockquote>
-
-<p><img src="/images/posts/conserve_thumb1.jpg"></p>
-
-<p>It’s not wrong, but it reinforces the notion that less is more and the precious resources are physical resources like memory and cpu. Is it better to have fewer files in your project, fewer dlls in your bin directory, or use fewer semicolons? I recently debugged a chain of jQuery statements that was 430 characters long (un-minified) and used one semicolon. Is that optimized?</p>
-
-<p>Consider this definition:</p>
-
-<blockquote><p>In mathematics, computer science and economics, optimization, or mathematical programming, refers to choosing the best element from some set of available alternatives. — <a href="http://en.wikipedia.org/wiki/Optimization_">http://en.wikipedia.org/wiki/Optimization_</a>(mathematics)</p></blockquote>
-
-<p>This does a better job of capturing the trade-offs we make on a daily basis. I like the idea of choosing the best element rather than consuming the fewest resources. Instead of asking what you’re optimizing, a better question might be what are you maximizing? For a new iPhone game, maybe time to market is your number one concern. I work on enterprise SaaS applications that have a long shelf life so maintainability is a pretty big deal. I strive to maximize readability and testability when I write software. What are you maximizing?</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -593,6 +846,10 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/scala-solution-to-finding-happy-numbers/">Scala Solution to Finding Happy Numbers</a>
+      </li>
     
       <li class="post">
         <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
@@ -620,10 +877,6 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
     
       <li class="post">
         <a href="/extracting-root-domain-from-a-url/">Extracting Root Domain From a Url</a>
-      </li>
-    
-      <li class="post">
-        <a href="/appreciating-algorithm-complexity/">Appreciating Algorithm Complexity</a>
       </li>
     
   </ul>
