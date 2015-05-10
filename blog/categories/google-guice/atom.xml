@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Google Guice | Mike Valenty]]></title>
+  <title><![CDATA[Category: google guice | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/google-guice/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -20,17 +20,13 @@
     <id>http://www.mikevalenty.com/configuring-decorators-with-google-guice</id>
     <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
 
-<p>``` java
-public class RealBillingService implements BillingService {</p>
+<pre><code class="java">public class RealBillingService implements BillingService {
 
-<p>  @Inject
-  public RealBillingService(@PayPal CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public RealBillingService(@PayPal CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
-
-<p>  }
-```</p>
 
 <p>This bit of innocuous code encourages the reader to squander the power of dependency inversion and reduce it to a clunky tool that makes unit testing a little bit easier. That sounds harsh, so let’s start by discussing what Guice is and the problem it solves.</p>
 
@@ -44,77 +40,58 @@ public class RealBillingService implements BillingService {</p>
 
 <p>Oh, wait a minute we’re declaring that we need the <code>PayPalCreditCardProcessor</code> with that annotation so now our code is rigid and we can’t inject additional behavior by wrapping it in a <code>DoubleChargeCreditCardProcessor</code>, open-closed style. That’s the ‘O’ in SOLID. So you’re probably thinking, why can’t you just change the annotation from <code>@PayPal</code> to <code>@DoubleCharge</code>? Let’s dive a little deeper into this example to find out:</p>
 
-<p>``` java
-public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
+<pre><code class="java">public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
 
-<p>  @Inject
-  public DoubleChargeCreditCardProcessor(CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public DoubleChargeCreditCardProcessor(CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
-
-<p>  }
-```</p>
 
 <p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because <a href="/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/">I’ve already done that</a>, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
 
-<p>``` java
-public class RealBillingService implements BillingService {</p>
+<pre><code class="java">public class RealBillingService implements BillingService {
 
-<p>  @Inject
-  public RealBillingService(@DoubleCharge CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public RealBillingService(@DoubleCharge CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
 
-<p>  }
-```</p>
+<pre><code class="java">public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
 
-<p>``` java
-public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
-
-<p>  @Inject
-  public DoubleChargeCreditCardProcessor(@PayPal CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public DoubleChargeCreditCardProcessor(@PayPal CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
-
-<p>  }
-```</p>
 
 <p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a <em>thing</em>, it’s a <em>seam</em> and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">multi-tenancy</a> and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
 
 <p>While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. The better way to use binding annotations and not undermine the point of injecting your dependencies is like so:</p>
 
-<p>``` java
-public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
+<pre><code class="java">public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
 
-<p>  public static final String BASE = &ldquo;DoubleChargeCreditCardProcessor.base&rdquo;;</p>
+  public static final String BASE = "DoubleChargeCreditCardProcessor.base";
 
-<p>  public DoubleChargeCreditCardProcessor(@Named(BASE) CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  public DoubleChargeCreditCardProcessor(@Named(BASE) CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
 
-<p>  }
-```</p>
+<pre><code class="java">public class ConfigureCreditCardProcessor extends AbstractModule {
 
-<p>``` java
-public class ConfigureCreditCardProcessor extends AbstractModule {</p>
+  @Override
+  protected void configure() {
 
-<p>  @Override
-  protected void configure() {</p>
+    bind(CreditCardProcessor.class).to(DoubleChargeCreditCardProcessor.class);
 
-<pre><code>bind(CreditCardProcessor.class).to(DoubleChargeCreditCardProcessor.class);
-
-bind(CreditCardProcessor.class)
-  .annotatedWith(Names.named(DoubleChargeCreditCardProcessor.BASE))
-  .to(PayPayCreditCardProcessor.class);
-</code></pre>
-
-<p>  }
+    bind(CreditCardProcessor.class)
+      .annotatedWith(Names.named(DoubleChargeCreditCardProcessor.BASE))
+      .to(PayPayCreditCardProcessor.class);
+  }
 }
-```</p>
+</code></pre>
 
 <p>The difference is subtle, but the devil is in the details. In this last example, the <code>DoubleChargeCreditCardProcessor</code> doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.</p>
 ]]></content>

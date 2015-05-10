@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Domain Driven Design | Mike Valenty]]></title>
+  <title><![CDATA[Category: domain driven design | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/domain-driven-design/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -26,48 +26,44 @@
 
 <p>I don’t expect you to understand how the app works, but you should at least get a feel right away for the things that are important. Knowing it’s a console app, you could find the entry point and quickly navigate to the meat and potatoes of the application.</p>
 
-<p>``` c#
-public class SyncListingJob : MarshalByRefObject, IJob
-{</p>
-
-<pre><code>private IServiceProvider locator;
-private YextListing listing;
-
-public SyncListingJob(IServiceProvider locator)
+<pre><code class="c#">public class SyncListingJob : MarshalByRefObject, IJob
 {
-    this.locator = locator;
-}
+    private IServiceProvider locator;
+    private YextListing listing;
 
-public void Init(YextListing listing)
-{
-    this.listing = listing;
-}
+    public SyncListingJob(IServiceProvider locator)
+    {
+        this.locator = locator;
+    }
 
-[UnitOfWork]
-public void Execute()
-{
-    GuardAgainstNotInitialized();
-    SyncListing();
-}
+    public void Init(YextListing listing)
+    {
+        this.listing = listing;
+    }
 
-private void SyncListing()
-{
-    new LocatorChain&lt;Yextlisting&gt;(locator)
-        .AddNew&lt;RevertDiscontinuedListing&gt;()
-        .AddNew&lt;RefreshLinkedBusiness&gt;()
-        .AddNew&lt;CreateLinkToExistingBusiness&gt;()
-        .AddNew&lt;CreateNewBusinessAndLink&gt;()
-        .Process(listing);
-}
+    [UnitOfWork]
+    public void Execute()
+    {
+        GuardAgainstNotInitialized();
+        SyncListing();
+    }
 
-private void GuardAgainstNotInitialized()
-{
-    if (listing == null) throw new Exception("Job not initialized!");
+    private void SyncListing()
+    {
+        new LocatorChain&lt;Yextlisting&gt;(locator)
+            .AddNew&lt;RevertDiscontinuedListing&gt;()
+            .AddNew&lt;RefreshLinkedBusiness&gt;()
+            .AddNew&lt;CreateLinkToExistingBusiness&gt;()
+            .AddNew&lt;CreateNewBusinessAndLink&gt;()
+            .Process(listing);
+    }
+
+    private void GuardAgainstNotInitialized()
+    {
+        if (listing == null) throw new Exception("Job not initialized!");
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>* <em>The <code>LocatorChain&lt;T&gt;</code> is an implementation of the chain of responsibility pattern.</em></p>
 
@@ -86,25 +82,21 @@ private void GuardAgainstNotInitialized()
 
 <p>Recently, the stake holders came up with a twist that went something like this: If the order contains a gift card, add the contact to a specific folder in the CRM application. No big deal, we had a nicely abstracted <code>OrderGateway</code> interface and I was already envisioning a quick addition to the existing decorator chain.</p>
 
-<p>``` php
-class OrderWithGiftCardGateway extends OrderGatewayDecorator
-{</p>
-
-<pre><code>...
-
-public function createOrder(CreateOrderRequest $order)
+<pre><code class="php">class OrderWithGiftCardGateway extends OrderGatewayDecorator
 {
-    if ($this-&gt;containsGiftCard($order))
-    {
-        $this-&gt;addContactToFolder($order);
-    }
+    ...
 
-    return parent::createOrder($order);
+    public function createOrder(CreateOrderRequest $order)
+    {
+        if ($this-&gt;containsGiftCard($order))
+        {
+            $this-&gt;addContactToFolder($order);
+        }
+
+        return parent::createOrder($order);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>I had a few minutiae questions like what happens with duplicates, etc. It took me nearly an hour to track down the right person and get real answers. During the conversation, a subtle comment was made that I almost missed.</p>
 
@@ -118,43 +110,35 @@ public function createOrder(CreateOrderRequest $order)
 
 <p>We talked about what it meant for the the affiliate to fulfill the product and basically the folder stuff was okay, but I recommended we remove the fake sku from the order before sending it through.</p>
 
-<p>``` php
-public function createOrder(CreateOrderRequest $order)
-{</p>
-
-<pre><code>if ($this-&gt;containsGiftCard($order))
+<pre><code class="php">public function createOrder(CreateOrderRequest $order)
 {
-    $this-&gt;addContactToFolder($order);
-    $this-&gt;removeGiftCardFromOrder($order);
+    if ($this-&gt;containsGiftCard($order))
+    {
+        $this-&gt;addContactToFolder($order);
+        $this-&gt;removeGiftCardFromOrder($order);
+    }
+
+    return parent::createOrder($order);
 }
-
-return parent::createOrder($order);
 </code></pre>
-
-<p>}
-```</p>
 
 <p>I didn’t have a buddy to pair with so I just grabbed Keith for a minute at the end of the day to walk through things. I recapped the stake holder discussion and we looked through the code. He pointed out I was missing the concept of fulfillment and that was hard earned knowledge that would be lost!</p>
 
-<p>``` php
-public function createOrder(CreateOrderRequest $order)
-{</p>
-
-<pre><code>if ($this-&gt;containsGiftCard($order))
+<pre><code class="php">public function createOrder(CreateOrderRequest $order)
 {
-    $this-&gt;sendToAffiliateForFulfillment($order);
-    $this-&gt;removeGiftCardFromOrder($order);
+    if ($this-&gt;containsGiftCard($order))
+    {
+        $this-&gt;sendToAffiliateForFulfillment($order);
+        $this-&gt;removeGiftCardFromOrder($order);
+    }
+
+    return parent::createOrder($order);
 }
-
-return parent::createOrder($order);
 </code></pre>
-
-<p>}
-```</p>
 
 <blockquote><p>That was huge. – Paris Hilton</p></blockquote>
 
-<iframe class="plain" width="640" height="360" src="http://www.mikevalenty.com//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+<iframe class="plain" width="640" height="360" src="//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
 
 
 <p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
@@ -184,20 +168,16 @@ return parent::createOrder($order);
 
 <p>The application subscribes to an event stream of new call records and runs them through this composite specification to determine if the call is billable.</p>
 
-<p>``` c#
-public bool IsBillable(CallRecord call)
-{</p>
+<pre><code class="c#">public bool IsBillable(CallRecord call)
+{
+    ISpecification&lt;CallRecord&gt; billableCallSpecification = new NewPatient()
+        .And(new MinLengthLiveCall(liveCallSeconds).Or(new MinLengthMessage(messageSeconds))
+        .And(new RepeatCall(referralFinder).Not())
+        .And(new TestCall(testNumbers).Not()));
 
-<pre><code>ISpecification&lt;CallRecord&gt; billableCallSpecification = new NewPatient()
-    .And(new MinLengthLiveCall(liveCallSeconds).Or(new MinLengthMessage(messageSeconds))
-    .And(new RepeatCall(referralFinder).Not())
-    .And(new TestCall(testNumbers).Not()));
-
-return billableCallSpecification.IsSatisfiedBy(call);
+    return billableCallSpecification.IsSatisfiedBy(call);
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>I have to admit that I was already an hour into Query Analyzer blasting through another monster stored procedure when I caught myself. Not just the criteria logic either, I mean bypassing all the event stream hooha and basically just writing the whole enchilada as one gnarly stored procedure that would run as a job. That was a close one!</p>
 ]]></content>
@@ -214,162 +194,136 @@ return billableCallSpecification.IsSatisfiedBy(call);
 
 <p>Before I get into the guts, I would like to provide a little context. My application has 20+ databases scattered across 4 machines.</p>
 
-<p><code>c#
-IRepository&lt;Customer&gt; customerRepository; // customer database on server 1
+<pre><code class="c#">IRepository&lt;Customer&gt; customerRepository; // customer database on server 1
 IRepository&lt;Package&gt;  packageRepository; // customer database on server 1
 IRepository&lt;Contact&gt;  contactRepository; // contact database on server 2
-</code></p>
+</code></pre>
 
 <p>So, I might ask for a <code>Customer</code> object and a <code>Package</code> object and I want to get the same <code>ISession</code> for both and if I ask for the same Customer twice, I want to get the one from the 1st level cache (I’m using NHibernate). If I ask for a Contact object, I will get a different ISession. All opened sessions are managed by my UoW. So, when the page request is complete, I call <code>UoW.Commit</code> and all sessions are committed.</p>
 
 <p>The “magic” if you will, happens in the global.asax. I was nosing around in Rhino.Commons for inspiration and adapted a technique I saw there. This is how it looks:</p>
 
-<p>``` c#
-public class GlobalApplication : HttpApplication
-{</p>
-
-<pre><code>private static IUnityContainer container;
-
-public GlobalApplication()
+<pre><code class="c#">public class GlobalApplication : HttpApplication
 {
-    BeginRequest += new EventHandler(GlobalApplication_BeginRequest);
-    EndRequest += new EventHandler(GlobalApplication_EndRequest);
-}
+    private static IUnityContainer container;
 
-protected void Application_Start(object sender, EventArgs e)
-{
-    RegisterRoutes(RouteTable.Routes);
-
-    container = new UnityContainer();
-    container.AddNewExtension&lt;PolicyInjectorContainerExtension&gt;();
-    container.AddNewExtension&lt;HttpRequestLifetimeCoreContainerExtension&gt;();
-    container.AddNewExtension&lt;WebMvcContainerExtension&gt;();
-
-    ControllerBuilder.Current.SetControllerFactory(new UnityControllerFactory(container));
-}
-
-void GlobalApplication_BeginRequest(object sender, EventArgs e)
-{
-    var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
-    unitOfWork.Start();
-}
-
-void GlobalApplication_EndRequest(object sender, EventArgs e)
-{
-    var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
-    unitOfWork.Commit();
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>I register the UoW with an <code>HttpRequestLifetimeManager</code> so I get a new instance for each request.</p>
-
-<p>``` c#
-Container.RegisterType&lt;IUnitOfWork<ISession>,</p>
-
-<pre><code>NHibernateUnitOfWork&gt;(new HttpRequestLifetimeManager());
-</code></pre>
-
-<p>```</p>
-
-<p>My <code>NHibernateRepository</code> gets injected with the UoW for the current <code>HttpRequest</code> and when the request is complete, the <code>global.asax</code> commits the whole thing.</p>
-
-<p>``` c#
-public class NHibernateRepository<T> : IRepository<T>
-{</p>
-
-<pre><code>protected ISession session;
-
-public NHibernateRepository(IUnitOfWork&lt;ISession&gt; unitOfWork)
-{
-    session = unitOfWork.GetContextFor&lt;T&gt;();
-}
-
-...
-
-public virtual void Save(T obj)
-{
-    session.Save(obj);
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Now, this is all the context of an ASP.NET MVC Controller, but I have a similar issue for other (non-web) services. In that context I am using AOP and decorating a particular method with <code>[UnitOfWork]</code>, which looks like:</p>
-
-<p>``` c#
-public class UnitOfWorkCallHander : ICallHandler
-{</p>
-
-<pre><code>private IUnitOfWork&lt;ISession&gt; unitOfWork;
-
-public UnitOfWorkCallHander(IUnitOfWork&lt;ISession&gt; unitOfWork)
-{
-    this.unitOfWork = unitOfWork;
-}
-
-public int Order { get; set; }
-
-public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
-{
-    unitOfWork.Start();
-
-    try
+    public GlobalApplication()
     {
-        return getNext()(input, getNext);
+        BeginRequest += new EventHandler(GlobalApplication_BeginRequest);
+        EndRequest += new EventHandler(GlobalApplication_EndRequest);
     }
-    finally
+
+    protected void Application_Start(object sender, EventArgs e)
     {
+        RegisterRoutes(RouteTable.Routes);
+
+        container = new UnityContainer();
+        container.AddNewExtension&lt;PolicyInjectorContainerExtension&gt;();
+        container.AddNewExtension&lt;HttpRequestLifetimeCoreContainerExtension&gt;();
+        container.AddNewExtension&lt;WebMvcContainerExtension&gt;();
+
+        ControllerBuilder.Current.SetControllerFactory(new UnityControllerFactory(container));
+    }
+
+    void GlobalApplication_BeginRequest(object sender, EventArgs e)
+    {
+        var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
+        unitOfWork.Start();
+    }
+
+    void GlobalApplication_EndRequest(object sender, EventArgs e)
+    {
+        var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
         unitOfWork.Commit();
     }
 }
 </code></pre>
 
-<p>}
-```</p>
+<p>I register the UoW with an <code>HttpRequestLifetimeManager</code> so I get a new instance for each request.</p>
+
+<pre><code class="c#">Container.RegisterType&lt;IUnitOfWork&lt;ISession&gt;,
+    NHibernateUnitOfWork&gt;(new HttpRequestLifetimeManager());
+</code></pre>
+
+<p>My <code>NHibernateRepository</code> gets injected with the UoW for the current <code>HttpRequest</code> and when the request is complete, the <code>global.asax</code> commits the whole thing.</p>
+
+<pre><code class="c#">public class NHibernateRepository&lt;T&gt; : IRepository&lt;T&gt;
+{
+    protected ISession session;
+
+    public NHibernateRepository(IUnitOfWork&lt;ISession&gt; unitOfWork)
+    {
+        session = unitOfWork.GetContextFor&lt;T&gt;();
+    }
+
+    ...
+
+    public virtual void Save(T obj)
+    {
+        session.Save(obj);
+    }
+}
+</code></pre>
+
+<p>Now, this is all the context of an ASP.NET MVC Controller, but I have a similar issue for other (non-web) services. In that context I am using AOP and decorating a particular method with <code>[UnitOfWork]</code>, which looks like:</p>
+
+<pre><code class="c#">public class UnitOfWorkCallHander : ICallHandler
+{
+    private IUnitOfWork&lt;ISession&gt; unitOfWork;
+
+    public UnitOfWorkCallHander(IUnitOfWork&lt;ISession&gt; unitOfWork)
+    {
+        this.unitOfWork = unitOfWork;
+    }
+
+    public int Order { get; set; }
+
+    public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
+    {
+        unitOfWork.Start();
+
+        try
+        {
+            return getNext()(input, getNext);
+        }
+        finally
+        {
+            unitOfWork.Commit();
+        }
+    }
+}
+</code></pre>
 
 <p>In that context I use a <code>PerThreadLifetimeManager</code> for the <code>NHibernateUnitOfWork</code>, and code ends up looking like:</p>
 
-<p>``` c#
-[UnitOfWork]
+<pre><code class="c#">[UnitOfWork]
 public void Process(Job job)
-{</p>
-
-<pre><code>...
+{
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>You know, there is really no reason why you couldn’t do the same thing in the MVC context. You could basically ditch the <code>global.asax</code> event hooha and just annotate the Controller task:</p>
 
-<p>``` c#
-[UnitOfWork]
+<pre><code class="c#">[UnitOfWork]
 public ActionResult ControllerTaskThatRequiresUoW()
-{</p>
-
-<pre><code>...
+{
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>It’s more explicit than using the <code>global.asax</code> technique and it would allow you to specify different UoW behavior on each controller task:</p>
 
-<p>``` c#
-[UnitOfWork(IsolationLevel.ReadCommitted]
+<pre><code class="c#">[UnitOfWork(IsolationLevel.ReadCommitted]
 public ActionResult SomeTaskThatShouldNotReadUncommitedData()
 {
-}</p>
+}
 
-<p>[UnitOfWork(IsolationLevel.ReadUncommitted)]
+[UnitOfWork(IsolationLevel.ReadUncommitted)]
 public ActionResult AnotherTaskWithDifferentRequirements()
 {
 }
-```</p>
+</code></pre>
 
 <p>I’d like to try this out next time I get back into ASP.NET MVC, the global.asax event technique felt a little too magical and I don’t think Uncle Bob would approve.</p>
 ]]></content>
@@ -384,87 +338,78 @@ public ActionResult AnotherTaskWithDifferentRequirements()
 
 <p>So, here it is in action. Below is a controller from an ASP.NET MVC application. The method accepts an order in the form of xml for provisioning products in our system.</p>
 
-<p>``` c#
-public ActionResult EnqueueOrders(string orderXml)
-{</p>
+<pre><code class="c#">public ActionResult EnqueueOrders(string orderXml)
+{
+    var context = new OrderContext(orderXml);
 
-<pre><code>var context = new OrderContext(orderXml);
+    var pipeline = new FilterPipeline&lt;OrderContext&gt;()
+        .Add(new RewriteLegacyUsernameFeature(productFinder))
+        .Add(new ValidateOrderXml())
+        .Add(new ValidateReferenceCode(customerFinder))
+        .Add(new IgnoreOnException(new ValidateRemoteAccountUsernames(packageRepository)))
+        .Add(new IgnoreOnException(new ValidateRemoteAccountUniqueEmail(packageRepository)))
+        .Add(new EnqueueOrders(customerFacade)).When(new OrderHasNoErrors())
+        .Execute(context);
 
-var pipeline = new FilterPipeline&lt;OrderContext&gt;()
-    .Add(new RewriteLegacyUsernameFeature(productFinder))
-    .Add(new ValidateOrderXml())
-    .Add(new ValidateReferenceCode(customerFinder))
-    .Add(new IgnoreOnException(new ValidateRemoteAccountUsernames(packageRepository)))
-    .Add(new IgnoreOnException(new ValidateRemoteAccountUniqueEmail(packageRepository)))
-    .Add(new EnqueueOrders(customerFacade)).When(new OrderHasNoErrors())
-    .Execute(context);
+    var xml = BuildResponseFromOrderContext(context);
 
-var xml = BuildResponseFromOrderContext(context);
-
-return new XmlResult(xml);
+    return new XmlResult(xml);
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Most of it is just validation logic, but there are a few meatier pieces. Take a look a the first filter – RewriteLegacyUsernameFeature. If you’ve ever published an API that accepts xml, then you’ve probably wanted to change your schema 5 minutes later. The pipeline is great way to deal with transforming legacy xml on the way in.</p>
 
 <p>Next is the implementation of the <code>FilterPipeline</code> which is essentially a chain of responsibility with a few convenience features.</p>
 
-<p>``` c#
-public class FilterPipeline<T> : IFilter<T>
-{</p>
-
-<pre><code>private IFilterLink&lt;T&gt; head;
-
-public void Execute(T input)
+<pre><code class="c#">public class FilterPipeline&lt;T&gt; : IFilter&lt;T&gt;
 {
-    head.Execute(input);
-}
+    private IFilterLink&lt;T&gt; head;
 
-public IFilterConfiguration&lt;T&gt; Add(IFilterLink&lt;T&gt; link)
-{
-    var specificationLink = new SpecificationFilterLink&lt;T&gt;(link);
-
-    AppendToChain(specificationLink);
-
-    return specificationLink;
-}
-
-public IFilterConfiguration&lt;T&gt; Add(IFilter&lt;T&gt; filter)
-{
-    return Add(new FilterLinkAdapter&lt;T&gt;(filter));
-}
-
-public void AppendToChain(IFilterLink&lt;T&gt; link)
-{
-    if (head == null)
+    public void Execute(T input)
     {
-        head = link;
-        return;
+        head.Execute(input);
     }
 
-    var successor = head;
-
-    while (successor.Successor != null)
+    public IFilterConfiguration&lt;T&gt; Add(IFilterLink&lt;T&gt; link)
     {
-        successor = successor.Successor;
+        var specificationLink = new SpecificationFilterLink&lt;T&gt;(link);
+
+        AppendToChain(specificationLink);
+
+        return specificationLink;
     }
 
-    successor.Successor = link;
+    public IFilterConfiguration&lt;T&gt; Add(IFilter&lt;T&gt; filter)
+    {
+        return Add(new FilterLinkAdapter&lt;T&gt;(filter));
+    }
+
+    public void AppendToChain(IFilterLink&lt;T&gt; link)
+    {
+        if (head == null)
+        {
+            head = link;
+            return;
+        }
+
+        var successor = head;
+
+        while (successor.Successor != null)
+        {
+            successor = successor.Successor;
+        }
+
+        successor.Successor = link;
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>You might be scratching your head and wondering what this business is with both <code>IFilter&lt;T&gt;</code> and <code>IFilterLink&lt;T&gt;</code>. <code>IFilter&lt;T&gt;</code> is just a simpler version of <code>IFilterLink&lt;T&gt;</code> that doesn’t require the implementer to deal with calling the next link in the chain. The subject will always pass through, no short-circuiting, hence the pipeline.</p>
 
 <p>My favorite part  is the <code>SpecificationFilterLink&lt;T&gt;</code> which is a decorator that uses a Specification to decide if the filter should be invoked. So you can do little readable snippets like:</p>
 
-<p><code>c#
-pipeline.Add(new EnqueueOrders(customerFacade)).When(new OrderHasNoErrors());
-</code></p>
+<pre><code class="c#">pipeline.Add(new EnqueueOrders(customerFacade)).When(new OrderHasNoErrors());
+</code></pre>
 
 <p>Maybe this post will get it out of my system and I can move on to other solutions. It’s just so handy…</p>
 ]]></content>

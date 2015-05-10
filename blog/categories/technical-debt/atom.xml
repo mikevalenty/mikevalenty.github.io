@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Technical Debt | Mike Valenty]]></title>
+  <title><![CDATA[Category: technical debt | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/technical-debt/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>

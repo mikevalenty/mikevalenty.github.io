@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Integration Testing | Mike Valenty]]></title>
+  <title><![CDATA[Category: integration testing | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/integration-testing/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -20,24 +20,20 @@
     <id>http://www.mikevalenty.com/integration-testing-with-nhibernate</id>
     <content type="html"><![CDATA[<p>While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure my mapping works and that when I save an entity it goes to the database.</p>
 
-<p>``` c#
-[TestFixture]
-public class MyIntegrationFixture : IntegrationFixture {</p>
+<pre><code class="c#">[TestFixture]
+public class MyIntegrationFixture : IntegrationFixture {
+    [Test]
+    public void Can_add_elements() {
+        var repository = Container.Resolve&lt;IRepository&lt;MyEntity&gt;&gt;();
 
-<pre><code>[Test]
-public void Can_add_elements() {
-    var repository = Container.Resolve&lt;IRepository&lt;MyEntity&gt;&gt;();
+        var entity = repository.FindById(1);
+        entity.Add(new Element { Description = "The Description" });
+        repository.Save(entity);
 
-    var entity = repository.FindById(1);
-    entity.Add(new Element { Description = "The Description" });
-    repository.Save(entity);
-
-    Assert.That(repository.FindById(1).Elements.Count(), Is.EqualTo(1));
+        Assert.That(repository.FindById(1).Elements.Count(), Is.EqualTo(1));
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>The problem is the next time I call <code>FindById()</code> I get my object back from the first level cache <code>ISession</code>, so the Assert passes but looking at the SQL output by NHibernate I can see that no INSERT statement is happening. There are two things that NHibernate needs to do in order for the integration test to work as expected.</p>
 
@@ -51,80 +47,72 @@ public void Can_add_elements() {
 
 <p>Since I solve all my problems with a pipeline or decorator, I figured I’d decorate the <code>ISession</code> and commit and evict on the operations I care about:</p>
 
-<p>``` c#
-public class AutoCommitAndEvictSession : SessionDecorator {</p>
-
-<pre><code>public AutoCommitAndEvictSession(ISession session)
-    : base(session) {
-}
-
-public override object Save(object obj) {
-    object result;
-    using (var tx = Session.BeginTransaction()) {
-        result = Session.Save(obj);
-        tx.Commit();
+<pre><code class="c#">public class AutoCommitAndEvictSession : SessionDecorator {
+    public AutoCommitAndEvictSession(ISession session)
+        : base(session) {
     }
-    Session.Evict(obj);
-    return result;
-}
 
-public override void Update(object obj) {
-    CommitAndEvict(base.Update, obj);
-}
-
-public override void SaveOrUpdate(object obj) {
-    CommitAndEvict(base.SaveOrUpdate, obj);
-}
-
-public override void Delete(object obj) {
-    CommitAndEvict(base.Delete, obj);
-}
-
-private void CommitAndEvict(Action&lt;object&gt; action, object entity) {
-    using (var tx = Session.BeginTransaction()) {
-        action.Invoke(entity);
-        tx.Commit();
+    public override object Save(object obj) {
+        object result;
+        using (var tx = Session.BeginTransaction()) {
+            result = Session.Save(obj);
+            tx.Commit();
+        }
+        Session.Evict(obj);
+        return result;
     }
-    Session.Evict(entity);
+
+    public override void Update(object obj) {
+        CommitAndEvict(base.Update, obj);
+    }
+
+    public override void SaveOrUpdate(object obj) {
+        CommitAndEvict(base.SaveOrUpdate, obj);
+    }
+
+    public override void Delete(object obj) {
+        CommitAndEvict(base.Delete, obj);
+    }
+
+    private void CommitAndEvict(Action&lt;object&gt; action, object entity) {
+        using (var tx = Session.BeginTransaction()) {
+            action.Invoke(entity);
+            tx.Commit();
+        }
+        Session.Evict(entity);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Then I just work it into a test fixture like this:</p>
 
-<p>``` c#
-[TestFixture]
-public abstract class IntegrationFixture {</p>
+<pre><code class="c#">[TestFixture]
+public abstract class IntegrationFixture {
+    protected IUnityContainer Container { get; private set; }
 
-<pre><code>protected IUnityContainer Container { get; private set; }
+    [TestFixtureSetUp]
+    public virtual void TestFixtureSetUp() {
+        Container = new UnityContainer()
+            .AddNewExtension&lt;ConfigureNHibernate&gt;();
+    }
 
-[TestFixtureSetUp]
-public virtual void TestFixtureSetUp() {
-    Container = new UnityContainer()
-        .AddNewExtension&lt;ConfigureNHibernate&gt;();
-}
+    [TestFixtureTearDown]
+    public virtual void TestFixtureTearDown() {
+        Container.Dispose();
+    }
 
-[TestFixtureTearDown]
-public virtual void TestFixtureTearDown() {
-    Container.Dispose();
-}
+    [SetUp]
+    public virtual void SetUp() {
+        var session = Container.Resolve&lt;ISessionFactory&gt;().OpenSession();
+        Container.RegisterInstance&lt;ISession&gt;(new AutoCommitAndEvictSession(session));
+    }
 
-[SetUp]
-public virtual void SetUp() {
-    var session = Container.Resolve&lt;ISessionFactory&gt;().OpenSession();
-    Container.RegisterInstance&lt;ISession&gt;(new AutoCommitAndEvictSession(session));
-}
-
-[TearDown]
-public virtual void TearDown() {
-    Container.Resolve&lt;ISession&gt;().Dispose();
+    [TearDown]
+    public virtual void TearDown() {
+        Container.Resolve&lt;ISession&gt;().Dispose();
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 ]]></content>
   </entry>
   

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: TDD | Mike Valenty]]></title>
+  <title><![CDATA[Category: tdd | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/tdd/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -57,80 +57,69 @@
 
 <p>To streamline this process, I thought it would be handy to use a container extension to auto generate mocks for any required interface that wasn’t explicitly registered. The best way I can explain this is with code, so here it is:</p>
 
-<p>``` c#
-[SetUp]
+<pre><code class="c#">[SetUp]
 public void SetUp()
-{</p>
+{
+    container = new UnityContainer()
+        .AddNewExtension&lt;AutoMockingContainerExtension&gt;();
+}
 
-<pre><code>container = new UnityContainer()
-    .AddNewExtension&lt;AutoMockingContainerExtension&gt;();
-</code></pre>
-
-<p>}</p>
-
-<p>[Test]
+[Test]
 public void Should_be_really_easy_to_test()
-{</p>
+{
+    container
+        .RegisterMock&lt;IDependencyThatNeedsExplicitMocking&gt;()
+        .Setup(d =&gt; d.MyMethod(It.IsAny&lt;int&gt;()))
+        .Returns("I want to specify the return value");
 
-<pre><code>container
-    .RegisterMock&lt;IDependencyThatNeedsExplicitMocking&gt;()
-    .Setup(d =&gt; d.MyMethod(It.IsAny&lt;int&gt;()))
-    .Returns("I want to specify the return value");
+    var service = container.Resolve&lt;ServiceWithThreeDependencies&gt;();
+    var result = service.DoSomething();
 
-var service = container.Resolve&lt;ServiceWithThreeDependencies&gt;();
-var result = service.DoSomething();
-
-Assert.That(result, Is.EqualTo("I didn't have to mock the other 2 dependencies!"));
+    Assert.That(result, Is.EqualTo("I didn't have to mock the other 2 dependencies!"));
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>It really reduces the noise level in tests and lets you focus on the interesting parts of your application. Here’s the code for the container extension:</p>
 
 <p><img src="/images/posts/luigi1.jpg"></p>
 
-<p>``` c#
-public class AutoMockingContainerExtension : UnityContainerExtension
-{</p>
-
-<pre><code>protected override void Initialize()
+<pre><code class="c#">public class AutoMockingContainerExtension : UnityContainerExtension
 {
-    var strategy = new AutoMockingBuilderStrategy(Container);
-
-    Context.Strategies.Add(strategy, UnityBuildStage.PreCreation);
-}
-
-class AutoMockingBuilderStrategy : BuilderStrategy
-{
-    private readonly IUnityContainer container;
-
-    public AutoMockingBuilderStrategy(IUnityContainer container)
+    protected override void Initialize()
     {
-        this.container = container;
+        var strategy = new AutoMockingBuilderStrategy(Container);
+
+        Context.Strategies.Add(strategy, UnityBuildStage.PreCreation);
     }
 
-    public override void PreBuildUp(IBuilderContext context)
+    class AutoMockingBuilderStrategy : BuilderStrategy
     {
-        var key = context.OriginalBuildKey;
+        private readonly IUnityContainer container;
 
-        if (key.Type.IsInterface &amp;&amp; !container.IsRegistered(key.Type))
+        public AutoMockingBuilderStrategy(IUnityContainer container)
         {
-            context.Existing = CreateDynamicMock(key.Type);
+            this.container = container;
         }
-    }
 
-    private static object CreateDynamicMock(Type type)
-    {
-        var genericMockType = typeof(Mock&lt;&gt;).MakeGenericType(type);
-        var mock = (Mock)Activator.CreateInstance(genericMockType);
-        return mock.Object;
+        public override void PreBuildUp(IBuilderContext context)
+        {
+            var key = context.OriginalBuildKey;
+
+            if (key.Type.IsInterface &amp;&amp; !container.IsRegistered(key.Type))
+            {
+                context.Existing = CreateDynamicMock(key.Type);
+            }
+        }
+
+        private static object CreateDynamicMock(Type type)
+        {
+            var genericMockType = typeof(Mock&lt;&gt;).MakeGenericType(type);
+            var mock = (Mock)Activator.CreateInstance(genericMockType);
+            return mock.Object;
+        }
     }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>In case you’re wondering about <code>container.RegisterMock&lt;&gt;</code>, it’s just extension method that you can read about <a href="/moq-extension-methods-for-unity/">here</a>.</p>
 ]]></content>
@@ -147,45 +136,41 @@ class AutoMockingBuilderStrategy : BuilderStrategy
 
 <p>What’s wrong with this class?</p>
 
-<p>``` c#
-public class HttpContextCacheCaptchaProvider : ICaptchaProvider
-{</p>
-
-<pre><code>private const string httpContextCacheKey = "4D795A45-8015-475C-A6C4-765B09EB9955";
-private ICaptchaImageFactory factory;
-private HttpContextBase context;
-
-public HttpContextCacheCaptchaProvider(ICaptchaImageFactory factory, HttpContextBase context)
+<pre><code class="c#">public class HttpContextCacheCaptchaProvider : ICaptchaProvider
 {
-    this.factory = factory;
-    this.context = context;
-}
+    private const string httpContextCacheKey = "4D795A45-8015-475C-A6C4-765B09EB9955";
+    private ICaptchaImageFactory factory;
+    private HttpContextBase context;
 
-public void Render(Stream stream)
-{
-    CaptchaImage captchaImage = factory.Create();
-
-    context.Cache[httpContextCacheKey] = captchaImage.Text; // hint
-
-    using (Bitmap bitmap = captchaImage.RenderImage())
+    public HttpContextCacheCaptchaProvider(ICaptchaImageFactory factory, HttpContextBase context)
     {
-        bitmap.Save(stream, ImageFormat.Jpeg);
+        this.factory = factory;
+        this.context = context;
+    }
+
+    public void Render(Stream stream)
+    {
+        CaptchaImage captchaImage = factory.Create();
+
+        context.Cache[httpContextCacheKey] = captchaImage.Text; // hint
+
+        using (Bitmap bitmap = captchaImage.RenderImage())
+        {
+            bitmap.Save(stream, ImageFormat.Jpeg);
+        }
+    }
+
+    public bool Verify(string text)
+    {
+        string captchaText = (string)context.Cache[httpContextCacheKey]; // hint
+
+        if (text == null || captchaText == null)
+            return false;
+        else
+            return text.ToLower().Equals(captchaText.ToLower());
     }
 }
-
-public bool Verify(string text)
-{
-    string captchaText = (string)context.Cache[httpContextCacheKey]; // hint
-
-    if (text == null || captchaText == null)
-        return false;
-    else
-        return text.ToLower().Equals(captchaText.ToLower());
-}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Perhaps your nose can lead you in the right direction. The smell is hard to test, and it’s hard to test because it requires mocking the <code>HttpContextBase</code>. You might say “no problem, I can blast out a stub with Moq in no time” but you’re missing the real problem. That would be like taking aspirin for a brain tumor.</p>
 
@@ -195,52 +180,44 @@ public bool Verify(string text)
 
 <p>The real problem is this class is violating the Single Responsibility Principle (SRP) by doing more than one thing. I don’t mean the two methods <code>Render()</code> and <code>Verify()</code>, those are a cohesive unit operating on the same data. The other thing is lifetime management. Look how simple the class gets when you invert control and take out the notion of lifetime management:</p>
 
-<p>``` c#
-[Serializable]
+<pre><code class="c#">[Serializable]
 public class LifetimeManagedCaptchaProvider : ICaptchaProvider
-{</p>
-
-<pre><code>private ICaptchaImageFactory factory;
-private string captchaText;
-
-public LifetimeManagedCaptchaProvider(ICaptchaImageFactory factory)
 {
-    this.factory = factory;
-}
+    private ICaptchaImageFactory factory;
+    private string captchaText;
 
-public void Render(Stream stream)
-{
-    CaptchaImage captchaImage = factory.Create();
-
-    captchaText = captchaImage.Text;
-
-    using (Bitmap bitmap = captchaImage.RenderImage())
+    public LifetimeManagedCaptchaProvider(ICaptchaImageFactory factory)
     {
-        bitmap.Save(stream, ImageFormat.Jpeg);
+        this.factory = factory;
+    }
+
+    public void Render(Stream stream)
+    {
+        CaptchaImage captchaImage = factory.Create();
+
+        captchaText = captchaImage.Text;
+
+        using (Bitmap bitmap = captchaImage.RenderImage())
+        {
+            bitmap.Save(stream, ImageFormat.Jpeg);
+        }
+    }
+
+    public bool Verify(string text)
+    {
+        if (text == null || captchaText == null)
+            return false;
+        else
+            return text.ToLower().Equals(captchaText.ToLower());
     }
 }
-
-public bool Verify(string text)
-{
-    if (text == null || captchaText == null)
-        return false;
-    else
-        return text.ToLower().Equals(captchaText.ToLower());
-}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Now this class is a breeze to test and all you have to do is register it like this:</p>
 
-<p>``` c#
-Container.RegisterType&lt;ICaptchaProvider, LifetimeManagedCaptchaProvider>(</p>
-
-<pre><code>new HttpSessionStateLifetimeManager());
+<pre><code class="c#">Container.RegisterType&lt;ICaptchaProvider, LifetimeManagedCaptchaProvider&gt;(
+    new HttpSessionStateLifetimeManager());
 </code></pre>
-
-<p>```</p>
 
 <p>The moral of the story is let your IoC container do things it’s good at.</p>
 ]]></content>

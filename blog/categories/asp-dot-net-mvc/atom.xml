@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: ASP.NET MVC | Mike Valenty]]></title>
+  <title><![CDATA[Category: asp.net mvc | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/asp-dot-net-mvc/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -20,181 +20,149 @@
     <id>http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add <code>tenant_id</code> to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
-<p>``` xml
-&lt;hibernate-mapping xmlns=&ldquo;urn:nhibernate-mapping-2.2&rdquo;></p>
+<pre><code class="xml">&lt;hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"&gt;
 
-<p>  &lt;filter-def name=&ldquo;tenant&rdquo;></p>
+  &lt;filter-def name="tenant"&gt;
+    &lt;filter-param name="id" type="System.Int32" /&gt;
+  &lt;/filter-def&gt;
 
-<pre><code>&lt;filter-param name="id" type="System.Int32" /&gt;
+&lt;/hibernate-mapping&gt;
 </code></pre>
-
-<p>  &lt;/filter-def></p>
-
-<p>&lt;/hibernate-mapping>
-```</p>
 
 <p>And then apply it to each entity:</p>
 
-<p>``` xml
-<class name="User" table="[user]"></p>
+<pre><code class="xml">&lt;class name="User" table="[user]"&gt;
 
-<p>  <id name="Id" column="user_id"></p>
+  &lt;id name="Id" column="user_id"&gt;
+    &lt;generator class="identity" /&gt;
+  &lt;/id&gt;
 
-<pre><code>&lt;generator class="identity" /&gt;
+  &lt;property name="Username" /&gt;
+  &lt;property name="Email" /&gt;
+
+  &lt;filter name="tenant" condition="tenant_id = :id" /&gt;
+
+&lt;/class&gt;
 </code></pre>
-
-<p>  </id></p>
-
-<p>  <property name="Username" />
-  <property name="Email" /></p>
-
-<p>  <filter name="tenant" condition="tenant_id = :id" /></p>
-
-<p></class>
-```</p>
 
 <p>The last step is to set the value of the filter at runtime. This is done on the <code>ISession</code> like this:</p>
 
-<p>``` c#
-Container</p>
-
-<pre><code>.RegisterType&lt;ISession&gt;(
-    new PerRequestLifetimeManager(),
-    new InjectionFactory(c =&gt;
-    {
-        var session = c.Resolve&lt;ISessionFactory&gt;().OpenSession();
-        session.EnableFilter("tenant").SetParameter("id", c.Resolve&lt;Tenant&gt;().Id);
-        return session;
-    })
-);
+<pre><code class="c#">Container
+    .RegisterType&lt;ISession&gt;(
+        new PerRequestLifetimeManager(),
+        new InjectionFactory(c =&gt;
+        {
+            var session = c.Resolve&lt;ISessionFactory&gt;().OpenSession();
+            session.EnableFilter("tenant").SetParameter("id", c.Resolve&lt;Tenant&gt;().Id);
+            return session;
+        })
+    );
 </code></pre>
-
-<p>```</p>
 
 <p>The current tenant comes from <code>c.Resolve&lt;Tenant&gt;()</code>. In order for that to work, you have to tell Unity how to find the current tenant. In ASP.NET MVC, we can look at the host header on the request and find our tenant that way. We could just as easily use another strategy though. Maybe if this were a WCF service, we could use an authentication header to establish the current tenant context. You could build out some interfaces and strategies around establishing the current tenant context, however for this article I’ll just bang it out.</p>
 
-<p>``` c#
-Container</p>
+<pre><code class="c#">Container
+    .RegisterType&lt;Tenant&gt;(new InjectionFactory(c =&gt;
+    {
+        var repository = c.Resolve&lt;ITenantRepository&gt;();
 
-<pre><code>.RegisterType&lt;Tenant&gt;(new InjectionFactory(c =&gt;
-{
-    var repository = c.Resolve&lt;ITenantRepository&gt;();
+        var context = c.Resolve&lt;HttpContextBase&gt;();
 
-    var context = c.Resolve&lt;HttpContextBase&gt;();
+        var host = context.Request.Headers["Host"] ?? context.Request.Url.Host;
 
-    var host = context.Request.Headers["Host"] ?? context.Request.Url.Host;
-
-    return repository.FindByHost(host);
-}));
+        return repository.FindByHost(host);
+    }));
 </code></pre>
-
-<p>```</p>
 
 <p>Second, we have to set the <code>tenant_id</code> when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
 
-<p>``` c#
-public class User
-{</p>
+<pre><code class="c#">public class User
+{
+    private int? tenantId;
 
-<pre><code>private int? tenantId;
+    public virtual int Id { get; set; }
 
-public virtual int Id { get; set; }
+    public virtual string Username { get; set; }
 
-public virtual string Username { get; set; }
-
-public virtual string Email { get; set; }
+    public virtual string Email { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>It’s private because I don’t want the business logic to deal with it and it’s nullable because my tenant table is in a separate database which means I can’t lean on the data model to enforce referential integrity. That’s a problem because the default value for an integer is zero which could be happily saved by the database. By making it nullable I can be sure the database will blow up if the <code>tenant_id</code> is not set.</p>
 
 <p>So, back to the issue at hand. The <code>tenant_id</code> needs to be set when the entity is saved. For this, I’m using an interceptor and setting the value in the <code>OnSave</code> method:</p>
 
-<p>``` c#
-public class MultiTenantInterceptor : EmptyInterceptor
-{</p>
-
-<pre><code>private readonly Func&lt;Tenant&gt; tenant;
-
-public MultiTenantInterceptor(Func&lt;Tenant&gt; tenant)
+<pre><code class="c#">public class MultiTenantInterceptor : EmptyInterceptor
 {
-    this.tenant = tenant;
-}
+    private readonly Func&lt;Tenant&gt; tenant;
 
-public override bool OnSave(object entity... object[] state, string[] propertyNames...)
-{
-    var index = Array.IndexOf(propertyNames, "tenantId");
+    public MultiTenantInterceptor(Func&lt;Tenant&gt; tenant)
+    {
+        this.tenant = tenant;
+    }
 
-    if (index == -1)
+    public override bool OnSave(object entity... object[] state, string[] propertyNames...)
+    {
+        var index = Array.IndexOf(propertyNames, "tenantId");
+
+        if (index == -1)
+            return false;
+
+        var tenantId = tenant().Id;
+
+        state[index] = tenantId;
+
+        entity
+            .GetType()
+            .GetField("tenantId", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(entity, tenantId);
+
         return false;
-
-    var tenantId = tenant().Id;
-
-    state[index] = tenantId;
-
-    entity
-        .GetType()
-        .GetField("tenantId", BindingFlags.Instance | BindingFlags.NonPublic)
-        .SetValue(entity, tenantId);
-
-    return false;
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>This <code>IInterceptor</code> mechanism is a little wonky. If you change any data, you have to do it in both the entity instance and the state array that NHibernate uses to hydrate entities. It’s not a big deal, it’s just one of those things you have to accept like the fact that Apple and Google are tracking your every move via your smart phone. Oh, and the interceptor gets wired up like this:</p>
 
-<p>``` c#
-Container</p>
-
-<pre><code>.RegisterType&lt;ISessionFactory&gt;(
-    new ContainerControlledLifetimeManager(),
-    new InjectionFactory(c =&gt;
-    {
-        return new NHibernate.Cfg.Configuration()
-            .Configure()
-            .SetInterceptor(new MultiTenantInterceptor(() =&gt; c.Resolve&lt;Tenant&gt;()))
-            .BuildSessionFactory();
-    })
-);
+<pre><code class="c#">Container
+    .RegisterType&lt;ISessionFactory&gt;(
+        new ContainerControlledLifetimeManager(),
+        new InjectionFactory(c =&gt;
+        {
+            return new NHibernate.Cfg.Configuration()
+                .Configure()
+                .SetInterceptor(new MultiTenantInterceptor(() =&gt; c.Resolve&lt;Tenant&gt;()))
+                .BuildSessionFactory();
+        })
+    );
 </code></pre>
-
-<p>```</p>
 
 <p>We’re almost done. There is one more case that needs to be handled. When NHibernate loads an entity by its primary key, it doesn’t run through the query engine which means the tenant filter isn’t applied. Fortunately, we can take care of this in the interceptor:</p>
 
-<p>``` c#
-public class MultiTenantInterceptor : EmptyInterceptor
-{</p>
-
-<pre><code>...
-
-public override bool OnLoad(object entity... object[] state, string[] propertyNames...)
+<pre><code class="c#">public class MultiTenantInterceptor : EmptyInterceptor
 {
-    var index = Array.IndexOf(propertyNames, "tenantId");
+    ...
 
-    if (index == -1)
-        return false;
-
-    var entityTenantId = Convert.ToInt32(state[index]);
-
-    var currentTenantId = tenant().Id;
-
-    if (entityTenantId != currentTenantId)
+    public override bool OnLoad(object entity... object[] state, string[] propertyNames...)
     {
-        throw new AuthorizationException("Permission denied to {0}", entity);
-    }
+        var index = Array.IndexOf(propertyNames, "tenantId");
 
-    return false;
+        if (index == -1)
+            return false;
+
+        var entityTenantId = Convert.ToInt32(state[index]);
+
+        var currentTenantId = tenant().Id;
+
+        if (entityTenantId != currentTenantId)
+        {
+            throw new AuthorizationException("Permission denied to {0}", entity);
+        }
+
+        return false;
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>That’s it. Have fun and happy commingling.</p>
 ]]></content>
@@ -224,186 +192,156 @@ public override bool OnLoad(object entity... object[] state, string[] propertyNa
 
 <p>Let’s take a look at a controller that uses NHibernate to talk to the database. I’m not going to get into whether you should talk directly to NHibernate from the controller or go through a service layer or repository because it doesn’t affect how we’re going to add multi-tenancy. The important thing here is that the <code>ISession</code> is injected into the controller, and we aren’t using the service locator pattern to request the <code>ISession</code> from a singleton.</p>
 
-<p>``` c#
-public class UserController : Controller
-{</p>
-
-<pre><code>private readonly ISession session;
-
-public UserController(ISession session)
+<pre><code class="c#">public class UserController : Controller
 {
-    this.session = session;
-}
+    private readonly ISession session;
 
-public ActionResult Edit(int id)
-{
-    var user = session.Load&lt;User&gt;(id);
+    public UserController(ISession session)
+    {
+        this.session = session;
+    }
 
-    return View(user);
+    public ActionResult Edit(int id)
+    {
+        var user = session.Load&lt;User&gt;(id);
+
+        return View(user);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Alright, now it’s time to write some new code and make our web application connect to the correct database based on the host header in the http request. First, we’ll need a database to store a list of tenants along with the connection string for that tenant’s database. Here’s my entity:</p>
 
-<p>``` c#
-public class Tenant
-{</p>
+<pre><code class="c#">public class Tenant
+{
+    public virtual string Name { get; set; }
 
-<pre><code>public virtual string Name { get; set; }
+    public virtual string Host { get; set; }
 
-public virtual string Host { get; set; }
-
-public virtual string ConnectionString { get; set; }
+    public virtual string ConnectionString { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>I’ll use the repository pattern here so there is a crisp consumer of the <code>ISession</code> that connects to the lookup database rather than one of the tenant shards. This will be important later when we go to configure Unity.</p>
 
-<p>``` c#
-public class NHibernateTenantRepository : ITenantRepository
-{</p>
-
-<pre><code>private readonly ISession session;
-private readonly HttpContextBase context;
-
-public NHibernateTenantRepository(ISession session, HttpContextBase context)
+<pre><code class="c#">public class NHibernateTenantRepository : ITenantRepository
 {
-    this.session = session;
-    this.context = context;
-}
+    private readonly ISession session;
+    private readonly HttpContextBase context;
 
-public Tenant Current
-{
-    get
+    public NHibernateTenantRepository(ISession session, HttpContextBase context)
     {
-        var host = context.Request.Headers["Host"];
-        return FindByHost(host);
+        this.session = session;
+        this.context = context;
+    }
+
+    public Tenant Current
+    {
+        get
+        {
+            var host = context.Request.Headers["Host"];
+            return FindByHost(host);
+        }
+    }
+
+    public Tenant FindByHost(string host)
+    {
+        return session
+            .Query&lt;Tenant&gt;()
+            .SingleOrDefault(t =&gt; t.Host == host);
     }
 }
-
-public Tenant FindByHost(string host)
-{
-    return session
-        .Query&lt;Tenant&gt;()
-        .SingleOrDefault(t =&gt; t.Host == host);
-}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>So now we need a dedicated <code>ISessionFactory</code> for the lookup database and make sure that our <code>NHibernateTenantRepository</code> gets the right <code>ISession</code>. It’s not too bad, we just need to name them in the container so we can refer to them explicitly.</p>
 
-<p>``` c#
-Container</p>
+<pre><code class="c#">Container
+    .RegisterType&lt;ISessionFactory&gt;(
+        "tenant_session_factory",
+        new ContainerControlledLifetimeManager(),
+        new InjectionFactory(c =&gt;
+            new NHibernate.Cfg.Configuration().Configure().BuildSessionFactory())
+    );
 
-<pre><code>.RegisterType&lt;ISessionFactory&gt;(
-    "tenant_session_factory",
-    new ContainerControlledLifetimeManager(),
-    new InjectionFactory(c =&gt;
-        new NHibernate.Cfg.Configuration().Configure().BuildSessionFactory())
-);
+Container
+    .RegisterType&lt;ISession&gt;(
+        "tenant_session",
+        new PerRequestLifetimeManager(),
+        new InjectionFactory(c =&gt;
+            c.Resolve&lt;ISessionFactory&gt;("tenant_session_factory").OpenSession())
+    );
+
+Container
+    .RegisterType&lt;ITenantRepository, NHibernateTenantRepository&gt;()
+    .RegisterType&lt;NHibernateTenantRepository&gt;(
+        new InjectionConstructor(
+            new ResolvedParameter&lt;ISession&gt;("tenant_session"),
+            new ResolvedParameter&lt;HttpContextBase&gt;()
+        )
+    );
 </code></pre>
-
-<p>Container</p>
-
-<pre><code>.RegisterType&lt;ISession&gt;(
-    "tenant_session",
-    new PerRequestLifetimeManager(),
-    new InjectionFactory(c =&gt;
-        c.Resolve&lt;ISessionFactory&gt;("tenant_session_factory").OpenSession())
-);
-</code></pre>
-
-<p>Container</p>
-
-<pre><code>.RegisterType&lt;ITenantRepository, NHibernateTenantRepository&gt;()
-.RegisterType&lt;NHibernateTenantRepository&gt;(
-    new InjectionConstructor(
-        new ResolvedParameter&lt;ISession&gt;("tenant_session"),
-        new ResolvedParameter&lt;HttpContextBase&gt;()
-    )
-);
-</code></pre>
-
-<p>```</p>
 
 <p>Hopefully that’s about what you were expecting since it’s not really the interesting part. The more interesting part is configuring the <code>ISession</code> that gets injected into the <code>UserController</code> to connect to a different database based on the host header in the http request. The Unity feature we’re going to leverage for this is the <code>LifetimeManager</code>. This is an often overlooked feature of IoC containers.</p>
 
-<p>``` c#
-Container</p>
+<pre><code class="c#">Container
+    .RegisterType&lt;ISessionFactory&gt;(
+        new PerHostLifetimeManager(() =&gt; new HttpContextWrapper(HttpContext.Current)),
+        new InjectionFactory(c =&gt;
+        {
+            var connString = c
+                .Resolve&lt;ITenantRepository&gt;()
+                .Current
+                .ConnectionString;
 
-<pre><code>.RegisterType&lt;ISessionFactory&gt;(
-    new PerHostLifetimeManager(() =&gt; new HttpContextWrapper(HttpContext.Current)),
-    new InjectionFactory(c =&gt;
-    {
-        var connString = c
-            .Resolve&lt;ITenantRepository&gt;()
-            .Current
-            .ConnectionString;
+            return new NHibernate.Cfg.Configuration()
+                .Configure()
+                .SetProperty(NHibernate.Cfg.Environment.ConnectionString, connString)
+                .BuildSessionFactory();
+        }));
 
-        return new NHibernate.Cfg.Configuration()
-            .Configure()
-            .SetProperty(NHibernate.Cfg.Environment.ConnectionString, connString)
-            .BuildSessionFactory();
-    }));
+Container
+    .RegisterType&lt;ISession&gt;(
+        new PerRequestLifetimeManager(),
+        new InjectionFactory(c =&gt; c.Resolve&lt;ISessionFactory&gt;().OpenSession())
+    );
 </code></pre>
-
-<p>Container</p>
-
-<pre><code>.RegisterType&lt;ISession&gt;(
-    new PerRequestLifetimeManager(),
-    new InjectionFactory(c =&gt; c.Resolve&lt;ISessionFactory&gt;().OpenSession())
-);
-</code></pre>
-
-<p>```</p>
 
 <p>Here we’re using a custom <code>PerHostLifetimeManager</code>. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the <code>InjectionFactory</code> block to create one using the connection string associated with that tenant.</p>
 
 <p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> <a href="http://stackoverflow.com/questions/157933/whats-the-best-way-of-implementing-a-thread-safe-dictionary-in-net">isn’t thread safe</a>.</p>
 
-<p>``` c#
-public class PerHostLifetimeManager : SynchronizedLifetimeManager
-{</p>
-
-<pre><code>private readonly Func&lt;HttpContextBase&gt; context;
-private readonly IDictionary&lt;string, object&gt; store;
-
-public PerHostLifetimeManager(Func&lt;HttpContextBase&gt; context)
+<pre><code class="c#">public class PerHostLifetimeManager : SynchronizedLifetimeManager
 {
-    this.context = context;
-    store = new Dictionary&lt;string, object&gt;();
-}
+    private readonly Func&lt;HttpContextBase&gt; context;
+    private readonly IDictionary&lt;string, object&gt; store;
 
-protected override object SynchronizedGetValue()
-{
-    var host = GetHost();
+    public PerHostLifetimeManager(Func&lt;HttpContextBase&gt; context)
+    {
+        this.context = context;
+        store = new Dictionary&lt;string, object&gt;();
+    }
 
-    if (!store.ContainsKey(host))
-        return null;
+    protected override object SynchronizedGetValue()
+    {
+        var host = GetHost();
 
-    return store[host];
-}
+        if (!store.ContainsKey(host))
+            return null;
 
-protected override void SynchronizedSetValue(object newValue)
-{
-    store[GetHost()] = newValue;
-}
+        return store[host];
+    }
 
-private string GetHost()
-{
-    return context().Request.Headers["Host"];
+    protected override void SynchronizedSetValue(object newValue)
+    {
+        store[GetHost()] = newValue;
+    }
+
+    private string GetHost()
+    {
+        return context().Request.Headers["Host"];
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>So what did we accomplish? Well we didn’t touch any of our existing application code. We just wrote new code and through configuration we added multi-tenancy! That’s pretty cool, but was it worth it? Well, the goal in itself isn’t super important, but this exercise can certainly highlight areas of your codebase where you might be violating the single responsibility principle or leaking too many infrastructure concepts into your application logic.</p>
 ]]></content>
@@ -416,59 +354,47 @@ private string GetHost()
     <id>http://www.mikevalenty.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
     <content type="html"><![CDATA[<p>The <code>DataAnnotationsModelBinder</code> is a pretty neat little class that enforces validation attributes on models like this one:</p>
 
-<p>``` c#
-public class Product {</p>
+<pre><code class="c#">public class Product {
+    public int Id { get; set; }
 
-<pre><code>public int Id { get; set; }
+    [Required]
+    public string Description { get; set; }
 
-[Required]
-public string Description { get; set; }
-
-[Required]
-[RegularExpression(@"^\$?\d+(\.(\d{2}))?$")]
-public decimal UnitPrice { get; set; }
+    [Required]
+    [RegularExpression(@"^\$?\d+(\.(\d{2}))?$")]
+    public decimal UnitPrice { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Just for the record, this is a <a href="http://aspnet.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=24471">cool bit of code</a> that was released to the community for backseat drivers like me to use and complain about. I’m really only bitter because I can’t use it. Let’s take a peek at the source code to see why:</p>
 
-<p>``` c#
-/// <summary>
+<pre><code class="c#">/// &lt;summary&gt;
 /// An implementation of IModelBinder which is designed to be a replacement
 /// default model binder, adding the functionality of validation via the validation
 /// attributes in System.ComponentModel.DataAnnotations from .NET 4.0.
-/// </summary>
-public class DataAnnotationsModelBinder : DefaultModelBinder {</p>
-
-<pre><code>...
+/// &lt;/summary&gt;
+public class DataAnnotationsModelBinder : DefaultModelBinder {
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>The problem with this class is that it’s not just about validation. It’s more about binding with validation sprinkled in. The author even states this as a design goal with the comment “designed to be a replacement default model binder.” This is a violation of the <em>Single Responsibility Principle</em> and it’s the reason I can’t use it. The <code>DefaultModelBinder</code> does some basic reflection mapping of form elements to model properties. That’s cool, but what about a controller action that takes json, xml, or anything slightly more complicated than what the default binder can handle?</p>
 
 <p>I’ll tell you what happens. You write a custom model binder which is pretty easy and happens to be a pretty rad extension point in the MVC framework. Consider this model binder that deserializes json:</p>
 
-<p>``` c#
-public class JsonModelBinder<T> : IModelBinder {</p>
+<pre><code class="c#">public class JsonModelBinder&lt;T&gt; : IModelBinder {
+    private string key;
 
-<pre><code>private string key;
+    public JsonModelBinder(string requestKey) {
+        this.key = requestKey;
+    }
 
-public JsonModelBinder(string requestKey) {
-    this.key = requestKey;
-}
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var json = controllerContext.HttpContext.Request[key];
-    return new JsonSerializer().Deserialize&lt;T&gt;(json);
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var json = controllerContext.HttpContext.Request[key];
+        return new JsonSerializer().Deserialize&lt;T&gt;(json);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>That’s pretty cool, but now I’ve lost my validation! This my friend is the evil of inheritance and the epic fail of the <code>DataAnnotationsModelBinder</code>. So what’s wrong with inheritance, isn’t that what OOP is all about? The short answer is no (the long answer is also no.)</p>
 
@@ -489,39 +415,31 @@ public object BindModel(ControllerContext controllerContext, ...) {
 
 <p>Is this really going to solve all my problems? The short answer is yes. Let’s take a look:</p>
 
-<p>``` c#
-public class BetterDataAnnotationsModelBinder : IModelBinder {</p>
+<pre><code class="c#">public class BetterDataAnnotationsModelBinder : IModelBinder {
+    private IModelBinder binder;
 
-<pre><code>private IModelBinder binder;
+    public BetterDataAnnotationsModelBinder(IModelBinder binder) {
+        this.binder = binder;
+    }
 
-public BetterDataAnnotationsModelBinder(IModelBinder binder) {
-    this.binder = binder;
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var model = binder.BindModel(controllerContext, bindingContext);
+        AddValidationErrorsToModelState(model, controllerContext);
+        return model;
+    }
+
+    ...
 }
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var model = binder.BindModel(controllerContext, bindingContext);
-    AddValidationErrorsToModelState(model, controllerContext);
-    return model;
-}
-
-...
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Now all this class does is enforce validation and we can use whatever model binder we want to construct our object. Let’s wire this up in the <code>Global.asax</code> real quick:</p>
 
-<p>``` c#
-var productModelBinder = new JsonModelBinder<Product>(&ldquo;product&rdquo;);</p>
+<pre><code class="c#">var productModelBinder = new JsonModelBinder&lt;Product&gt;("product");
 
-<p>ModelBinders.Binders.Add(</p>
-
-<pre><code>typeof(Product),
-new BetterDataAnnotationsModelBinder(productModelBinder));
+ModelBinders.Binders.Add(
+    typeof(Product),
+    new BetterDataAnnotationsModelBinder(productModelBinder));
 </code></pre>
-
-<p>```</p>
 
 <p>This is cool for the following reasons:</p>
 
@@ -551,46 +469,41 @@ new BetterDataAnnotationsModelBinder(productModelBinder));
 
 <p>The built-in model binder can handle the easy fields like <code>FirstName</code>, <code>LastName</code>, and <code>Email</code>, but it doesn’t know how to deal with the <code>Roles</code>. This is where the custom model binder comes in:</p>
 
-<p>``` c#
-public class UserModelBinder : IModelBinder {</p>
+<pre><code class="c#">public class UserModelBinder : IModelBinder {
+    private readonly IModelBinder binder;
 
-<pre><code>private readonly IModelBinder binder;
-
-public UserModelBinder(IModelBinder binder) {
-    this.binder = binder;
-}
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var user = (User)binder.BindModel(controllerContext, bindingContext);
-    AddRoles(user, controllerContext);
-    return user;
-}
-
-private static void AddRoles(User user, ControllerContext controllerContext) {
-    foreach (var role in GetRoles(controllerContext)) {
-        user.Add(role);
+    public UserModelBinder(IModelBinder binder) {
+        this.binder = binder;
     }
-}
 
-private static IEnumerable&lt;Role&gt; GetRoles(ControllerContext controllerContext) {
-    var roles = controllerContext.HttpContext.Request["roles"];
-    if (roles == null) yield break;
-    foreach (var roleId in roles.Split(',')) {
-        yield return (Role)Convert.ToInt32(roleId);
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var user = (User)binder.BindModel(controllerContext, bindingContext);
+        AddRoles(user, controllerContext);
+        return user;
+    }
+
+    private static void AddRoles(User user, ControllerContext controllerContext) {
+        foreach (var role in GetRoles(controllerContext)) {
+            user.Add(role);
+        }
+    }
+
+    private static IEnumerable&lt;Role&gt; GetRoles(ControllerContext controllerContext) {
+        var roles = controllerContext.HttpContext.Request["roles"];
+        if (roles == null) yield break;
+        foreach (var roleId in roles.Split(',')) {
+            yield return (Role)Convert.ToInt32(roleId);
+        }
     }
 }
 </code></pre>
 
-<p>}
-```</p>
-
 <p>And it gets wired-up in the <code>Global.asax</code> like this:</p>
 
-<p><code>c#
-var defaultBinder = new DataAnnotationsModelBinder();
+<pre><code class="c#">var defaultBinder = new DataAnnotationsModelBinder();
 ModelBinders.Binders.DefaultBinder = defaultBinder;
 ModelBinders.Binders.Add(typeof(User), new UserModelBinder(defaultBinder));
-</code></p>
+</code></pre>
 
 <p>Because <code>UserModelBinder</code> is a decorator, it preserves the base functionality (like validation) of the default binder and only adds the part about mapping the roles. This is good stuff because it keeps construction of the model out of the controller. That’s the Single-Responsibility Principle in action.</p>
 
@@ -611,162 +524,136 @@ ModelBinders.Binders.Add(typeof(User), new UserModelBinder(defaultBinder));
 
 <p>Before I get into the guts, I would like to provide a little context. My application has 20+ databases scattered across 4 machines.</p>
 
-<p><code>c#
-IRepository&lt;Customer&gt; customerRepository; // customer database on server 1
+<pre><code class="c#">IRepository&lt;Customer&gt; customerRepository; // customer database on server 1
 IRepository&lt;Package&gt;  packageRepository; // customer database on server 1
 IRepository&lt;Contact&gt;  contactRepository; // contact database on server 2
-</code></p>
+</code></pre>
 
 <p>So, I might ask for a <code>Customer</code> object and a <code>Package</code> object and I want to get the same <code>ISession</code> for both and if I ask for the same Customer twice, I want to get the one from the 1st level cache (I’m using NHibernate). If I ask for a Contact object, I will get a different ISession. All opened sessions are managed by my UoW. So, when the page request is complete, I call <code>UoW.Commit</code> and all sessions are committed.</p>
 
 <p>The “magic” if you will, happens in the global.asax. I was nosing around in Rhino.Commons for inspiration and adapted a technique I saw there. This is how it looks:</p>
 
-<p>``` c#
-public class GlobalApplication : HttpApplication
-{</p>
-
-<pre><code>private static IUnityContainer container;
-
-public GlobalApplication()
+<pre><code class="c#">public class GlobalApplication : HttpApplication
 {
-    BeginRequest += new EventHandler(GlobalApplication_BeginRequest);
-    EndRequest += new EventHandler(GlobalApplication_EndRequest);
-}
+    private static IUnityContainer container;
 
-protected void Application_Start(object sender, EventArgs e)
-{
-    RegisterRoutes(RouteTable.Routes);
-
-    container = new UnityContainer();
-    container.AddNewExtension&lt;PolicyInjectorContainerExtension&gt;();
-    container.AddNewExtension&lt;HttpRequestLifetimeCoreContainerExtension&gt;();
-    container.AddNewExtension&lt;WebMvcContainerExtension&gt;();
-
-    ControllerBuilder.Current.SetControllerFactory(new UnityControllerFactory(container));
-}
-
-void GlobalApplication_BeginRequest(object sender, EventArgs e)
-{
-    var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
-    unitOfWork.Start();
-}
-
-void GlobalApplication_EndRequest(object sender, EventArgs e)
-{
-    var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
-    unitOfWork.Commit();
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>I register the UoW with an <code>HttpRequestLifetimeManager</code> so I get a new instance for each request.</p>
-
-<p>``` c#
-Container.RegisterType&lt;IUnitOfWork<ISession>,</p>
-
-<pre><code>NHibernateUnitOfWork&gt;(new HttpRequestLifetimeManager());
-</code></pre>
-
-<p>```</p>
-
-<p>My <code>NHibernateRepository</code> gets injected with the UoW for the current <code>HttpRequest</code> and when the request is complete, the <code>global.asax</code> commits the whole thing.</p>
-
-<p>``` c#
-public class NHibernateRepository<T> : IRepository<T>
-{</p>
-
-<pre><code>protected ISession session;
-
-public NHibernateRepository(IUnitOfWork&lt;ISession&gt; unitOfWork)
-{
-    session = unitOfWork.GetContextFor&lt;T&gt;();
-}
-
-...
-
-public virtual void Save(T obj)
-{
-    session.Save(obj);
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Now, this is all the context of an ASP.NET MVC Controller, but I have a similar issue for other (non-web) services. In that context I am using AOP and decorating a particular method with <code>[UnitOfWork]</code>, which looks like:</p>
-
-<p>``` c#
-public class UnitOfWorkCallHander : ICallHandler
-{</p>
-
-<pre><code>private IUnitOfWork&lt;ISession&gt; unitOfWork;
-
-public UnitOfWorkCallHander(IUnitOfWork&lt;ISession&gt; unitOfWork)
-{
-    this.unitOfWork = unitOfWork;
-}
-
-public int Order { get; set; }
-
-public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
-{
-    unitOfWork.Start();
-
-    try
+    public GlobalApplication()
     {
-        return getNext()(input, getNext);
+        BeginRequest += new EventHandler(GlobalApplication_BeginRequest);
+        EndRequest += new EventHandler(GlobalApplication_EndRequest);
     }
-    finally
+
+    protected void Application_Start(object sender, EventArgs e)
     {
+        RegisterRoutes(RouteTable.Routes);
+
+        container = new UnityContainer();
+        container.AddNewExtension&lt;PolicyInjectorContainerExtension&gt;();
+        container.AddNewExtension&lt;HttpRequestLifetimeCoreContainerExtension&gt;();
+        container.AddNewExtension&lt;WebMvcContainerExtension&gt;();
+
+        ControllerBuilder.Current.SetControllerFactory(new UnityControllerFactory(container));
+    }
+
+    void GlobalApplication_BeginRequest(object sender, EventArgs e)
+    {
+        var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
+        unitOfWork.Start();
+    }
+
+    void GlobalApplication_EndRequest(object sender, EventArgs e)
+    {
+        var unitOfWork = container.Resolve&lt;IUnitOfWork&gt;();
         unitOfWork.Commit();
     }
 }
 </code></pre>
 
-<p>}
-```</p>
+<p>I register the UoW with an <code>HttpRequestLifetimeManager</code> so I get a new instance for each request.</p>
+
+<pre><code class="c#">Container.RegisterType&lt;IUnitOfWork&lt;ISession&gt;,
+    NHibernateUnitOfWork&gt;(new HttpRequestLifetimeManager());
+</code></pre>
+
+<p>My <code>NHibernateRepository</code> gets injected with the UoW for the current <code>HttpRequest</code> and when the request is complete, the <code>global.asax</code> commits the whole thing.</p>
+
+<pre><code class="c#">public class NHibernateRepository&lt;T&gt; : IRepository&lt;T&gt;
+{
+    protected ISession session;
+
+    public NHibernateRepository(IUnitOfWork&lt;ISession&gt; unitOfWork)
+    {
+        session = unitOfWork.GetContextFor&lt;T&gt;();
+    }
+
+    ...
+
+    public virtual void Save(T obj)
+    {
+        session.Save(obj);
+    }
+}
+</code></pre>
+
+<p>Now, this is all the context of an ASP.NET MVC Controller, but I have a similar issue for other (non-web) services. In that context I am using AOP and decorating a particular method with <code>[UnitOfWork]</code>, which looks like:</p>
+
+<pre><code class="c#">public class UnitOfWorkCallHander : ICallHandler
+{
+    private IUnitOfWork&lt;ISession&gt; unitOfWork;
+
+    public UnitOfWorkCallHander(IUnitOfWork&lt;ISession&gt; unitOfWork)
+    {
+        this.unitOfWork = unitOfWork;
+    }
+
+    public int Order { get; set; }
+
+    public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
+    {
+        unitOfWork.Start();
+
+        try
+        {
+            return getNext()(input, getNext);
+        }
+        finally
+        {
+            unitOfWork.Commit();
+        }
+    }
+}
+</code></pre>
 
 <p>In that context I use a <code>PerThreadLifetimeManager</code> for the <code>NHibernateUnitOfWork</code>, and code ends up looking like:</p>
 
-<p>``` c#
-[UnitOfWork]
+<pre><code class="c#">[UnitOfWork]
 public void Process(Job job)
-{</p>
-
-<pre><code>...
+{
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>You know, there is really no reason why you couldn’t do the same thing in the MVC context. You could basically ditch the <code>global.asax</code> event hooha and just annotate the Controller task:</p>
 
-<p>``` c#
-[UnitOfWork]
+<pre><code class="c#">[UnitOfWork]
 public ActionResult ControllerTaskThatRequiresUoW()
-{</p>
-
-<pre><code>...
+{
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>It’s more explicit than using the <code>global.asax</code> technique and it would allow you to specify different UoW behavior on each controller task:</p>
 
-<p>``` c#
-[UnitOfWork(IsolationLevel.ReadCommitted]
+<pre><code class="c#">[UnitOfWork(IsolationLevel.ReadCommitted]
 public ActionResult SomeTaskThatShouldNotReadUncommitedData()
 {
-}</p>
+}
 
-<p>[UnitOfWork(IsolationLevel.ReadUncommitted)]
+[UnitOfWork(IsolationLevel.ReadUncommitted)]
 public ActionResult AnotherTaskWithDifferentRequirements()
 {
 }
-```</p>
+</code></pre>
 
 <p>I’d like to try this out next time I get back into ASP.NET MVC, the global.asax event technique felt a little too magical and I don’t think Uncle Bob would approve.</p>
 ]]></content>

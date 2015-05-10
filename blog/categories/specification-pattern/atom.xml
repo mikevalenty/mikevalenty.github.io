@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Specification Pattern | Mike Valenty]]></title>
+  <title><![CDATA[Category: specification pattern | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/specification-pattern/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -34,20 +34,16 @@
 
 <p>The application subscribes to an event stream of new call records and runs them through this composite specification to determine if the call is billable.</p>
 
-<p>``` c#
-public bool IsBillable(CallRecord call)
-{</p>
+<pre><code class="c#">public bool IsBillable(CallRecord call)
+{
+    ISpecification&lt;CallRecord&gt; billableCallSpecification = new NewPatient()
+        .And(new MinLengthLiveCall(liveCallSeconds).Or(new MinLengthMessage(messageSeconds))
+        .And(new RepeatCall(referralFinder).Not())
+        .And(new TestCall(testNumbers).Not()));
 
-<pre><code>ISpecification&lt;CallRecord&gt; billableCallSpecification = new NewPatient()
-    .And(new MinLengthLiveCall(liveCallSeconds).Or(new MinLengthMessage(messageSeconds))
-    .And(new RepeatCall(referralFinder).Not())
-    .And(new TestCall(testNumbers).Not()));
-
-return billableCallSpecification.IsSatisfiedBy(call);
+    return billableCallSpecification.IsSatisfiedBy(call);
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>I have to admit that I was already an hour into Query Analyzer blasting through another monster stored procedure when I caught myself. Not just the criteria logic either, I mean bypassing all the event stream hooha and basically just writing the whole enchilada as one gnarly stored procedure that would run as a job. That was a close one!</p>
 ]]></content>

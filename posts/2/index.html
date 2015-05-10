@@ -18,13 +18,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.mikevalenty.com/blog/page/2">
+  <link rel="canonical" href="http://www.mikevalenty.com/posts/2/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Mike Valenty" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -60,7 +60,7 @@
   
 <form action="http://google.com/search" method="get">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:www.mikevalenty.com" />
+    <input type="hidden" name="sitesearch" value="www.mikevalenty.com">
     <input class="search" type="text" name="q" results="0" placeholder="Search"/>
   </fieldset>
 </form>
@@ -91,16 +91,10 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2013-11-16T15:26:00-08:00" pubdate data-updated="true">Nov 16<span>th</span>, 2013</time>
+<time class='entry-date' datetime='2013-11-16T15:26:00-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>3:26 pm</span></time>
         
-         | <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/#disqus_thread">Comments</a>
+           | <a href="/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/#disqus_thread"
+             data-disqus-identifier="http://www.mikevalenty.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/">Comments</a>
         
       </p>
     
@@ -230,16 +224,10 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2013-10-15T22:49:00-07:00" pubdate data-updated="true">Oct 15<span>th</span>, 2013</time>
+<time class='entry-date' datetime='2013-10-15T22:49:00-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>10:49 pm</span></time>
         
-         | <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/#disqus_thread">Comments</a>
+           | <a href="/hadoop-mapreduce-join-optimization-with-a-bloom-filter/#disqus_thread"
+             data-disqus-identifier="http://www.mikevalenty.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/">Comments</a>
         
       </p>
     
@@ -324,18 +312,18 @@
 
 
 <ul>
-<li><code>vectorSize</code> &ndash; The vector size of this filter.</li>
-<li><code>nbHash</code> &ndash; The number of hash function to consider.</li>
-<li><code>hashType</code> &ndash; type of the hashing function (see Hash).</li>
+<li><code>vectorSize</code> - The vector size of this filter.</li>
+<li><code>nbHash</code> - The number of hash function to consider.</li>
+<li><code>hashType</code> - type of the hashing function (see Hash).</li>
 </ul>
 
 
 <p>I know what you&rsquo;re thinking. What could be more helpful than <em>The vector size of this filter</em> as a description for <code>vectorSize</code>? Well, the basic idea is there&rsquo;s a trade-off between space, speed and probability of a false positive. Here&rsquo;s how I think about it:</p>
 
 <ul>
-<li><code>vectorSize</code> &ndash; The amount of memory used to store hash keys. Larger values are less likey to yield false positives. If the value is too large, you might as well use a <code>HashSet</code>.</li>
-<li><code>nbHash</code> &ndash; The number of times to hash the key. Larger numbers are less likely to yeild false positives at the expense of additional computation effort. Expect deminishing returns on larger values.</li>
-<li><code>hashType</code> &ndash; type of the hashing function (see Hash). The Hash documentation was reasonable so I&rsquo;m not going to add anything.</li>
+<li><code>vectorSize</code> - The amount of memory used to store hash keys. Larger values are less likey to yield false positives. If the value is too large, you might as well use a <code>HashSet</code>.</li>
+<li><code>nbHash</code> - The number of times to hash the key. Larger numbers are less likely to yeild false positives at the expense of additional computation effort. Expect deminishing returns on larger values.</li>
+<li><code>hashType</code> - type of the hashing function (see Hash). The Hash documentation was reasonable so I&rsquo;m not going to add anything.</li>
 </ul>
 
 
@@ -454,16 +442,10 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2013-10-06T17:05:00-07:00" pubdate data-updated="true">Oct 6<span>th</span>, 2013</time>
+<time class='entry-date' datetime='2013-10-06T17:05:00-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>5:05 pm</span></time>
         
-         | <a href="/extracting-root-domain-from-a-url/#disqus_thread">Comments</a>
+           | <a href="/extracting-root-domain-from-a-url/#disqus_thread"
+             data-disqus-identifier="http://www.mikevalenty.com/extracting-root-domain-from-a-url/">Comments</a>
         
       </p>
     
@@ -547,16 +529,10 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2013-10-05T12:52:00-07:00" pubdate data-updated="true">Oct 5<span>th</span>, 2013</time>
+<time class='entry-date' datetime='2013-10-05T12:52:00-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:52 pm</span></time>
         
-         | <a href="/appreciating-algorithm-complexity/#disqus_thread">Comments</a>
+           | <a href="/appreciating-algorithm-complexity/#disqus_thread"
+             data-disqus-identifier="http://www.mikevalenty.com/appreciating-algorithm-complexity/">Comments</a>
         
       </p>
     
@@ -701,16 +677,10 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2012-02-20T07:11:00-08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2012</time>
+<time class='entry-date' datetime='2012-02-20T07:11:00-08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>20</span><span class='date-suffix'>th</span>, <span class='date-year'>2012</span></span> <span class='time'>7:11 am</span></time>
         
-         | <a href="/configuring-decorators-with-google-guice/#disqus_thread">Comments</a>
+           | <a href="/configuring-decorators-with-google-guice/#disqus_thread"
+             data-disqus-identifier="http://www.mikevalenty.com/configuring-decorators-with-google-guice/">Comments</a>
         
       </p>
     
@@ -855,11 +825,11 @@
   
   <div class="pagination">
     
-      <a class="prev" href="/blog/page/3/">&larr; Older</a>
+      <a class="prev" href="/posts/3">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
-    <a class="next" href="/">Newer &rarr;</a>
+    <a class="next" href="/index.html">Newer &rarr;</a>
     
   </div>
 </div>
@@ -925,7 +895,7 @@
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     }());
 </script>

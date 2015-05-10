@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Scala | Mike Valenty]]></title>
+  <title><![CDATA[Category: scala | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -41,25 +41,23 @@
 
 <p>Using <code>java.net.URI</code> takes care of extracting the host, so the interesting part is parsing the host into a list of chunks that decrease in number of segments.</p>
 
-<p>``` scala
-test(&ldquo;should split host into chunks of decreasing parts&rdquo;) {</p>
+<pre><code class="scala">test("should split host into chunks of decreasing parts") {
 
-<p>  val chunks = splitIntoChunks(&ldquo;www.google.com.br&rdquo;)</p>
+  val chunks = splitIntoChunks("www.google.com.br")
 
-<p>  chunks.toList should equal(List(&ldquo;www.google.com.br&rdquo;, &ldquo;google.com.br&rdquo;, &ldquo;com.br&rdquo;, &ldquo;br&rdquo;))
+  chunks.toList should equal(List("www.google.com.br", "google.com.br", "com.br", "br"))
 }
-```</p>
+</code></pre>
 
 <p>An implementation of <code>splitIntoChunks</code> isn&rsquo;t terribly exciting, but probably a good interview question. How about an implementation that doesn&rsquo;t mutate state? Sounds fun, but why make this more difficult? It&rsquo;s not because I want to run <em>this</em> bit of code on mutliple cores or distributed across machines, but because it challenges me to change the way I think about simple problems so that solving more complicated problems using functional idioms feels more natural. After all, when something is painful, you should do it more often. You know, like push ups and deployments.</p>
 
-<p>``` scala
-def splitIntoChunks(host: String): List[String] = {</p>
+<pre><code class="scala">def splitIntoChunks(host: String): List[String] = {
 
-<p>  val parts = host.split(&lsquo;.&rsquo;).toList</p>
+  val parts = host.split('.').toList
 
-<p>  parts.dropRight(1).scanRight(parts.last) {(acc, p) => s"$acc.$p"}
+  parts.dropRight(1).scanRight(parts.last) {(acc, p) =&gt; s"$acc.$p"}
 }
-```</p>
+</code></pre>
 
 <p>Scala ftw.</p>
 ]]></content>

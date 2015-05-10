@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Single Responsibility Principle | Mike Valenty]]></title>
+  <title><![CDATA[Category: single responsibility principle | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/single-responsibility-principle/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -38,15 +38,11 @@
 <p>How does it work?
 It’s pretty simple, there is just one interface to implement and it looks like this:</p>
 
-<p>``` c#
-public interface IFilter&lt;T, TOut>
-{</p>
-
-<pre><code>TOut Execute(T context, Func&lt;T, TOut&gt; executeNext);
+<pre><code class="c#">public interface IFilter&lt;T, TOut&gt;
+{
+    TOut Execute(T context, Func&lt;T, TOut&gt; executeNext);
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Basically, you get an input to operate on and a value to return. The <code>executeNext</code> parameter is a delegate for the next filter in the chain. The filters are composed together in a chain which is referred to as a Pipeline in the Tamarack framework. This structure is the essence of the Chain of Responsibility pattern and it facilitates some pretty cool things:</p>
 
@@ -61,125 +57,101 @@ public interface IFilter&lt;T, TOut>
 
 <p>Consider a block of code to process a blog comment coming from a web-based rich text editor. There are probably several things you’ll want to do before letting the text into your database.</p>
 
-<p>``` c#
-public int Submit(Post post)
-{</p>
+<pre><code class="c#">public int Submit(Post post)
+{
+    var pipeline = new Pipeline&lt;Post, int&gt;()
+        .Add(new CanoncalizeHtml())
+        .Add(new StripMaliciousTags())
+        .Add(new RemoveJavascript())
+        .Add(new RewriteProfanity())
+        .Add(new GuardAgainstDoublePost())
+        .Finally(p =&gt; repository.Save(p));
 
-<pre><code>var pipeline = new Pipeline&lt;Post, int&gt;()
-    .Add(new CanoncalizeHtml())
-    .Add(new StripMaliciousTags())
-    .Add(new RemoveJavascript())
-    .Add(new RewriteProfanity())
-    .Add(new GuardAgainstDoublePost())
-    .Finally(p =&gt; repository.Save(p));
+    var newId = pipeline.Execute(post);
 
-var newId = pipeline.Execute(post);
-
-return newId;
+    return newId;
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>What about dependency injection for complex filters? Take a look at this user login pipeline. Notice the generic syntax for adding filters by type. Those filters are built-up using the supplied implementation of <code>System.IServiceProvider</code>. My favorite is <code>UnityServiceProvider</code>.</p>
 
-<p>``` c#
-public bool Login(string username, string password)
-{</p>
+<pre><code class="c#">public bool Login(string username, string password)
+{
+    var pipeline = new Pipeline&lt;LoginContext, bool&gt;(serviceProvider)
+        .Add&lt;WriteLoginAttemptToAuditLog&gt;()
+        .Add&lt;LockoutOnConsecutiveFailures&gt;()
+        .Add&lt;AuthenticateAgainstLocalStore&gt;()
+        .Add&lt;AuthenticateAgainstLdap&gt;()
+        .Finally(c =&gt; false);
 
-<pre><code>var pipeline = new Pipeline&lt;LoginContext, bool&gt;(serviceProvider)
-    .Add&lt;WriteLoginAttemptToAuditLog&gt;()
-    .Add&lt;LockoutOnConsecutiveFailures&gt;()
-    .Add&lt;AuthenticateAgainstLocalStore&gt;()
-    .Add&lt;AuthenticateAgainstLdap&gt;()
-    .Finally(c =&gt; false);
-
-return pipeline.Execute(new LoginContext(username, password));
+    return pipeline.Execute(new LoginContext(username, password));
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Here’s another place you might see the chain of responsibility pattern. Calculating the spam score of a block of text:</p>
 
-<p>``` c#
-public double CalculateSpamScore(string text)
-{</p>
+<pre><code class="c#">public double CalculateSpamScore(string text)
+{
+    var pipeline = new Pipeline&lt;string, double&gt;()
+        .Add&lt;SpamCopBlacklistFilter&gt;()
+        .Add&lt;PerspcriptionDrugFilter&gt;()
+        .Add&lt;PornographyFilter&gt;()
+        .Finally(score =&gt; 0);
 
-<pre><code>var pipeline = new Pipeline&lt;string, double&gt;()
-    .Add&lt;SpamCopBlacklistFilter&gt;()
-    .Add&lt;PerspcriptionDrugFilter&gt;()
-    .Add&lt;PornographyFilter&gt;()
-    .Finally(score =&gt; 0);
-
-return pipeline.Execute(text);
+    return pipeline.Execute(text);
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Prefer convention over configuration? Try this instead:</p>
 
-<p>``` c#
-public double CalculateSpamScore(string text)
-{</p>
+<pre><code class="c#">public double CalculateSpamScore(string text)
+{
+    var pipeline = new Pipeline&lt;string, double&gt;()
+        .AddFiltersIn("Tamarack.Example.Pipeline.SpamScorer.Filters")
+        .Finally(score =&gt; 0);
 
-<pre><code>var pipeline = new Pipeline&lt;string, double&gt;()
-    .AddFiltersIn("Tamarack.Example.Pipeline.SpamScorer.Filters")
-    .Finally(score =&gt; 0);
-
-return pipeline.Execute(text);
+    return pipeline.Execute(text);
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Let’s look at the <code>IFilter</code> interface in action. In the spam score calculator example, each filter looks for markers in the text and adds to the overall spam score by modifying the result of the next filter before returning.</p>
 
-<p>``` c#
-public class PerspcriptionDrugFilter : IFilter&lt;string, double>
-{</p>
-
-<pre><code>public double Execute(string text, Func&lt;string, double&gt; executeNext)
+<pre><code class="c#">public class PerspcriptionDrugFilter : IFilter&lt;string, double&gt;
 {
-    var score = executeNext(text);
+    public double Execute(string text, Func&lt;string, double&gt; executeNext)
+    {
+        var score = executeNext(text);
 
-    if (text.Contains("viagra"))
-        score += .25;
+        if (text.Contains("viagra"))
+            score += .25;
 
-    return score;
+        return score;
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>In the login example, we look for the user in our local user store and if it exists we’ll short-circuit the chain and authenticate the request. Otherwise we’ll let the request continue to the next filter which looks for the user in an LDAP repository.</p>
 
-<p>``` c#
-public class AuthenticateAgainstLocalStore : IFilter&lt;LoginContext, bool>
-{</p>
-
-<pre><code>private readonly IUserRepository repository;
-
-public AuthenticateAgainstLocalStore(IUserRepository repository)
+<pre><code class="c#">public class AuthenticateAgainstLocalStore : IFilter&lt;LoginContext, bool&gt;
 {
-    this.repository = repository;
-}
+    private readonly IUserRepository repository;
 
-public bool Execute(LoginContext context, Func&lt;LoginContext, bool&gt; executeNext)
-{
-    var user = repository.FindByUsername(context.Username);
+    public AuthenticateAgainstLocalStore(IUserRepository repository)
+    {
+        this.repository = repository;
+    }
 
-    if (user != null)
-        return user.IsValid(context.Password);
+    public bool Execute(LoginContext context, Func&lt;LoginContext, bool&gt; executeNext)
+    {
+        var user = repository.FindByUsername(context.Username);
 
-    return executeNext(context);
+        if (user != null)
+            return user.IsValid(context.Password);
+
+        return executeNext(context);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Why should I use it?</p>
 
@@ -196,57 +168,49 @@ public bool Execute(LoginContext context, Func&lt;LoginContext, bool&gt; execute
     <id>http://www.mikevalenty.com/rafactoring-introduce-parameter-object</id>
     <content type="html"><![CDATA[<p>Take a look at this function:</p>
 
-<p>``` c#
-public UserIndexViewModel GetIndexViewModel(int pageSize, int pageNumber) {</p>
+<pre><code class="c#">public UserIndexViewModel GetIndexViewModel(int pageSize, int pageNumber) {
+    var model = new UserIndexViewModel();
 
-<pre><code>var model = new UserIndexViewModel();
+    var allUsers = Session.CreateCriteria&lt;User&gt;();
 
-var allUsers = Session.CreateCriteria&lt;User&gt;();
+    model.Total = CriteriaTransformer
+        .TransformToRowCount(allUsers)
+        .UniqueResult&lt;int&gt;();
 
-model.Total = CriteriaTransformer
-    .TransformToRowCount(allUsers)
-    .UniqueResult&lt;int&gt;();
+    model.Users = allUsers
+        .SetFirstResult(pageSize * (pageNumber - 1) + 1)
+        .SetMaxResults(pageSize)
+        .AddOrder&lt;User&gt;(u =&gt; u.LastName, Order.Asc)
+        .List&lt;User&gt;();
 
-model.Users = allUsers
-    .SetFirstResult(pageSize * (pageNumber - 1) + 1)
-    .SetMaxResults(pageSize)
-    .AddOrder&lt;User&gt;(u =&gt; u.LastName, Order.Asc)
-    .List&lt;User&gt;();
-
-return model;
+    return model;
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>There isn’t much going on here, but it could be better. I’m looking at the arguments <code>pageSize</code> and <code>pageNumber</code>. Notice how they both start with the prefix “page”. That’s a smell. The common prefix means the arguments are related, so let’s apply the <em>Introduce Parameter Object</em> refactoring and see what happens.</p>
 
-<p>``` c#
-public class Page {</p>
+<pre><code class="c#">public class Page {
+    private readonly int number;
+    private readonly int size;
 
-<pre><code>private readonly int number;
-private readonly int size;
+    public Page(int number, int size) {
+        this.number = number;
+        this.size = size;
+    }
 
-public Page(int number, int size) {
-    this.number = number;
-    this.size = size;
-}
+    public int Size {
+        get { return size; }
+    }
 
-public int Size {
-    get { return size; }
-}
+    public int Number {
+        get { return number; }
+    }
 
-public int Number {
-    get { return number; }
-}
-
-public int FirstResult {
-    get { return size * (number - 1) + 1; }
+    public int FirstResult {
+        get { return size * (number - 1) + 1; }
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>What did we accomplish?</p>
 
@@ -256,42 +220,30 @@ public int FirstResult {
 </ul>
 
 
-<p>``` c#
-[Test]
-public void Should_calculate_first_result_of_current_page() {</p>
-
-<pre><code>Assert.That(new Page(1, 20).FirstResult, Is.EqualTo(1));
-Assert.That(new Page(2, 20).FirstResult, Is.EqualTo(21));
-Assert.That(new Page(3, 20).FirstResult, Is.EqualTo(41));
+<pre><code class="c#">[Test]
+public void Should_calculate_first_result_of_current_page() {
+    Assert.That(new Page(1, 20).FirstResult, Is.EqualTo(1));
+    Assert.That(new Page(2, 20).FirstResult, Is.EqualTo(21));
+    Assert.That(new Page(3, 20).FirstResult, Is.EqualTo(41));
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>It’s not rocket science, but it still deserves a test. Our other option is spinning up Cassini and clicking around to make sure we got it right. That’s just silly. A little piece of me dies each time I press F5 to run a manual test.</p>
 
 <p>Anyway, there is this thing that happens with single responsibility classes. Because their purpose is crisp, it draws out robustness. In this case, I’m thinking about what we should we do if we get zero or a negative value for page number. I’m a fail fast kind of guy, so I’d probably go with a guard clause.</p>
 
-<p>``` c#
-public Page(int number, int size) {</p>
-
-<pre><code>GuardAgainstLessThanOne(number);
-...
+<pre><code class="c#">public Page(int number, int size) {
+    GuardAgainstLessThanOne(number);
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>But you could silently correct it if that’s how you roll:</p>
 
-<p>``` c#
-public int Number {</p>
-
-<pre><code>get { return Math.Max(1, number); }
+<pre><code class="c#">public int Number {
+    get { return Math.Max(1, number); }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>The point is that this is an obvious scenario to consider when looking at such a special purpose object. All too often though, bits of logic are mixed together like 32 kindergarteners sitting next to each other on a rug during a lesson. The room is one fart or tickle away from erupting into total kaos. It’s roughly half teaching and half crowd control, only without the rubber bullets and pepper spray. Not surprisingly, overcrowded classrooms don’t work that well and over-ambitous functions don’t work that well either. Each little bit of logic needs some one on one with you. Give it a chance to be all it can be by pulling it aside and getting to know it a little better. You might be surprised.</p>
 ]]></content>
@@ -317,28 +269,18 @@ by Joel Spolsky
 
 <p>The scattered and ineffectual responses are an unfortunate casualty of the ubiquitous poor online examples found on the Internet. No doubt you’ve seen something like this before:</p>
 
-<p>``` c#
-public interface IVehicle {</p>
+<pre><code class="c#">public interface IVehicle {
+    int NumberOfPassengers { get; }
+}
 
-<pre><code>int NumberOfPassengers { get; }
+public class Car : IVehicle {
+    public int NumberOfPassengers { get { return 4; } }
+}
+
+public class Bus : IVehicle {
+    public int NumberOfPassengers { get { return 20; } }
+}
 </code></pre>
-
-<p>}</p>
-
-<p>public class Car : IVehicle {</p>
-
-<pre><code>public int NumberOfPassengers { get { return 4; } }
-</code></pre>
-
-<p>}</p>
-
-<p>public class Bus : IVehicle {</p>
-
-<pre><code>public int NumberOfPassengers { get { return 20; } }
-</code></pre>
-
-<p>}
-```</p>
 
 <p>I can’t help but have visions of rich objects that model the physical world so well they put an end to wars and world hunger. You know, methods like <code>Bark()</code> on a <code>Dog</code> object. These examples aren’t wrong per se, but they usher the reader down a predictable and dead-end path. It’s like the horribly cliché <a href="http://en.wikipedia.org/wiki/Thinking_outside_the_box">nine dots puzzle</a> in which the goal is to link all 9 dots using four straight lines or less, without lifting the pen.</p>
 
@@ -371,59 +313,47 @@ public interface IVehicle {</p>
     <id>http://www.mikevalenty.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
     <content type="html"><![CDATA[<p>The <code>DataAnnotationsModelBinder</code> is a pretty neat little class that enforces validation attributes on models like this one:</p>
 
-<p>``` c#
-public class Product {</p>
+<pre><code class="c#">public class Product {
+    public int Id { get; set; }
 
-<pre><code>public int Id { get; set; }
+    [Required]
+    public string Description { get; set; }
 
-[Required]
-public string Description { get; set; }
-
-[Required]
-[RegularExpression(@"^\$?\d+(\.(\d{2}))?$")]
-public decimal UnitPrice { get; set; }
+    [Required]
+    [RegularExpression(@"^\$?\d+(\.(\d{2}))?$")]
+    public decimal UnitPrice { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Just for the record, this is a <a href="http://aspnet.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=24471">cool bit of code</a> that was released to the community for backseat drivers like me to use and complain about. I’m really only bitter because I can’t use it. Let’s take a peek at the source code to see why:</p>
 
-<p>``` c#
-/// <summary>
+<pre><code class="c#">/// &lt;summary&gt;
 /// An implementation of IModelBinder which is designed to be a replacement
 /// default model binder, adding the functionality of validation via the validation
 /// attributes in System.ComponentModel.DataAnnotations from .NET 4.0.
-/// </summary>
-public class DataAnnotationsModelBinder : DefaultModelBinder {</p>
-
-<pre><code>...
+/// &lt;/summary&gt;
+public class DataAnnotationsModelBinder : DefaultModelBinder {
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>The problem with this class is that it’s not just about validation. It’s more about binding with validation sprinkled in. The author even states this as a design goal with the comment “designed to be a replacement default model binder.” This is a violation of the <em>Single Responsibility Principle</em> and it’s the reason I can’t use it. The <code>DefaultModelBinder</code> does some basic reflection mapping of form elements to model properties. That’s cool, but what about a controller action that takes json, xml, or anything slightly more complicated than what the default binder can handle?</p>
 
 <p>I’ll tell you what happens. You write a custom model binder which is pretty easy and happens to be a pretty rad extension point in the MVC framework. Consider this model binder that deserializes json:</p>
 
-<p>``` c#
-public class JsonModelBinder<T> : IModelBinder {</p>
+<pre><code class="c#">public class JsonModelBinder&lt;T&gt; : IModelBinder {
+    private string key;
 
-<pre><code>private string key;
+    public JsonModelBinder(string requestKey) {
+        this.key = requestKey;
+    }
 
-public JsonModelBinder(string requestKey) {
-    this.key = requestKey;
-}
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var json = controllerContext.HttpContext.Request[key];
-    return new JsonSerializer().Deserialize&lt;T&gt;(json);
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var json = controllerContext.HttpContext.Request[key];
+        return new JsonSerializer().Deserialize&lt;T&gt;(json);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>That’s pretty cool, but now I’ve lost my validation! This my friend is the evil of inheritance and the epic fail of the <code>DataAnnotationsModelBinder</code>. So what’s wrong with inheritance, isn’t that what OOP is all about? The short answer is no (the long answer is also no.)</p>
 
@@ -444,39 +374,31 @@ public object BindModel(ControllerContext controllerContext, ...) {
 
 <p>Is this really going to solve all my problems? The short answer is yes. Let’s take a look:</p>
 
-<p>``` c#
-public class BetterDataAnnotationsModelBinder : IModelBinder {</p>
+<pre><code class="c#">public class BetterDataAnnotationsModelBinder : IModelBinder {
+    private IModelBinder binder;
 
-<pre><code>private IModelBinder binder;
+    public BetterDataAnnotationsModelBinder(IModelBinder binder) {
+        this.binder = binder;
+    }
 
-public BetterDataAnnotationsModelBinder(IModelBinder binder) {
-    this.binder = binder;
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var model = binder.BindModel(controllerContext, bindingContext);
+        AddValidationErrorsToModelState(model, controllerContext);
+        return model;
+    }
+
+    ...
 }
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var model = binder.BindModel(controllerContext, bindingContext);
-    AddValidationErrorsToModelState(model, controllerContext);
-    return model;
-}
-
-...
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Now all this class does is enforce validation and we can use whatever model binder we want to construct our object. Let’s wire this up in the <code>Global.asax</code> real quick:</p>
 
-<p>``` c#
-var productModelBinder = new JsonModelBinder<Product>(&ldquo;product&rdquo;);</p>
+<pre><code class="c#">var productModelBinder = new JsonModelBinder&lt;Product&gt;("product");
 
-<p>ModelBinders.Binders.Add(</p>
-
-<pre><code>typeof(Product),
-new BetterDataAnnotationsModelBinder(productModelBinder));
+ModelBinders.Binders.Add(
+    typeof(Product),
+    new BetterDataAnnotationsModelBinder(productModelBinder));
 </code></pre>
-
-<p>```</p>
 
 <p>This is cool for the following reasons:</p>
 
@@ -506,46 +428,41 @@ new BetterDataAnnotationsModelBinder(productModelBinder));
 
 <p>The built-in model binder can handle the easy fields like <code>FirstName</code>, <code>LastName</code>, and <code>Email</code>, but it doesn’t know how to deal with the <code>Roles</code>. This is where the custom model binder comes in:</p>
 
-<p>``` c#
-public class UserModelBinder : IModelBinder {</p>
+<pre><code class="c#">public class UserModelBinder : IModelBinder {
+    private readonly IModelBinder binder;
 
-<pre><code>private readonly IModelBinder binder;
-
-public UserModelBinder(IModelBinder binder) {
-    this.binder = binder;
-}
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var user = (User)binder.BindModel(controllerContext, bindingContext);
-    AddRoles(user, controllerContext);
-    return user;
-}
-
-private static void AddRoles(User user, ControllerContext controllerContext) {
-    foreach (var role in GetRoles(controllerContext)) {
-        user.Add(role);
+    public UserModelBinder(IModelBinder binder) {
+        this.binder = binder;
     }
-}
 
-private static IEnumerable&lt;Role&gt; GetRoles(ControllerContext controllerContext) {
-    var roles = controllerContext.HttpContext.Request["roles"];
-    if (roles == null) yield break;
-    foreach (var roleId in roles.Split(',')) {
-        yield return (Role)Convert.ToInt32(roleId);
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var user = (User)binder.BindModel(controllerContext, bindingContext);
+        AddRoles(user, controllerContext);
+        return user;
+    }
+
+    private static void AddRoles(User user, ControllerContext controllerContext) {
+        foreach (var role in GetRoles(controllerContext)) {
+            user.Add(role);
+        }
+    }
+
+    private static IEnumerable&lt;Role&gt; GetRoles(ControllerContext controllerContext) {
+        var roles = controllerContext.HttpContext.Request["roles"];
+        if (roles == null) yield break;
+        foreach (var roleId in roles.Split(',')) {
+            yield return (Role)Convert.ToInt32(roleId);
+        }
     }
 }
 </code></pre>
 
-<p>}
-```</p>
-
 <p>And it gets wired-up in the <code>Global.asax</code> like this:</p>
 
-<p><code>c#
-var defaultBinder = new DataAnnotationsModelBinder();
+<pre><code class="c#">var defaultBinder = new DataAnnotationsModelBinder();
 ModelBinders.Binders.DefaultBinder = defaultBinder;
 ModelBinders.Binders.Add(typeof(User), new UserModelBinder(defaultBinder));
-</code></p>
+</code></pre>
 
 <p>Because <code>UserModelBinder</code> is a decorator, it preserves the base functionality (like validation) of the default binder and only adds the part about mapping the roles. This is good stuff because it keeps construction of the model out of the controller. That’s the Single-Responsibility Principle in action.</p>
 

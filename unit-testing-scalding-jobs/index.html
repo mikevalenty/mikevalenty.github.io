@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Unit testing scalding jobs - Mike Valenty</title>
+  <title>Unit Testing Scalding Jobs - Mike Valenty</title>
   <meta name="author" content="Mike Valenty">
 
   
-  <meta name="description" content="Scalding is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive &ndash; almost &hellip;">
+  <meta name="description" content="Scalding is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive - almost to a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,13 +18,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://www.mikevalenty.com/unit-testing-scalding-jobs">
+  <link rel="canonical" href="http://www.mikevalenty.com/unit-testing-scalding-jobs/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Mike Valenty" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -60,7 +60,7 @@
   
 <form action="http://google.com/search" method="get">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:www.mikevalenty.com" />
+    <input type="hidden" name="sitesearch" value="www.mikevalenty.com">
     <input class="search" type="text" name="q" results="0" placeholder="Search"/>
   </fieldset>
 </form>
@@ -88,23 +88,17 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2014-03-15T15:27:00-07:00" pubdate data-updated="true">Mar 15<span>th</span>, 2014</time>
+<time class='entry-date' datetime='2014-03-15T15:27:00-07:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>3:27 pm</span></time>
         
-         | <a href="#disqus_thread">Comments</a>
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://www.mikevalenty.com">Comments</a>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p><a href="https://github.com/twitter/scalding">Scalding</a> is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive &ndash; almost to a fault. It&rsquo;s dangerously easy to pack gobs of subtle business logic into just a few lines of code. If you&rsquo;re writing real data processing applications and not just ad-hoc reports, unit testing is a must. However tests can get unwieldy to manage as job complexity grows and the arity of data increases.</p>
+<div class="entry-content"><p><a href="https://github.com/twitter/scalding">Scalding</a> is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive - almost to a fault. It&rsquo;s dangerously easy to pack gobs of subtle business logic into just a few lines of code. If you&rsquo;re writing real data processing applications and not just ad-hoc reports, unit testing is a must. However tests can get unwieldy to manage as job complexity grows and the arity of data increases.</p>
 
 <p>For example, consider this scalding job:</p>
 
@@ -364,14 +358,7 @@
 
 
 
-
-
-
-
-  
-
-
-<time datetime="2014-03-15T15:27:00-07:00" pubdate data-updated="true">Mar 15<span>th</span>, 2014</time>
+<time class='entry-date' datetime='2014-03-15T15:27:00-07:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>3:27 pm</span></time>
       
 
 
@@ -391,7 +378,7 @@
         <a class="basic-alignment left" href="/parsing-json-with-defaults-in-scala/" title="Previous Post: Parsing json with defaults in scala">&laquo; Parsing json with defaults in scala</a>
       
       
-        <a class="basic-alignment right" href="/scala-solution-to-cheryls-birthday-problem/" title="Next Post: Scala Solution to Cheryl's Birthday Problem">Scala Solution to Cheryl's Birthday Problem &raquo;</a>
+        <a class="basic-alignment right" href="/scala-solution-to-cheryls-birthday-problem/" title="Next Post: Scala Solution to Cheryl's Birthday Problem">Scala Solution to Cheryl&#8217;s Birthday Problem &raquo;</a>
       
     </p>
   </footer>
@@ -416,7 +403,7 @@
       </li>
     
       <li class="post">
-        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl's Birthday Problem</a>
+        <a href="/scala-solution-to-cheryls-birthday-problem/">Scala Solution to Cheryl&#8217;s Birthday Problem</a>
       </li>
     
       <li class="post">
@@ -471,7 +458,7 @@
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     }());
 </script>

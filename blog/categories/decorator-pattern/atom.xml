@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Decorator Pattern | Mike Valenty]]></title>
+  <title><![CDATA[Category: decorator pattern | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/decorator-pattern/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -20,17 +20,13 @@
     <id>http://www.mikevalenty.com/configuring-decorators-with-google-guice</id>
     <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
 
-<p>``` java
-public class RealBillingService implements BillingService {</p>
+<pre><code class="java">public class RealBillingService implements BillingService {
 
-<p>  @Inject
-  public RealBillingService(@PayPal CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public RealBillingService(@PayPal CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
-
-<p>  }
-```</p>
 
 <p>This bit of innocuous code encourages the reader to squander the power of dependency inversion and reduce it to a clunky tool that makes unit testing a little bit easier. That sounds harsh, so let’s start by discussing what Guice is and the problem it solves.</p>
 
@@ -44,77 +40,58 @@ public class RealBillingService implements BillingService {</p>
 
 <p>Oh, wait a minute we’re declaring that we need the <code>PayPalCreditCardProcessor</code> with that annotation so now our code is rigid and we can’t inject additional behavior by wrapping it in a <code>DoubleChargeCreditCardProcessor</code>, open-closed style. That’s the ‘O’ in SOLID. So you’re probably thinking, why can’t you just change the annotation from <code>@PayPal</code> to <code>@DoubleCharge</code>? Let’s dive a little deeper into this example to find out:</p>
 
-<p>``` java
-public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
+<pre><code class="java">public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
 
-<p>  @Inject
-  public DoubleChargeCreditCardProcessor(CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public DoubleChargeCreditCardProcessor(CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
-
-<p>  }
-```</p>
 
 <p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because <a href="/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/">I’ve already done that</a>, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
 
-<p>``` java
-public class RealBillingService implements BillingService {</p>
+<pre><code class="java">public class RealBillingService implements BillingService {
 
-<p>  @Inject
-  public RealBillingService(@DoubleCharge CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public RealBillingService(@DoubleCharge CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
 
-<p>  }
-```</p>
+<pre><code class="java">public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
 
-<p>``` java
-public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
-
-<p>  @Inject
-  public DoubleChargeCreditCardProcessor(@PayPal CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  @Inject
+  public DoubleChargeCreditCardProcessor(@PayPal CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
-
-<p>  }
-```</p>
 
 <p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a <em>thing</em>, it’s a <em>seam</em> and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports <a href="/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">multi-tenancy</a> and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
 
 <p>While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. The better way to use binding annotations and not undermine the point of injecting your dependencies is like so:</p>
 
-<p>``` java
-public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {</p>
+<pre><code class="java">public class DoubleChargeCreditCardProcessor implements CreditCardProcessor {
 
-<p>  public static final String BASE = &ldquo;DoubleChargeCreditCardProcessor.base&rdquo;;</p>
+  public static final String BASE = "DoubleChargeCreditCardProcessor.base";
 
-<p>  public DoubleChargeCreditCardProcessor(@Named(BASE) CreditCardProcessor processor, &hellip;) {</p>
-
-<pre><code>...
+  public DoubleChargeCreditCardProcessor(@Named(BASE) CreditCardProcessor processor, ...) {
+    ...
+  }
 </code></pre>
 
-<p>  }
-```</p>
+<pre><code class="java">public class ConfigureCreditCardProcessor extends AbstractModule {
 
-<p>``` java
-public class ConfigureCreditCardProcessor extends AbstractModule {</p>
+  @Override
+  protected void configure() {
 
-<p>  @Override
-  protected void configure() {</p>
+    bind(CreditCardProcessor.class).to(DoubleChargeCreditCardProcessor.class);
 
-<pre><code>bind(CreditCardProcessor.class).to(DoubleChargeCreditCardProcessor.class);
-
-bind(CreditCardProcessor.class)
-  .annotatedWith(Names.named(DoubleChargeCreditCardProcessor.BASE))
-  .to(PayPayCreditCardProcessor.class);
-</code></pre>
-
-<p>  }
+    bind(CreditCardProcessor.class)
+      .annotatedWith(Names.named(DoubleChargeCreditCardProcessor.BASE))
+      .to(PayPayCreditCardProcessor.class);
+  }
 }
-```</p>
+</code></pre>
 
 <p>The difference is subtle, but the devil is in the details. In this last example, the <code>DoubleChargeCreditCardProcessor</code> doesn’t know or care what implementation it’s decorating. It simply declares a name for it’s dependency so it can be referenced unambiguously in a configuration module. This moves the configuration logic to… well, configuration code. Now you can see that the code is once again flexible and you can easily imagine more sophisticated configuration logic that could consider tenant settings or environment variables in selecting the proper combination of credit card processors to assemble.</p>
 ]]></content>
@@ -127,59 +104,47 @@ bind(CreditCardProcessor.class)
     <id>http://www.mikevalenty.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
     <content type="html"><![CDATA[<p>The <code>DataAnnotationsModelBinder</code> is a pretty neat little class that enforces validation attributes on models like this one:</p>
 
-<p>``` c#
-public class Product {</p>
+<pre><code class="c#">public class Product {
+    public int Id { get; set; }
 
-<pre><code>public int Id { get; set; }
+    [Required]
+    public string Description { get; set; }
 
-[Required]
-public string Description { get; set; }
-
-[Required]
-[RegularExpression(@"^\$?\d+(\.(\d{2}))?$")]
-public decimal UnitPrice { get; set; }
+    [Required]
+    [RegularExpression(@"^\$?\d+(\.(\d{2}))?$")]
+    public decimal UnitPrice { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Just for the record, this is a <a href="http://aspnet.codeplex.com/Release/ProjectReleases.aspx?ReleaseId=24471">cool bit of code</a> that was released to the community for backseat drivers like me to use and complain about. I’m really only bitter because I can’t use it. Let’s take a peek at the source code to see why:</p>
 
-<p>``` c#
-/// <summary>
+<pre><code class="c#">/// &lt;summary&gt;
 /// An implementation of IModelBinder which is designed to be a replacement
 /// default model binder, adding the functionality of validation via the validation
 /// attributes in System.ComponentModel.DataAnnotations from .NET 4.0.
-/// </summary>
-public class DataAnnotationsModelBinder : DefaultModelBinder {</p>
-
-<pre><code>...
+/// &lt;/summary&gt;
+public class DataAnnotationsModelBinder : DefaultModelBinder {
+    ...
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>The problem with this class is that it’s not just about validation. It’s more about binding with validation sprinkled in. The author even states this as a design goal with the comment “designed to be a replacement default model binder.” This is a violation of the <em>Single Responsibility Principle</em> and it’s the reason I can’t use it. The <code>DefaultModelBinder</code> does some basic reflection mapping of form elements to model properties. That’s cool, but what about a controller action that takes json, xml, or anything slightly more complicated than what the default binder can handle?</p>
 
 <p>I’ll tell you what happens. You write a custom model binder which is pretty easy and happens to be a pretty rad extension point in the MVC framework. Consider this model binder that deserializes json:</p>
 
-<p>``` c#
-public class JsonModelBinder<T> : IModelBinder {</p>
+<pre><code class="c#">public class JsonModelBinder&lt;T&gt; : IModelBinder {
+    private string key;
 
-<pre><code>private string key;
+    public JsonModelBinder(string requestKey) {
+        this.key = requestKey;
+    }
 
-public JsonModelBinder(string requestKey) {
-    this.key = requestKey;
-}
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var json = controllerContext.HttpContext.Request[key];
-    return new JsonSerializer().Deserialize&lt;T&gt;(json);
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var json = controllerContext.HttpContext.Request[key];
+        return new JsonSerializer().Deserialize&lt;T&gt;(json);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>That’s pretty cool, but now I’ve lost my validation! This my friend is the evil of inheritance and the epic fail of the <code>DataAnnotationsModelBinder</code>. So what’s wrong with inheritance, isn’t that what OOP is all about? The short answer is no (the long answer is also no.)</p>
 
@@ -200,39 +165,31 @@ public object BindModel(ControllerContext controllerContext, ...) {
 
 <p>Is this really going to solve all my problems? The short answer is yes. Let’s take a look:</p>
 
-<p>``` c#
-public class BetterDataAnnotationsModelBinder : IModelBinder {</p>
+<pre><code class="c#">public class BetterDataAnnotationsModelBinder : IModelBinder {
+    private IModelBinder binder;
 
-<pre><code>private IModelBinder binder;
+    public BetterDataAnnotationsModelBinder(IModelBinder binder) {
+        this.binder = binder;
+    }
 
-public BetterDataAnnotationsModelBinder(IModelBinder binder) {
-    this.binder = binder;
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var model = binder.BindModel(controllerContext, bindingContext);
+        AddValidationErrorsToModelState(model, controllerContext);
+        return model;
+    }
+
+    ...
 }
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var model = binder.BindModel(controllerContext, bindingContext);
-    AddValidationErrorsToModelState(model, controllerContext);
-    return model;
-}
-
-...
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Now all this class does is enforce validation and we can use whatever model binder we want to construct our object. Let’s wire this up in the <code>Global.asax</code> real quick:</p>
 
-<p>``` c#
-var productModelBinder = new JsonModelBinder<Product>(&ldquo;product&rdquo;);</p>
+<pre><code class="c#">var productModelBinder = new JsonModelBinder&lt;Product&gt;("product");
 
-<p>ModelBinders.Binders.Add(</p>
-
-<pre><code>typeof(Product),
-new BetterDataAnnotationsModelBinder(productModelBinder));
+ModelBinders.Binders.Add(
+    typeof(Product),
+    new BetterDataAnnotationsModelBinder(productModelBinder));
 </code></pre>
-
-<p>```</p>
 
 <p>This is cool for the following reasons:</p>
 
@@ -262,46 +219,41 @@ new BetterDataAnnotationsModelBinder(productModelBinder));
 
 <p>The built-in model binder can handle the easy fields like <code>FirstName</code>, <code>LastName</code>, and <code>Email</code>, but it doesn’t know how to deal with the <code>Roles</code>. This is where the custom model binder comes in:</p>
 
-<p>``` c#
-public class UserModelBinder : IModelBinder {</p>
+<pre><code class="c#">public class UserModelBinder : IModelBinder {
+    private readonly IModelBinder binder;
 
-<pre><code>private readonly IModelBinder binder;
-
-public UserModelBinder(IModelBinder binder) {
-    this.binder = binder;
-}
-
-public object BindModel(ControllerContext controllerContext, ...) {
-    var user = (User)binder.BindModel(controllerContext, bindingContext);
-    AddRoles(user, controllerContext);
-    return user;
-}
-
-private static void AddRoles(User user, ControllerContext controllerContext) {
-    foreach (var role in GetRoles(controllerContext)) {
-        user.Add(role);
+    public UserModelBinder(IModelBinder binder) {
+        this.binder = binder;
     }
-}
 
-private static IEnumerable&lt;Role&gt; GetRoles(ControllerContext controllerContext) {
-    var roles = controllerContext.HttpContext.Request["roles"];
-    if (roles == null) yield break;
-    foreach (var roleId in roles.Split(',')) {
-        yield return (Role)Convert.ToInt32(roleId);
+    public object BindModel(ControllerContext controllerContext, ...) {
+        var user = (User)binder.BindModel(controllerContext, bindingContext);
+        AddRoles(user, controllerContext);
+        return user;
+    }
+
+    private static void AddRoles(User user, ControllerContext controllerContext) {
+        foreach (var role in GetRoles(controllerContext)) {
+            user.Add(role);
+        }
+    }
+
+    private static IEnumerable&lt;Role&gt; GetRoles(ControllerContext controllerContext) {
+        var roles = controllerContext.HttpContext.Request["roles"];
+        if (roles == null) yield break;
+        foreach (var roleId in roles.Split(',')) {
+            yield return (Role)Convert.ToInt32(roleId);
+        }
     }
 }
 </code></pre>
 
-<p>}
-```</p>
-
 <p>And it gets wired-up in the <code>Global.asax</code> like this:</p>
 
-<p><code>c#
-var defaultBinder = new DataAnnotationsModelBinder();
+<pre><code class="c#">var defaultBinder = new DataAnnotationsModelBinder();
 ModelBinders.Binders.DefaultBinder = defaultBinder;
 ModelBinders.Binders.Add(typeof(User), new UserModelBinder(defaultBinder));
-</code></p>
+</code></pre>
 
 <p>Because <code>UserModelBinder</code> is a decorator, it preserves the base functionality (like validation) of the default binder and only adds the part about mapping the roles. This is good stuff because it keeps construction of the model out of the controller. That’s the Single-Responsibility Principle in action.</p>
 
@@ -349,46 +301,42 @@ ModelBinders.Binders.Add(typeof(User), new UserModelBinder(defaultBinder));
 
 <p>That’s pretty easy, I don’t need anything fancy to do that.</p>
 
-<p>``` c#
-public class SimpleController : Controller {</p>
+<pre><code class="c#">public class SimpleController : Controller {
+    private const string CaptchaTextKey = "captcha_text";
 
-<pre><code>private const string CaptchaTextKey = "captcha_text";
+    public ActionResult Index() {
+        return View();
+    }
 
-public ActionResult Index() {
-    return View();
-}
+    public ActionResult Render() {
 
-public ActionResult Render() {
+        var captchaImage = new CaptchaImage();
 
-    var captchaImage = new CaptchaImage();
+        HttpContext.Session[CaptchaTextKey] = captchaImage.Text;
 
-    HttpContext.Session[CaptchaTextKey] = captchaImage.Text;
-
-    using (Bitmap bitmap = captchaImage.RenderImage()) {
-        using (var stream = new MemoryStream()) {
-            bitmap.Save(stream, ImageFormat.Jpeg);
-            return new FileContentResult(stream.ToArray(), "image/jpeg");
+        using (Bitmap bitmap = captchaImage.RenderImage()) {
+            using (var stream = new MemoryStream()) {
+                bitmap.Save(stream, ImageFormat.Jpeg);
+                return new FileContentResult(stream.ToArray(), "image/jpeg");
+            }
         }
     }
-}
 
-[AcceptVerbs(HttpVerbs.Post)]
-public ActionResult Verify(string captchaText) {
+    [AcceptVerbs(HttpVerbs.Post)]
+    public ActionResult Verify(string captchaText) {
 
-    var actualText = (string)HttpContext.Session[CaptchaTextKey];
+        var actualText = (string)HttpContext.Session[CaptchaTextKey];
 
-    if (captchaText.Equals(actualText)) {
-        ViewData["message"] = "You are a human";
-    } else {
-        ViewData["message"] = "fail";
+        if (captchaText.Equals(actualText)) {
+            ViewData["message"] = "You are a human";
+        } else {
+            ViewData["message"] = "fail";
+        }
+
+        return View("Index");
     }
-
-    return View("Index");
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Fast forward 3 months and amazingly new requirements have crept into the simple captcha controller. Consider these contrived yet poignant scenarios:</p>
 
@@ -404,71 +352,68 @@ public ActionResult Verify(string captchaText) {
 
 <p>Now our <code>SimpleController</code> has morphed into a <code>SmellyController</code>:</p>
 
-<p>``` c#
-public class SmellyController : Controller {</p>
+<pre><code class="c#">public class SmellyController : Controller {
 
-<pre><code>// ...
+    // ...
 
-[AcceptVerbs(HttpVerbs.Post)]
-public ActionResult Verify(string captchaText) {
+    [AcceptVerbs(HttpVerbs.Post)]
+    public ActionResult Verify(string captchaText) {
 
-    var ip = HttpContext.Request.ServerVariables["REMOTE_ADDR"];
+        var ip = HttpContext.Request.ServerVariables["REMOTE_ADDR"];
 
-    var isBlackListed = IsBlackListed(ip);
+        var isBlackListed = IsBlackListed(ip);
 
-    if (IsMatch(captchaText) &amp;&amp; !isBlackListed || captchaText == "selenium" {
-        ViewData["message"] = "You are a human";
+        if (IsMatch(captchaText) &amp;&amp; !isBlackListed || captchaText == "selenium" {
+            ViewData["message"] = "You are a human";
 
-        // reset consecutive error count
-        ConsecutiveErrorCount = 0;
-    } else {
-        ViewData["message"] = "fail";
+            // reset consecutive error count
+            ConsecutiveErrorCount = 0;
+        } else {
+            ViewData["message"] = "fail";
 
-        // add to black list
-        if (ConsecutiveErrorCount++ &gt;= 3 &amp;&amp; !isBlackListed) {
-            AddToBlackList(ip);
-        }
-    }
-
-    WriteToAuditLog(ip);
-
-    return View("Index");
-}
-
-private bool IsBlackListed(string ip) {
-    var sessionKey = BlackListKey + ip;
-    object result = HttpContext.Cache[sessionKey];
-
-    if (result == null) {
-        using (var connection = new SqlConnection(connectionString)) {
-            connection.Open();
-            var sql = "select count(*) from blacklist where ip = @ip";
-            using (var command = new SqlCommand(sql)) {
-                command.Connection = connection;
-                command.Parameters.AddWithValue("@ip", ip);
-                result = Convert.ToBoolean(command.ExecuteScalar());
+            // add to black list
+            if (ConsecutiveErrorCount++ &gt;= 3 &amp;&amp; !isBlackListed) {
+                AddToBlackList(ip);
             }
         }
-        HttpContext.Cache[sessionKey] = result;
+
+        WriteToAuditLog(ip);
+
+        return View("Index");
     }
 
-    return (bool)result;
-}
+    private bool IsBlackListed(string ip) {
+        var sessionKey = BlackListKey + ip;
+        object result = HttpContext.Cache[sessionKey];
 
-private int ConsecutiveErrorCount {
-    get { return Convert.ToInt32(HttpContext.Session[ErrorCountKey] ?? "0"); }
-    set { HttpContext.Session[ErrorCountKey] = value; }
-}
+        if (result == null) {
+            using (var connection = new SqlConnection(connectionString)) {
+                connection.Open();
+                var sql = "select count(*) from blacklist where ip = @ip";
+                using (var command = new SqlCommand(sql)) {
+                    command.Connection = connection;
+                    command.Parameters.AddWithValue("@ip", ip);
+                    result = Convert.ToBoolean(command.ExecuteScalar());
+                }
+            }
+            HttpContext.Cache[sessionKey] = result;
+        }
 
-// ...
+        return (bool)result;
+    }
 
-private bool IsMatch(IEquatable&lt;string&gt; captchaText) {
-    var actualText = (string)HttpContext.Session[CaptchaTextKey];
-    return captchaText.Equals(actualText);
-}
+    private int ConsecutiveErrorCount {
+        get { return Convert.ToInt32(HttpContext.Session[ErrorCountKey] ?? "0"); }
+        set { HttpContext.Session[ErrorCountKey] = value; }
+    }
+
+    // ...
+
+    private bool IsMatch(IEquatable&lt;string&gt; captchaText) {
+        var actualText = (string)HttpContext.Session[CaptchaTextKey];
+        return captchaText.Equals(actualText);
+    }
 </code></pre>
-
-<p>```</p>
 
 <p>How does this smell? Let me count the ways:</p>
 
@@ -481,135 +426,119 @@ private bool IsMatch(IEquatable&lt;string&gt; captchaText) {
 
 <p>What if we had followed <a href="http://butunclebob.com/ArticleS.UncleBob.PrinciplesOfOod">Uncle Bob’s SOLID principles</a>? Our controller might look like this:</p>
 
-<p>``` c#
-public class SolidController : Controller {</p>
+<pre><code class="c#">public class SolidController : Controller {
+    private readonly ICaptchaProvider captchaProvider;
 
-<pre><code>private readonly ICaptchaProvider captchaProvider;
-
-public SolidController(ICaptchaProvider captchaProvider) {
-    this.captchaProvider = captchaProvider;
-}
-
-public ActionResult Index() {
-    return View();
-}
-
-public ActionResult Render() {
-    using (var stream = new MemoryStream()) {
-        captchaProvider.Render(stream, ImageFormat.Jpeg);
-        return new FileContentResult(stream.ToArray(), "image/jpeg");
-    }
-}
-
-[AcceptVerbs(HttpVerbs.Post)]
-public ActionResult Verify(string captchaText) {
-
-    if (captchaProvider.Verify(captchaText)) {
-        ViewData["message"] = "You are a human";
-    } else {
-        ViewData["message"] = "fail";
+    public SolidController(ICaptchaProvider captchaProvider) {
+        this.captchaProvider = captchaProvider;
     }
 
-    return View("Index");
+    public ActionResult Index() {
+        return View();
+    }
+
+    public ActionResult Render() {
+        using (var stream = new MemoryStream()) {
+            captchaProvider.Render(stream, ImageFormat.Jpeg);
+            return new FileContentResult(stream.ToArray(), "image/jpeg");
+        }
+    }
+
+    [AcceptVerbs(HttpVerbs.Post)]
+    public ActionResult Verify(string captchaText) {
+
+        if (captchaProvider.Verify(captchaText)) {
+            ViewData["message"] = "You are a human";
+        } else {
+            ViewData["message"] = "fail";
+        }
+
+        return View("Index");
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>And our original simple captcha provider could look like this:</p>
 
-<p>``` c#
-[Serializable]
-public class SimpleCaptchaProvider : ICaptchaProvider {</p>
+<pre><code class="c#">[Serializable]
+public class SimpleCaptchaProvider : ICaptchaProvider {
+    private string captchaText;
 
-<pre><code>private string captchaText;
+    public void Render(Stream stream, ImageFormat format) {
+        var captchaImage = new CaptchaImage();
 
-public void Render(Stream stream, ImageFormat format) {
-    var captchaImage = new CaptchaImage();
+        captchaText = captchaImage.Text;
 
-    captchaText = captchaImage.Text;
+        using (Bitmap bitmap = captchaImage.RenderImage()) {
+            bitmap.Save(stream, format);
+        }
+    }
 
-    using (Bitmap bitmap = captchaImage.RenderImage()) {
-        bitmap.Save(stream, format);
+    public bool Verify(string text) {
+        return text.Equals(captchaText);
     }
 }
-
-public bool Verify(string text) {
-    return text.Equals(captchaText);
-}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>If you’re wondering why we don’t have to store the captcha text in the session, it’s because we’re putting the onus on the container to give us the same instance of <code>SimpleCaptchaProvider</code> each time it’s requested in the same session.</p>
 
 <p>Let’s revisit the list of features that made our controller smelly and see how we could have done it open-closed style (by writing new code instead modifying old code). The go-to technique for this is the decorator pattern. So let’s make a decorator to look for a secret captcha password that our selenium test knows and let it through.</p>
 
-<p>``` c#
-public class SeleniumBypassCaptchaProvider : ICaptchaProvider {</p>
+<pre><code class="c#">public class SeleniumBypassCaptchaProvider : ICaptchaProvider {
+    private readonly ICaptchaProvider captchaProvider;
+    private readonly string password;
 
-<pre><code>private readonly ICaptchaProvider captchaProvider;
-private readonly string password;
+    public SeleniumBypassCaptchaProvider(
+        ICaptchaProvider captchaProvider,
+        string password) {
 
-public SeleniumBypassCaptchaProvider(
-    ICaptchaProvider captchaProvider,
-    string password) {
-
-    this.captchaProvider = captchaProvider;
-    this.password = password;
-}
-
-public void Render(Stream stream, ImageFormat format) {
-    captchaProvider.Render(stream, format);
-}
-
-public bool Verify(string captchaText) {
-    if (captchaText == password) {
-        return true;
+        this.captchaProvider = captchaProvider;
+        this.password = password;
     }
-    return captchaProvider.Verify(captchaText);
+
+    public void Render(Stream stream, ImageFormat format) {
+        captchaProvider.Render(stream, format);
+    }
+
+    public bool Verify(string captchaText) {
+        if (captchaText == password) {
+            return true;
+        }
+        return captchaProvider.Verify(captchaText);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Next is the audit log, then the black list. These could be implemented as two more decorators, however we’re outgrowing this solution which means it’s time to refactor. Let’s switch hats for a few minutes and promote our decorator chain into an explicit chain of responsibility. This is like adding another lane to the freeway, it really opens things up. We’re modifying existing code so maybe you’re wondering what happened to our open-closed principle? It’s still there, I promise. The first point I’ll make is that refactoring is a special activity. It does not change the observable behavior of the application. When working with single responsibility classes, all we end up doing is adapting the logic to a different interface. In our case, we’re moving logic from <code>BlackListCaptchaProvider</code> to <code>BlackListVerifyFilter</code>. The logic stays intact and the unit tests are minimally impacted.</p>
 
 <p>The end result of this refactor might look like this:</p>
 
-<p>``` c#
-public class VerifyChainCaptchaProvider : ICaptchaProvider {</p>
+<pre><code class="c#">public class VerifyChainCaptchaProvider : ICaptchaProvider {
+    private readonly ICaptchaProvider captchaProvider;
+    private readonly IServiceProvider serviceProvider;
 
-<pre><code>private readonly ICaptchaProvider captchaProvider;
-private readonly IServiceProvider serviceProvider;
+    public VerifyChainCaptchaProvider(
+        ICaptchaProvider captchaProvider,
+        IServiceProvider serviceProvider) {
 
-public VerifyChainCaptchaProvider(
-    ICaptchaProvider captchaProvider,
-    IServiceProvider serviceProvider) {
+        this.captchaProvider = captchaProvider;
+        this.serviceProvider = serviceProvider;
+    }
 
-    this.captchaProvider = captchaProvider;
-    this.serviceProvider = serviceProvider;
-}
+    public void Render(Stream stream, ImageFormat format) {
+        captchaProvider.Render(stream, format);
+    }
 
-public void Render(Stream stream, ImageFormat format) {
-    captchaProvider.Render(stream, format);
-}
-
-public bool Verify(string captchaText) {
-    return new Pipeline&lt;string , bool&gt;(serviceProvider)
-        .Add&lt;AuditLoggingFilter&gt;()
-        .Add&lt;BlackListingFilter&gt;()
-        .Add&lt;SeleniumBypassFilter&gt;()
-        .Add(new CaptchaProviderAdapter(captchaProvider))
-        .Process(captchaText);
+    public bool Verify(string captchaText) {
+        return new Pipeline&lt;string , bool&gt;(serviceProvider)
+            .Add&lt;AuditLoggingFilter&gt;()
+            .Add&lt;BlackListingFilter&gt;()
+            .Add&lt;SeleniumBypassFilter&gt;()
+            .Add(new CaptchaProviderAdapter(captchaProvider))
+            .Process(captchaText);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Was it worth it? Well, we’re left with all these little classes each with their single responsibility, however we still have to wire it up. I’m not going to lie, it’s ugly and it’s fragile. So why is this design any better? It’s better because troubleshooting bad configuration is better than troubleshooting bad application logic. Bad application logic can do really bad things. In a 24/7 business-critical application, this usually happens around 3 AM and involves you waking up and trying adjust your eyes to a harsh laptop screen. With bad configuration on the other hand, whole chunks of functionality are just missing. Chances are your app won’t even start, or maybe it starts but the black list or the audit logging isn’t wired in. These issues are easy to test and when you fix them, you have enormous confidence that the functionality you just wired-in will work and continue to work in the wee hours of the morning.</p>
 
@@ -654,24 +583,20 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
     <id>http://www.mikevalenty.com/integration-testing-with-nhibernate</id>
     <content type="html"><![CDATA[<p>While the first-level cache in NHibernate is great for production, it can be super annoying for integration tests. Basically I just want to make sure my mapping works and that when I save an entity it goes to the database.</p>
 
-<p>``` c#
-[TestFixture]
-public class MyIntegrationFixture : IntegrationFixture {</p>
+<pre><code class="c#">[TestFixture]
+public class MyIntegrationFixture : IntegrationFixture {
+    [Test]
+    public void Can_add_elements() {
+        var repository = Container.Resolve&lt;IRepository&lt;MyEntity&gt;&gt;();
 
-<pre><code>[Test]
-public void Can_add_elements() {
-    var repository = Container.Resolve&lt;IRepository&lt;MyEntity&gt;&gt;();
+        var entity = repository.FindById(1);
+        entity.Add(new Element { Description = "The Description" });
+        repository.Save(entity);
 
-    var entity = repository.FindById(1);
-    entity.Add(new Element { Description = "The Description" });
-    repository.Save(entity);
-
-    Assert.That(repository.FindById(1).Elements.Count(), Is.EqualTo(1));
+        Assert.That(repository.FindById(1).Elements.Count(), Is.EqualTo(1));
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>The problem is the next time I call <code>FindById()</code> I get my object back from the first level cache <code>ISession</code>, so the Assert passes but looking at the SQL output by NHibernate I can see that no INSERT statement is happening. There are two things that NHibernate needs to do in order for the integration test to work as expected.</p>
 
@@ -685,80 +610,72 @@ public void Can_add_elements() {
 
 <p>Since I solve all my problems with a pipeline or decorator, I figured I’d decorate the <code>ISession</code> and commit and evict on the operations I care about:</p>
 
-<p>``` c#
-public class AutoCommitAndEvictSession : SessionDecorator {</p>
-
-<pre><code>public AutoCommitAndEvictSession(ISession session)
-    : base(session) {
-}
-
-public override object Save(object obj) {
-    object result;
-    using (var tx = Session.BeginTransaction()) {
-        result = Session.Save(obj);
-        tx.Commit();
+<pre><code class="c#">public class AutoCommitAndEvictSession : SessionDecorator {
+    public AutoCommitAndEvictSession(ISession session)
+        : base(session) {
     }
-    Session.Evict(obj);
-    return result;
-}
 
-public override void Update(object obj) {
-    CommitAndEvict(base.Update, obj);
-}
-
-public override void SaveOrUpdate(object obj) {
-    CommitAndEvict(base.SaveOrUpdate, obj);
-}
-
-public override void Delete(object obj) {
-    CommitAndEvict(base.Delete, obj);
-}
-
-private void CommitAndEvict(Action&lt;object&gt; action, object entity) {
-    using (var tx = Session.BeginTransaction()) {
-        action.Invoke(entity);
-        tx.Commit();
+    public override object Save(object obj) {
+        object result;
+        using (var tx = Session.BeginTransaction()) {
+            result = Session.Save(obj);
+            tx.Commit();
+        }
+        Session.Evict(obj);
+        return result;
     }
-    Session.Evict(entity);
+
+    public override void Update(object obj) {
+        CommitAndEvict(base.Update, obj);
+    }
+
+    public override void SaveOrUpdate(object obj) {
+        CommitAndEvict(base.SaveOrUpdate, obj);
+    }
+
+    public override void Delete(object obj) {
+        CommitAndEvict(base.Delete, obj);
+    }
+
+    private void CommitAndEvict(Action&lt;object&gt; action, object entity) {
+        using (var tx = Session.BeginTransaction()) {
+            action.Invoke(entity);
+            tx.Commit();
+        }
+        Session.Evict(entity);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Then I just work it into a test fixture like this:</p>
 
-<p>``` c#
-[TestFixture]
-public abstract class IntegrationFixture {</p>
+<pre><code class="c#">[TestFixture]
+public abstract class IntegrationFixture {
+    protected IUnityContainer Container { get; private set; }
 
-<pre><code>protected IUnityContainer Container { get; private set; }
+    [TestFixtureSetUp]
+    public virtual void TestFixtureSetUp() {
+        Container = new UnityContainer()
+            .AddNewExtension&lt;ConfigureNHibernate&gt;();
+    }
 
-[TestFixtureSetUp]
-public virtual void TestFixtureSetUp() {
-    Container = new UnityContainer()
-        .AddNewExtension&lt;ConfigureNHibernate&gt;();
-}
+    [TestFixtureTearDown]
+    public virtual void TestFixtureTearDown() {
+        Container.Dispose();
+    }
 
-[TestFixtureTearDown]
-public virtual void TestFixtureTearDown() {
-    Container.Dispose();
-}
+    [SetUp]
+    public virtual void SetUp() {
+        var session = Container.Resolve&lt;ISessionFactory&gt;().OpenSession();
+        Container.RegisterInstance&lt;ISession&gt;(new AutoCommitAndEvictSession(session));
+    }
 
-[SetUp]
-public virtual void SetUp() {
-    var session = Container.Resolve&lt;ISessionFactory&gt;().OpenSession();
-    Container.RegisterInstance&lt;ISession&gt;(new AutoCommitAndEvictSession(session));
-}
-
-[TearDown]
-public virtual void TearDown() {
-    Container.Resolve&lt;ISession&gt;().Dispose();
+    [TearDown]
+    public virtual void TearDown() {
+        Container.Resolve&lt;ISession&gt;().Dispose();
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 ]]></content>
   </entry>
   

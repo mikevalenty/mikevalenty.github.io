@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Unity | Mike Valenty]]></title>
+  <title><![CDATA[Category: unity | Mike Valenty]]></title>
   <link href="http://www.mikevalenty.com/blog/categories/unity/atom.xml" rel="self"/>
   <link href="http://www.mikevalenty.com/"/>
-  <updated>2015-05-09T22:40:03-07:00</updated>
+  <updated>2015-05-10T07:33:58-07:00</updated>
   <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
@@ -20,181 +20,149 @@
     <id>http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add <code>tenant_id</code> to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
-<p>``` xml
-&lt;hibernate-mapping xmlns=&ldquo;urn:nhibernate-mapping-2.2&rdquo;></p>
+<pre><code class="xml">&lt;hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"&gt;
 
-<p>  &lt;filter-def name=&ldquo;tenant&rdquo;></p>
+  &lt;filter-def name="tenant"&gt;
+    &lt;filter-param name="id" type="System.Int32" /&gt;
+  &lt;/filter-def&gt;
 
-<pre><code>&lt;filter-param name="id" type="System.Int32" /&gt;
+&lt;/hibernate-mapping&gt;
 </code></pre>
-
-<p>  &lt;/filter-def></p>
-
-<p>&lt;/hibernate-mapping>
-```</p>
 
 <p>And then apply it to each entity:</p>
 
-<p>``` xml
-<class name="User" table="[user]"></p>
+<pre><code class="xml">&lt;class name="User" table="[user]"&gt;
 
-<p>  <id name="Id" column="user_id"></p>
+  &lt;id name="Id" column="user_id"&gt;
+    &lt;generator class="identity" /&gt;
+  &lt;/id&gt;
 
-<pre><code>&lt;generator class="identity" /&gt;
+  &lt;property name="Username" /&gt;
+  &lt;property name="Email" /&gt;
+
+  &lt;filter name="tenant" condition="tenant_id = :id" /&gt;
+
+&lt;/class&gt;
 </code></pre>
-
-<p>  </id></p>
-
-<p>  <property name="Username" />
-  <property name="Email" /></p>
-
-<p>  <filter name="tenant" condition="tenant_id = :id" /></p>
-
-<p></class>
-```</p>
 
 <p>The last step is to set the value of the filter at runtime. This is done on the <code>ISession</code> like this:</p>
 
-<p>``` c#
-Container</p>
-
-<pre><code>.RegisterType&lt;ISession&gt;(
-    new PerRequestLifetimeManager(),
-    new InjectionFactory(c =&gt;
-    {
-        var session = c.Resolve&lt;ISessionFactory&gt;().OpenSession();
-        session.EnableFilter("tenant").SetParameter("id", c.Resolve&lt;Tenant&gt;().Id);
-        return session;
-    })
-);
+<pre><code class="c#">Container
+    .RegisterType&lt;ISession&gt;(
+        new PerRequestLifetimeManager(),
+        new InjectionFactory(c =&gt;
+        {
+            var session = c.Resolve&lt;ISessionFactory&gt;().OpenSession();
+            session.EnableFilter("tenant").SetParameter("id", c.Resolve&lt;Tenant&gt;().Id);
+            return session;
+        })
+    );
 </code></pre>
-
-<p>```</p>
 
 <p>The current tenant comes from <code>c.Resolve&lt;Tenant&gt;()</code>. In order for that to work, you have to tell Unity how to find the current tenant. In ASP.NET MVC, we can look at the host header on the request and find our tenant that way. We could just as easily use another strategy though. Maybe if this were a WCF service, we could use an authentication header to establish the current tenant context. You could build out some interfaces and strategies around establishing the current tenant context, however for this article I’ll just bang it out.</p>
 
-<p>``` c#
-Container</p>
+<pre><code class="c#">Container
+    .RegisterType&lt;Tenant&gt;(new InjectionFactory(c =&gt;
+    {
+        var repository = c.Resolve&lt;ITenantRepository&gt;();
 
-<pre><code>.RegisterType&lt;Tenant&gt;(new InjectionFactory(c =&gt;
-{
-    var repository = c.Resolve&lt;ITenantRepository&gt;();
+        var context = c.Resolve&lt;HttpContextBase&gt;();
 
-    var context = c.Resolve&lt;HttpContextBase&gt;();
+        var host = context.Request.Headers["Host"] ?? context.Request.Url.Host;
 
-    var host = context.Request.Headers["Host"] ?? context.Request.Url.Host;
-
-    return repository.FindByHost(host);
-}));
+        return repository.FindByHost(host);
+    }));
 </code></pre>
-
-<p>```</p>
 
 <p>Second, we have to set the <code>tenant_id</code> when new entities are saved. This is a bit more complicated with NHibernate and requires a bit of a concession in that we have to add a field to the entity in order for NHibernate to know how to persist the value. I’m using a private nullable int for this.</p>
 
-<p>``` c#
-public class User
-{</p>
+<pre><code class="c#">public class User
+{
+    private int? tenantId;
 
-<pre><code>private int? tenantId;
+    public virtual int Id { get; set; }
 
-public virtual int Id { get; set; }
+    public virtual string Username { get; set; }
 
-public virtual string Username { get; set; }
-
-public virtual string Email { get; set; }
+    public virtual string Email { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>It’s private because I don’t want the business logic to deal with it and it’s nullable because my tenant table is in a separate database which means I can’t lean on the data model to enforce referential integrity. That’s a problem because the default value for an integer is zero which could be happily saved by the database. By making it nullable I can be sure the database will blow up if the <code>tenant_id</code> is not set.</p>
 
 <p>So, back to the issue at hand. The <code>tenant_id</code> needs to be set when the entity is saved. For this, I’m using an interceptor and setting the value in the <code>OnSave</code> method:</p>
 
-<p>``` c#
-public class MultiTenantInterceptor : EmptyInterceptor
-{</p>
-
-<pre><code>private readonly Func&lt;Tenant&gt; tenant;
-
-public MultiTenantInterceptor(Func&lt;Tenant&gt; tenant)
+<pre><code class="c#">public class MultiTenantInterceptor : EmptyInterceptor
 {
-    this.tenant = tenant;
-}
+    private readonly Func&lt;Tenant&gt; tenant;
 
-public override bool OnSave(object entity... object[] state, string[] propertyNames...)
-{
-    var index = Array.IndexOf(propertyNames, "tenantId");
+    public MultiTenantInterceptor(Func&lt;Tenant&gt; tenant)
+    {
+        this.tenant = tenant;
+    }
 
-    if (index == -1)
+    public override bool OnSave(object entity... object[] state, string[] propertyNames...)
+    {
+        var index = Array.IndexOf(propertyNames, "tenantId");
+
+        if (index == -1)
+            return false;
+
+        var tenantId = tenant().Id;
+
+        state[index] = tenantId;
+
+        entity
+            .GetType()
+            .GetField("tenantId", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(entity, tenantId);
+
         return false;
-
-    var tenantId = tenant().Id;
-
-    state[index] = tenantId;
-
-    entity
-        .GetType()
-        .GetField("tenantId", BindingFlags.Instance | BindingFlags.NonPublic)
-        .SetValue(entity, tenantId);
-
-    return false;
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>This <code>IInterceptor</code> mechanism is a little wonky. If you change any data, you have to do it in both the entity instance and the state array that NHibernate uses to hydrate entities. It’s not a big deal, it’s just one of those things you have to accept like the fact that Apple and Google are tracking your every move via your smart phone. Oh, and the interceptor gets wired up like this:</p>
 
-<p>``` c#
-Container</p>
-
-<pre><code>.RegisterType&lt;ISessionFactory&gt;(
-    new ContainerControlledLifetimeManager(),
-    new InjectionFactory(c =&gt;
-    {
-        return new NHibernate.Cfg.Configuration()
-            .Configure()
-            .SetInterceptor(new MultiTenantInterceptor(() =&gt; c.Resolve&lt;Tenant&gt;()))
-            .BuildSessionFactory();
-    })
-);
+<pre><code class="c#">Container
+    .RegisterType&lt;ISessionFactory&gt;(
+        new ContainerControlledLifetimeManager(),
+        new InjectionFactory(c =&gt;
+        {
+            return new NHibernate.Cfg.Configuration()
+                .Configure()
+                .SetInterceptor(new MultiTenantInterceptor(() =&gt; c.Resolve&lt;Tenant&gt;()))
+                .BuildSessionFactory();
+        })
+    );
 </code></pre>
-
-<p>```</p>
 
 <p>We’re almost done. There is one more case that needs to be handled. When NHibernate loads an entity by its primary key, it doesn’t run through the query engine which means the tenant filter isn’t applied. Fortunately, we can take care of this in the interceptor:</p>
 
-<p>``` c#
-public class MultiTenantInterceptor : EmptyInterceptor
-{</p>
-
-<pre><code>...
-
-public override bool OnLoad(object entity... object[] state, string[] propertyNames...)
+<pre><code class="c#">public class MultiTenantInterceptor : EmptyInterceptor
 {
-    var index = Array.IndexOf(propertyNames, "tenantId");
+    ...
 
-    if (index == -1)
-        return false;
-
-    var entityTenantId = Convert.ToInt32(state[index]);
-
-    var currentTenantId = tenant().Id;
-
-    if (entityTenantId != currentTenantId)
+    public override bool OnLoad(object entity... object[] state, string[] propertyNames...)
     {
-        throw new AuthorizationException("Permission denied to {0}", entity);
-    }
+        var index = Array.IndexOf(propertyNames, "tenantId");
 
-    return false;
+        if (index == -1)
+            return false;
+
+        var entityTenantId = Convert.ToInt32(state[index]);
+
+        var currentTenantId = tenant().Id;
+
+        if (entityTenantId != currentTenantId)
+        {
+            throw new AuthorizationException("Permission denied to {0}", entity);
+        }
+
+        return false;
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>That’s it. Have fun and happy commingling.</p>
 ]]></content>
@@ -224,186 +192,156 @@ public override bool OnLoad(object entity... object[] state, string[] propertyNa
 
 <p>Let’s take a look at a controller that uses NHibernate to talk to the database. I’m not going to get into whether you should talk directly to NHibernate from the controller or go through a service layer or repository because it doesn’t affect how we’re going to add multi-tenancy. The important thing here is that the <code>ISession</code> is injected into the controller, and we aren’t using the service locator pattern to request the <code>ISession</code> from a singleton.</p>
 
-<p>``` c#
-public class UserController : Controller
-{</p>
-
-<pre><code>private readonly ISession session;
-
-public UserController(ISession session)
+<pre><code class="c#">public class UserController : Controller
 {
-    this.session = session;
-}
+    private readonly ISession session;
 
-public ActionResult Edit(int id)
-{
-    var user = session.Load&lt;User&gt;(id);
+    public UserController(ISession session)
+    {
+        this.session = session;
+    }
 
-    return View(user);
+    public ActionResult Edit(int id)
+    {
+        var user = session.Load&lt;User&gt;(id);
+
+        return View(user);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Alright, now it’s time to write some new code and make our web application connect to the correct database based on the host header in the http request. First, we’ll need a database to store a list of tenants along with the connection string for that tenant’s database. Here’s my entity:</p>
 
-<p>``` c#
-public class Tenant
-{</p>
+<pre><code class="c#">public class Tenant
+{
+    public virtual string Name { get; set; }
 
-<pre><code>public virtual string Name { get; set; }
+    public virtual string Host { get; set; }
 
-public virtual string Host { get; set; }
-
-public virtual string ConnectionString { get; set; }
+    public virtual string ConnectionString { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>I’ll use the repository pattern here so there is a crisp consumer of the <code>ISession</code> that connects to the lookup database rather than one of the tenant shards. This will be important later when we go to configure Unity.</p>
 
-<p>``` c#
-public class NHibernateTenantRepository : ITenantRepository
-{</p>
-
-<pre><code>private readonly ISession session;
-private readonly HttpContextBase context;
-
-public NHibernateTenantRepository(ISession session, HttpContextBase context)
+<pre><code class="c#">public class NHibernateTenantRepository : ITenantRepository
 {
-    this.session = session;
-    this.context = context;
-}
+    private readonly ISession session;
+    private readonly HttpContextBase context;
 
-public Tenant Current
-{
-    get
+    public NHibernateTenantRepository(ISession session, HttpContextBase context)
     {
-        var host = context.Request.Headers["Host"];
-        return FindByHost(host);
+        this.session = session;
+        this.context = context;
+    }
+
+    public Tenant Current
+    {
+        get
+        {
+            var host = context.Request.Headers["Host"];
+            return FindByHost(host);
+        }
+    }
+
+    public Tenant FindByHost(string host)
+    {
+        return session
+            .Query&lt;Tenant&gt;()
+            .SingleOrDefault(t =&gt; t.Host == host);
     }
 }
-
-public Tenant FindByHost(string host)
-{
-    return session
-        .Query&lt;Tenant&gt;()
-        .SingleOrDefault(t =&gt; t.Host == host);
-}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>So now we need a dedicated <code>ISessionFactory</code> for the lookup database and make sure that our <code>NHibernateTenantRepository</code> gets the right <code>ISession</code>. It’s not too bad, we just need to name them in the container so we can refer to them explicitly.</p>
 
-<p>``` c#
-Container</p>
+<pre><code class="c#">Container
+    .RegisterType&lt;ISessionFactory&gt;(
+        "tenant_session_factory",
+        new ContainerControlledLifetimeManager(),
+        new InjectionFactory(c =&gt;
+            new NHibernate.Cfg.Configuration().Configure().BuildSessionFactory())
+    );
 
-<pre><code>.RegisterType&lt;ISessionFactory&gt;(
-    "tenant_session_factory",
-    new ContainerControlledLifetimeManager(),
-    new InjectionFactory(c =&gt;
-        new NHibernate.Cfg.Configuration().Configure().BuildSessionFactory())
-);
+Container
+    .RegisterType&lt;ISession&gt;(
+        "tenant_session",
+        new PerRequestLifetimeManager(),
+        new InjectionFactory(c =&gt;
+            c.Resolve&lt;ISessionFactory&gt;("tenant_session_factory").OpenSession())
+    );
+
+Container
+    .RegisterType&lt;ITenantRepository, NHibernateTenantRepository&gt;()
+    .RegisterType&lt;NHibernateTenantRepository&gt;(
+        new InjectionConstructor(
+            new ResolvedParameter&lt;ISession&gt;("tenant_session"),
+            new ResolvedParameter&lt;HttpContextBase&gt;()
+        )
+    );
 </code></pre>
-
-<p>Container</p>
-
-<pre><code>.RegisterType&lt;ISession&gt;(
-    "tenant_session",
-    new PerRequestLifetimeManager(),
-    new InjectionFactory(c =&gt;
-        c.Resolve&lt;ISessionFactory&gt;("tenant_session_factory").OpenSession())
-);
-</code></pre>
-
-<p>Container</p>
-
-<pre><code>.RegisterType&lt;ITenantRepository, NHibernateTenantRepository&gt;()
-.RegisterType&lt;NHibernateTenantRepository&gt;(
-    new InjectionConstructor(
-        new ResolvedParameter&lt;ISession&gt;("tenant_session"),
-        new ResolvedParameter&lt;HttpContextBase&gt;()
-    )
-);
-</code></pre>
-
-<p>```</p>
 
 <p>Hopefully that’s about what you were expecting since it’s not really the interesting part. The more interesting part is configuring the <code>ISession</code> that gets injected into the <code>UserController</code> to connect to a different database based on the host header in the http request. The Unity feature we’re going to leverage for this is the <code>LifetimeManager</code>. This is an often overlooked feature of IoC containers.</p>
 
-<p>``` c#
-Container</p>
+<pre><code class="c#">Container
+    .RegisterType&lt;ISessionFactory&gt;(
+        new PerHostLifetimeManager(() =&gt; new HttpContextWrapper(HttpContext.Current)),
+        new InjectionFactory(c =&gt;
+        {
+            var connString = c
+                .Resolve&lt;ITenantRepository&gt;()
+                .Current
+                .ConnectionString;
 
-<pre><code>.RegisterType&lt;ISessionFactory&gt;(
-    new PerHostLifetimeManager(() =&gt; new HttpContextWrapper(HttpContext.Current)),
-    new InjectionFactory(c =&gt;
-    {
-        var connString = c
-            .Resolve&lt;ITenantRepository&gt;()
-            .Current
-            .ConnectionString;
+            return new NHibernate.Cfg.Configuration()
+                .Configure()
+                .SetProperty(NHibernate.Cfg.Environment.ConnectionString, connString)
+                .BuildSessionFactory();
+        }));
 
-        return new NHibernate.Cfg.Configuration()
-            .Configure()
-            .SetProperty(NHibernate.Cfg.Environment.ConnectionString, connString)
-            .BuildSessionFactory();
-    }));
+Container
+    .RegisterType&lt;ISession&gt;(
+        new PerRequestLifetimeManager(),
+        new InjectionFactory(c =&gt; c.Resolve&lt;ISessionFactory&gt;().OpenSession())
+    );
 </code></pre>
-
-<p>Container</p>
-
-<pre><code>.RegisterType&lt;ISession&gt;(
-    new PerRequestLifetimeManager(),
-    new InjectionFactory(c =&gt; c.Resolve&lt;ISessionFactory&gt;().OpenSession())
-);
-</code></pre>
-
-<p>```</p>
 
 <p>Here we’re using a custom <code>PerHostLifetimeManager</code>. This tells Unity to maintain a session factory per host. When Unity runs across a host it doesn’t have a session factory for, it will run the <code>InjectionFactory</code> block to create one using the connection string associated with that tenant.</p>
 
 <p>Since multiple simultaneous requests will be trying to get and set values with the same key, we need to make sure our <code>PerHostLifetimeManager</code> is thread safe. That’s pretty easy since Unity comes with a <code>SynchronizedLifetimeManager</code> base class that takes care of the fact that <code>Dictionary</code> <a href="http://stackoverflow.com/questions/157933/whats-the-best-way-of-implementing-a-thread-safe-dictionary-in-net">isn’t thread safe</a>.</p>
 
-<p>``` c#
-public class PerHostLifetimeManager : SynchronizedLifetimeManager
-{</p>
-
-<pre><code>private readonly Func&lt;HttpContextBase&gt; context;
-private readonly IDictionary&lt;string, object&gt; store;
-
-public PerHostLifetimeManager(Func&lt;HttpContextBase&gt; context)
+<pre><code class="c#">public class PerHostLifetimeManager : SynchronizedLifetimeManager
 {
-    this.context = context;
-    store = new Dictionary&lt;string, object&gt;();
-}
+    private readonly Func&lt;HttpContextBase&gt; context;
+    private readonly IDictionary&lt;string, object&gt; store;
 
-protected override object SynchronizedGetValue()
-{
-    var host = GetHost();
+    public PerHostLifetimeManager(Func&lt;HttpContextBase&gt; context)
+    {
+        this.context = context;
+        store = new Dictionary&lt;string, object&gt;();
+    }
 
-    if (!store.ContainsKey(host))
-        return null;
+    protected override object SynchronizedGetValue()
+    {
+        var host = GetHost();
 
-    return store[host];
-}
+        if (!store.ContainsKey(host))
+            return null;
 
-protected override void SynchronizedSetValue(object newValue)
-{
-    store[GetHost()] = newValue;
-}
+        return store[host];
+    }
 
-private string GetHost()
-{
-    return context().Request.Headers["Host"];
+    protected override void SynchronizedSetValue(object newValue)
+    {
+        store[GetHost()] = newValue;
+    }
+
+    private string GetHost()
+    {
+        return context().Request.Headers["Host"];
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>So what did we accomplish? Well we didn’t touch any of our existing application code. We just wrote new code and through configuration we added multi-tenancy! That’s pretty cool, but was it worth it? Well, the goal in itself isn’t super important, but this exercise can certainly highlight areas of your codebase where you might be violating the single responsibility principle or leaking too many infrastructure concepts into your application logic.</p>
 ]]></content>
@@ -416,60 +354,52 @@ private string GetHost()
     <id>http://www.mikevalenty.com/moq-extension-methods-for-unity</id>
     <content type="html"><![CDATA[<p>A few people have asked about the <code>RegisterMock</code> extension method used in another post. The usage looks like this:</p>
 
-<p>``` c#
-[Test]
+<pre><code class="c#">[Test]
 public void Should_delete_removed_image()
-{</p>
+{
+    container.RegisterMock&lt;IFileRepository&gt;()
+        .Setup(r =&gt; r.Delete(It.IsAny&lt;IFile&gt;()))
+        .Verifiable();
 
-<pre><code>container.RegisterMock&lt;IFileRepository&gt;()
-    .Setup(r =&gt; r.Delete(It.IsAny&lt;IFile&gt;()))
-    .Verifiable();
+    container.RegisterMock&lt;IBusinessRepository&gt;()
+        .Setup(r =&gt; r.FindById(3))
+        .Returns(CreateBusinessWith(new BusinessImage { ImageId = 4 }));
 
-container.RegisterMock&lt;IBusinessRepository&gt;()
-    .Setup(r =&gt; r.FindById(3))
-    .Returns(CreateBusinessWith(new BusinessImage { ImageId = 4 }));
+    var controller = container.Resolve&lt;BusinessGalleryController&gt;();
+    controller.Delete(3, 4);
 
-var controller = container.Resolve&lt;BusinessGalleryController&gt;();
-controller.Delete(3, 4);
-
-container.VerifyMockFor&lt;IFileRepository&gt;();
+    container.VerifyMockFor&lt;IFileRepository&gt;();
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>It’s just a few helper extensions for using <a href="http://code.google.com/p/moq/">Moq</a> with <a href="http://www.codeplex.com/unity/">Unity</a> that cut down on the noise in tests. My friend Keith came up with it, I just happen to blog about it first. Here it is:</p>
 
-<p>``` c#
-public static class MoqExtensions
-{</p>
-
-<pre><code>public static Mock&lt;T&gt; RegisterMock&lt;T&gt;(this IUnityContainer container) where T : class
+<pre><code class="c#">public static class MoqExtensions
 {
-    var mock = new Mock&lt;T&gt;();
+    public static Mock&lt;T&gt; RegisterMock&lt;T&gt;(this IUnityContainer container) where T : class
+    {
+        var mock = new Mock&lt;T&gt;();
 
-    container.RegisterInstance&lt;Mock&lt;T&gt;&gt;(mock);
-    container.RegisterInstance&lt;T&gt;(mock.Object);
+        container.RegisterInstance&lt;Mock&lt;T&gt;&gt;(mock);
+        container.RegisterInstance&lt;T&gt;(mock.Object);
 
-    return mock;
-}
+        return mock;
+    }
 
-/// &lt;summary&gt;
-/// Use this to add additional setups for a mock that is already registered
-/// &lt;/summary&gt;
-public static Mock&lt;T&gt; ConfigureMockFor&lt;T&gt;(this IUnityContainer container) where T : class
-{
-    return container.Resolve&lt;Mock&lt;T&gt;&gt;();
-}
+    /// &lt;summary&gt;
+    /// Use this to add additional setups for a mock that is already registered
+    /// &lt;/summary&gt;
+    public static Mock&lt;T&gt; ConfigureMockFor&lt;T&gt;(this IUnityContainer container) where T : class
+    {
+        return container.Resolve&lt;Mock&lt;T&gt;&gt;();
+    }
 
-public static void VerifyMockFor&lt;T&gt;(this IUnityContainer container) where T : class
-{
-    container.Resolve&lt;Mock&lt;T&gt;&gt;().VerifyAll();
+    public static void VerifyMockFor&lt;T&gt;(this IUnityContainer container) where T : class
+    {
+        container.Resolve&lt;Mock&lt;T&gt;&gt;().VerifyAll();
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 ]]></content>
   </entry>
   
@@ -484,135 +414,114 @@ public static void VerifyMockFor&lt;T&gt;(this IUnityContainer container) where 
 
 <p>This is how I want it to look:</p>
 
-<p>``` c#
-container</p>
-
-<pre><code>.AddNewExtension&lt;InterceptOnRegister&gt;()
-.Configure&lt;InterceptOnRegister&gt;()
-.SetDefaultInterceptor&lt;TransparentProxyInterceptor&gt;()
-.AddMatchingRule(new AssemblyNameStartsWith("MyCompany"));
+<pre><code class="c#">container
+    .AddNewExtension&lt;InterceptOnRegister&gt;()
+    .Configure&lt;InterceptOnRegister&gt;()
+    .SetDefaultInterceptor&lt;TransparentProxyInterceptor&gt;()
+    .AddMatchingRule(new AssemblyNameStartsWith("MyCompany"));
 </code></pre>
-
-<p>```</p>
 
 <p>The basic idea here is to subscribe to the register events and configure interception if it meets our criteria. By default it will match everything and apply <code>TransparentProxyInterceptor</code>, but as you can see from the snippet above, you can explicitly supply another interceptor and matching rules.</p>
 
 <p>Here it is:</p>
 
-<p>``` c#
-public class InterceptOnRegister : UnityContainerExtension {</p>
+<pre><code class="c#">public class InterceptOnRegister : UnityContainerExtension {
+    private IInstanceInterceptor interceptor;
+    private readonly IList&lt;IInterceptRule&gt; rules;
 
-<pre><code>private IInstanceInterceptor interceptor;
-private readonly IList&lt;IInterceptRule&gt; rules;
-
-public InterceptOnRegister() {
-    interceptor = new TransparentProxyInterceptor();
-    rules = new List&lt;IInterceptRule&gt; {
-        new NotUnityInterceptionAssembly(),
-        new DoesNotHaveGenericMethods() };
-}
-
-public InterceptOnRegister AddMatchingRule(IInterceptRule rule) {
-    rules.Add(rule);
-    return this;
-}
-
-public InterceptOnRegister AddNewMatchingRule&lt;T&gt;() where T : IInterceptRule, new() {
-    rules.Add(new T());
-    return this;
-}
-
-public InterceptOnRegister SetDefaultInterceptor&lt;T&gt;() where T : IInstanceInterceptor, new() {
-    interceptor = new T();
-    return this;
-}
-
-protected override void Initialize() {
-    AddInterceptionExtensionIfNotExists();
-
-    Context.Registering +=
-        (sender, e) =&gt; SetInterceptorFor(e.TypeFrom, e.TypeTo ?? e.TypeFrom);
-}
-
-private void AddInterceptionExtensionIfNotExists() {
-    if (Container.Configure&lt;Interception&gt;() == null) {
-        Container.AddNewExtension&lt;Interception&gt;();
-    }
-}
-
-private void SetInterceptorFor(Type typeToIntercept, Type typeOfInstance) {
-    if (!AllMatchingRulesApply(typeToIntercept, typeOfInstance)) {
-        return;
+    public InterceptOnRegister() {
+        interceptor = new TransparentProxyInterceptor();
+        rules = new List&lt;IInterceptRule&gt; {
+            new NotUnityInterceptionAssembly(),
+            new DoesNotHaveGenericMethods() };
     }
 
-    if (interceptor.CanIntercept(typeOfInstance)) {
-        Container
-            .Configure&lt;Interception&gt;()
-            .SetDefaultInterceptorFor(typeOfInstance, interceptor);
-    } else if (interceptor.CanIntercept(typeToIntercept)) {
-        Container
-            .Configure&lt;Interception&gt;()
-            .SetDefaultInterceptorFor(typeToIntercept, interceptor);
+    public InterceptOnRegister AddMatchingRule(IInterceptRule rule) {
+        rules.Add(rule);
+        return this;
     }
-}
 
-private bool AllMatchingRulesApply(Type typeToIntercept, Type typeOfInstance) {
-    foreach (var rule in rules) {
-        if (!rule.Matches(typeToIntercept, typeOfInstance)) {
-            return false;
+    public InterceptOnRegister AddNewMatchingRule&lt;T&gt;() where T : IInterceptRule, new() {
+        rules.Add(new T());
+        return this;
+    }
+
+    public InterceptOnRegister SetDefaultInterceptor&lt;T&gt;() where T : IInstanceInterceptor, new() {
+        interceptor = new T();
+        return this;
+    }
+
+    protected override void Initialize() {
+        AddInterceptionExtensionIfNotExists();
+
+        Context.Registering +=
+            (sender, e) =&gt; SetInterceptorFor(e.TypeFrom, e.TypeTo ?? e.TypeFrom);
+    }
+
+    private void AddInterceptionExtensionIfNotExists() {
+        if (Container.Configure&lt;Interception&gt;() == null) {
+            Container.AddNewExtension&lt;Interception&gt;();
         }
     }
 
-    return true;
+    private void SetInterceptorFor(Type typeToIntercept, Type typeOfInstance) {
+        if (!AllMatchingRulesApply(typeToIntercept, typeOfInstance)) {
+            return;
+        }
+
+        if (interceptor.CanIntercept(typeOfInstance)) {
+            Container
+                .Configure&lt;Interception&gt;()
+                .SetDefaultInterceptorFor(typeOfInstance, interceptor);
+        } else if (interceptor.CanIntercept(typeToIntercept)) {
+            Container
+                .Configure&lt;Interception&gt;()
+                .SetDefaultInterceptorFor(typeToIntercept, interceptor);
+        }
+    }
+
+    private bool AllMatchingRulesApply(Type typeToIntercept, Type typeOfInstance) {
+        foreach (var rule in rules) {
+            if (!rule.Matches(typeToIntercept, typeOfInstance)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>And you’ll need this stuff too:</p>
 
-<p>``` c#
-public interface IInterceptRule {</p>
-
-<pre><code>bool Matches(Type typeToIntercept, Type typeOfInstance);
-</code></pre>
-
-<p>}</p>
-
-<p>public class NotUnityInterceptionAssembly : IInterceptRule {</p>
-
-<pre><code>public bool Matches(Type typeToIntercept, Type typeOfInstance) {
-    return !typeToIntercept.Assembly.Equals(typeof(Interception).Assembly);
-}
-</code></pre>
-
-<p>}</p>
-
-<p>public class DoesNotHaveGenericMethods : IInterceptRule {</p>
-
-<pre><code>public bool Matches(Type typeToIntercept, Type typeOfInstance) {
-    return typeOfInstance.GetMethods().Count(m =&gt; m.IsGenericMethod) == 0;
-}
-</code></pre>
-
-<p>}</p>
-
-<p>public class AssemblyNameStartsWith : IInterceptRule {</p>
-
-<pre><code>private string match;
-
-public AssemblyNameStartsWith(string match) {
-    this.match = match;
+<pre><code class="c#">public interface IInterceptRule {
+    bool Matches(Type typeToIntercept, Type typeOfInstance);
 }
 
-public bool Matches(Type typeToIntercept, Type typeOfInstance) {
-    return typeOfInstance.Assembly.FullName.StartsWith(match);
+public class NotUnityInterceptionAssembly : IInterceptRule {
+    public bool Matches(Type typeToIntercept, Type typeOfInstance) {
+        return !typeToIntercept.Assembly.Equals(typeof(Interception).Assembly);
+    }
+}
+
+public class DoesNotHaveGenericMethods : IInterceptRule {
+    public bool Matches(Type typeToIntercept, Type typeOfInstance) {
+        return typeOfInstance.GetMethods().Count(m =&gt; m.IsGenericMethod) == 0;
+    }
+}
+
+public class AssemblyNameStartsWith : IInterceptRule {
+    private string match;
+
+    public AssemblyNameStartsWith(string match) {
+        this.match = match;
+    }
+
+    public bool Matches(Type typeToIntercept, Type typeOfInstance) {
+        return typeOfInstance.Assembly.FullName.StartsWith(match);
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 ]]></content>
   </entry>
   
@@ -625,30 +534,23 @@ public bool Matches(Type typeToIntercept, Type typeOfInstance) {
 
 <p>This is how I want things to look:</p>
 
-<p>``` c#
-public class UpdateUserRequest
-{</p>
+<pre><code class="c#">public class UpdateUserRequest
+{
+    [AuthorizedUserPublisherRequired]
+    public int UserId { get; set; }
 
-<pre><code>[AuthorizedUserPublisherRequired]
-public int UserId { get; set; }
+    [Required("Name is required")]
+    public string Name { get; set; }
 
-[Required("Name is required")]
-public string Name { get; set; }
+    [ValidZipCodeRequired("Invalid zip code")]
+    public string ZipCode { get; set; }
+}
 
-[ValidZipCodeRequired("Invalid zip code")]
-public string ZipCode { get; set; }
+public interface IUserService
+{
+    void Update(UpdateUserRequest request);
+}
 </code></pre>
-
-<p>}</p>
-
-<p>public interface IUserService
-{</p>
-
-<pre><code>void Update(UpdateUserRequest request);
-</code></pre>
-
-<p>}
-```</p>
 
 <p>There are validation frameworks out there that will do this, so what’s my beef? Well, first of all I want to inject the validators with dependencies to implement the juicier rules. And second, I’m treating validation as a core concern so I don’t want a dependency on a framework like Enterprise Library. I had several questions like:</p>
 
@@ -661,116 +563,100 @@ public string ZipCode { get; set; }
 
 <p>Let’s take a look at building up the validators.</p>
 
-<p>``` c#
-public class ValidZipCodeRequiredAttribute : ValidatorAttribute
-{</p>
-
-<pre><code>public override IValidator CreateValidator(IValidatorFactory factory)
+<pre><code class="c#">public class ValidZipCodeRequiredAttribute : ValidatorAttribute
 {
-    return new factory.Create&lt;ValidZipCodeRequiredValidator&gt;();
+    public override IValidator CreateValidator(IValidatorFactory factory)
+    {
+        return new factory.Create&lt;ValidZipCodeRequiredValidator&gt;();
+    }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>This allows me to make a <code>UnityValidatorFactory</code> that can supply all my dependencies. Now how about this business of running the <code>ValidZipCodeRequiredValidator</code> with the value of the <code>ZipCode</code> property? For that I made a composite validator that loops through each property and runs the annotated validator against it’s property value.</p>
 
-<p>``` c#
-public class CompositeValidator<T> : IValidator<T>
-{</p>
-
-<pre><code>private IValidatorFactory factory;
-
-public CompositeValidator(IValidatorFactory factory)
+<pre><code class="c#">public class CompositeValidator&lt;T&gt; : IValidator&lt;T&gt;
 {
-    this.factory = factory;
-}
+    private IValidatorFactory factory;
 
-public IEnumerable&lt;RuleException&gt; Validate(T subject)
-{
-    List&lt;RuleException&gt; exceptions = new List&lt;RuleException&gt;();
-
-    foreach (PropertyInfo property in typeof(T).GetProperties())
+    public CompositeValidator(IValidatorFactory factory)
     {
-        foreach (var validator in GetValidatorsFor(property))
-        {
-            exceptions.AddRange(validator.Validate(property.GetValue(subject, null)));
-        }
+        this.factory = factory;
     }
 
-    return exceptions;
-}
-
-private IEnumerable&lt;IValidator&gt; GetValidatorsFor(ICustomAttributeProvider provider)
-{
-    foreach (ValidatorAttribute attribute
-        in provider.GetCustomAttributes(typeof(ValidatorAttribute), true))
+    public IEnumerable&lt;RuleException&gt; Validate(T subject)
     {
-        yield return attribute.CreateValidator(factory);
+        List&lt;RuleException&gt; exceptions = new List&lt;RuleException&gt;();
+
+        foreach (PropertyInfo property in typeof(T).GetProperties())
+        {
+            foreach (var validator in GetValidatorsFor(property))
+            {
+                exceptions.AddRange(validator.Validate(property.GetValue(subject, null)));
+            }
+        }
+
+        return exceptions;
+    }
+
+    private IEnumerable&lt;IValidator&gt; GetValidatorsFor(ICustomAttributeProvider provider)
+    {
+        foreach (ValidatorAttribute attribute
+            in provider.GetCustomAttributes(typeof(ValidatorAttribute), true))
+        {
+            yield return attribute.CreateValidator(factory);
+        }
     }
 }
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Now I just need to run the <code>CompositeValidator</code> on <code>userService.Update()</code>. For that I use Unity Interception:</p>
 
-<p>``` c#
-public class ValidationCallHandler : ICallHandler
-{</p>
-
-<pre><code>private IValidator validator;
-
-public ValidationCallHandler(IValidator validator)
+<pre><code class="c#">public class ValidationCallHandler : ICallHandler
 {
-    this.validator = validator;
-}
+    private IValidator validator;
 
-public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
-{
-    var ruleExceptions = ValidateEachArgument(input.Arguments);
-
-    if (ruleExceptions.Count() &gt; 0)
+    public ValidationCallHandler(IValidator validator)
     {
-        throw new ValidationException(ruleExceptions);
+        this.validator = validator;
     }
 
-    return getNext()(input, getNext);
-}
-
-private IEnumerable&lt;RuleException&gt; ValidateEachArgument(IParameterCollection arguments)
-{
-    var ruleExceptions = new List&lt;RuleException&gt;();
-
-    foreach (var arg in arguments)
+    public IMethodReturn Invoke(IMethodInvocation input, GetNextHandlerDelegate getNext)
     {
-        ruleExceptions.AddRange(validator.Validate(arg));
+        var ruleExceptions = ValidateEachArgument(input.Arguments);
+
+        if (ruleExceptions.Count() &gt; 0)
+        {
+            throw new ValidationException(ruleExceptions);
+        }
+
+        return getNext()(input, getNext);
     }
 
-    return ruleExceptions;
-}
+    private IEnumerable&lt;RuleException&gt; ValidateEachArgument(IParameterCollection arguments)
+    {
+        var ruleExceptions = new List&lt;RuleException&gt;();
 
-public int Order { get; set; }
+        foreach (var arg in arguments)
+        {
+            ruleExceptions.AddRange(validator.Validate(arg));
+        }
+
+        return ruleExceptions;
+    }
+
+    public int Order { get; set; }
+}
 </code></pre>
-
-<p>}
-```</p>
 
 <p>Phew, we’re almost done. The only thing left is to apply this validator in configuration so I can keep the Unity reference out of my core domain. That looks like this:</p>
 
-<p>``` c#
-container.AddNewExtension<Interception>()</p>
-
-<pre><code>.Configure&lt;Interception&gt;()
-.SetInterceptorFor&lt;IUserService&gt;(new InterfaceInterceptor())
-.AddPolicy("UserServiceValidationPolicy")
-.AddCallHandler&lt;ValidationCallHandler&gt;()
-.AddMatchingRule&lt;AlwaysApplyMatchingRule&gt;();
+<pre><code class="c#">container.AddNewExtension&lt;Interception&gt;()
+    .Configure&lt;Interception&gt;()
+    .SetInterceptorFor&lt;IUserService&gt;(new InterfaceInterceptor())
+    .AddPolicy("UserServiceValidationPolicy")
+    .AddCallHandler&lt;ValidationCallHandler&gt;()
+    .AddMatchingRule&lt;AlwaysApplyMatchingRule&gt;();
 </code></pre>
-
-<p>```</p>
 ]]></content>
   </entry>
   
