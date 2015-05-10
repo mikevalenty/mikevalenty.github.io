@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Specification Pattern | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/specification-pattern/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/specification-pattern/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[This Could Have Been a Stored Procedure]]></title>
-    <link href="http://www.agileatwork.com/this-could-have-been-a-stored-procedure/"/>
+    <link href="http://www.mikevalenty.com/this-could-have-been-a-stored-procedure/"/>
     <updated>2009-06-11T20:56:00-07:00</updated>
-    <id>http://www.agileatwork.com/this-could-have-been-a-stored-procedure</id>
+    <id>http://www.mikevalenty.com/this-could-have-been-a-stored-procedure</id>
     <content type="html"><![CDATA[<p><img class="plain right" src="/images/posts/domaindrivendesignbookcover.jpg"></p>
 
 <p>I read <a href="http://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215">Domain Driven Design</a> about a year and a half ago and when I got to the part about the specification pattern, I thought it was really cool and I couldn’t wait to try it out. Maybe the pattern gods were listening or maybe I was unknowingly using <a href="http://www.thesecret.tv/">the secret</a>. Either way, it was pretty much the next morning that I went to work and had the perfect project dropped in my lap.</p>

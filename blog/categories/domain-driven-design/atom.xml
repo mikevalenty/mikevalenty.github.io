@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Domain Driven Design | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/domain-driven-design/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/domain-driven-design/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[A Class Isn’t Always a Noun]]></title>
-    <link href="http://www.agileatwork.com/a-class-isnt-always-a-noun/"/>
+    <link href="http://www.mikevalenty.com/a-class-isnt-always-a-noun/"/>
     <updated>2009-12-04T12:45:00-08:00</updated>
-    <id>http://www.agileatwork.com/a-class-isnt-always-a-noun</id>
+    <id>http://www.mikevalenty.com/a-class-isnt-always-a-noun</id>
     <content type="html"><![CDATA[<p>There is a convention programmers go by that says object names should be nouns and methods names should start with a verb. That’s crap and I’ll tell you why. First off, it’s an old rule kind of like Hungarian notation. Okay that was low. To be fair, I would probably recommend this rule to a college student.</p>
 
 <p>However, if you’re doing this as your full-time job and you’re neck deep in a complex business domain, then you are seriously selling yourself short. When working in a team environment you’ve got to use every means possible to communicate what you were thinking and what hard-earned knowledge you gained along the way. Some poor sucker is going to open your project at some point and your code should be screaming important concepts right from the class list.</p>
@@ -77,9 +77,9 @@ private void GuardAgainstNotInitialized()
   
   <entry>
     <title type="html"><![CDATA[Domain Driven Design in the Small]]></title>
-    <link href="http://www.agileatwork.com/domain-driven-design-in-the-small/"/>
+    <link href="http://www.mikevalenty.com/domain-driven-design-in-the-small/"/>
     <updated>2009-08-08T06:24:00-07:00</updated>
-    <id>http://www.agileatwork.com/domain-driven-design-in-the-small</id>
+    <id>http://www.mikevalenty.com/domain-driven-design-in-the-small</id>
     <content type="html"><![CDATA[<p>A few months ago we built a <a href="http://www.magentocommerce.com/">Magento</a> extension to send orders to a product supplier via soap for payment and fulfillment along with affiliate tracking. As part of the process, a contact record was created in the affiliate’s CRM account.</p>
 
 <p> <img src="/images/posts/SubmitYourIdea1.jpg"></p>
@@ -154,7 +154,7 @@ return parent::createOrder($order);
 
 <blockquote><p>That was huge. – Paris Hilton</p></blockquote>
 
-<iframe class="plain" width="640" height="360" src="http://www.agileatwork.com//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
+<iframe class="plain" width="640" height="360" src="http://www.mikevalenty.com//www.youtube.com/embed/3nGAk_mo6Rw?feature=player_embedded" frameborder="0" allowfullscreen></iframe>
 
 
 <p>Why was that huge? Because it changed the conversation. Right away we thought of important requirements like this should be in a transaction with the order and the template email the affiliate gets should include the customer’s address, etc.</p>
@@ -165,9 +165,9 @@ return parent::createOrder($order);
   
   <entry>
     <title type="html"><![CDATA[This Could Have Been a Stored Procedure]]></title>
-    <link href="http://www.agileatwork.com/this-could-have-been-a-stored-procedure/"/>
+    <link href="http://www.mikevalenty.com/this-could-have-been-a-stored-procedure/"/>
     <updated>2009-06-11T20:56:00-07:00</updated>
-    <id>http://www.agileatwork.com/this-could-have-been-a-stored-procedure</id>
+    <id>http://www.mikevalenty.com/this-could-have-been-a-stored-procedure</id>
     <content type="html"><![CDATA[<p><img class="plain right" src="/images/posts/domaindrivendesignbookcover.jpg"></p>
 
 <p>I read <a href="http://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215">Domain Driven Design</a> about a year and a half ago and when I got to the part about the specification pattern, I thought it was really cool and I couldn’t wait to try it out. Maybe the pattern gods were listening or maybe I was unknowingly using <a href="http://www.thesecret.tv/">the secret</a>. Either way, it was pretty much the next morning that I went to work and had the perfect project dropped in my lap.</p>
@@ -205,9 +205,9 @@ return billableCallSpecification.IsSatisfiedBy(call);
   
   <entry>
     <title type="html"><![CDATA[Unit of Work with Unity and ASP.NET MVC]]></title>
-    <link href="http://www.agileatwork.com/unit-of-work-with-unity-and-aspnet-mvc/"/>
+    <link href="http://www.mikevalenty.com/unit-of-work-with-unity-and-aspnet-mvc/"/>
     <updated>2009-05-09T21:42:00-07:00</updated>
-    <id>http://www.agileatwork.com/unit-of-work-with-unity-and-aspnet-mvc</id>
+    <id>http://www.mikevalenty.com/unit-of-work-with-unity-and-aspnet-mvc</id>
     <content type="html"><![CDATA[<p>I was recently asked how I get the context of  “this” in the UoW relating to the current page request.</p>
 
 <p><img class="plain" src="/images/posts/howididit-thumb.jpg"></p>
@@ -377,9 +377,9 @@ public ActionResult AnotherTaskWithDifferentRequirements()
   
   <entry>
     <title type="html"><![CDATA[An Order Processing Pipeline in ASP.NET MVC]]></title>
-    <link href="http://www.agileatwork.com/an-order-processing-pipeline-in-aspnet-mvc/"/>
+    <link href="http://www.mikevalenty.com/an-order-processing-pipeline-in-aspnet-mvc/"/>
     <updated>2009-05-02T21:57:00-07:00</updated>
-    <id>http://www.agileatwork.com/an-order-processing-pipeline-in-aspnet-mvc</id>
+    <id>http://www.mikevalenty.com/an-order-processing-pipeline-in-aspnet-mvc</id>
     <content type="html"><![CDATA[<p>Lately, I can’t seem to shake the pipeline pattern. It keeps popping up in all my applications. It’s like when I think about buying a new car and then I start seeing them everywhere on road and think – have there always been that many out there?</p>
 
 <p>So, here it is in action. Below is a controller from an ASP.NET MVC application. The method accepts an order in the form of xml for provisioning products in our system.</p>

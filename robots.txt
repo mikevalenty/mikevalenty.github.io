@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://www.agileatwork.com/sitemap.xml 
+Sitemap: http://www.mikevalenty.com/sitemap.xml 

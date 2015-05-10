@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Enterprise Library | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/enterprise-library/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/enterprise-library/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Definition of Enterprise Software]]></title>
-    <link href="http://www.agileatwork.com/definition-of-enterprise-software/"/>
+    <link href="http://www.mikevalenty.com/definition-of-enterprise-software/"/>
     <updated>2009-12-06T12:41:00-08:00</updated>
-    <id>http://www.agileatwork.com/definition-of-enterprise-software</id>
+    <id>http://www.mikevalenty.com/definition-of-enterprise-software</id>
     <content type="html"><![CDATA[<p>The difference between Enterprise software and regular software is like the difference between a start-up and a public company. Enterprise software has lots of bureaucracy and red tape (indirection and configuration) to support transparency and top-down policy. You pay a price up front to create all these layers and well-defined communication channels between departments, but once the whole thing is up and running, it’s powerful.</p>
 
 <p>Big companies can throw time and money at problems to produce activity diagrams, advisory boards and flow charts. Sure there’s bloat, but you need that kind of oversight to enforce corporate policy. Similarly, enterprise software can extravagantly use cpu cycles, disk space and memory, but this is a fair price to pay when complexity is king. Enterprise software must be concerned with things like service level agreements and government regulations. So how do you do that?</p>

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Scala Solution to Finding Happy Numbers]]></title>
-    <link href="http://www.agileatwork.com/scala-solution-to-finding-happy-numbers/"/>
+    <link href="http://www.mikevalenty.com/scala-solution-to-finding-happy-numbers/"/>
     <updated>2015-05-03T10:45:00-07:00</updated>
-    <id>http://www.agileatwork.com/scala-solution-to-finding-happy-numbers</id>
+    <id>http://www.mikevalenty.com/scala-solution-to-finding-happy-numbers</id>
     <content type="html"><![CDATA[<p>What is a Happy Number?</p>
 
 <blockquote><p>Starting with any positive integer, replace the number by the sum of the squares of its digits, and repeat the process until the number equals 1 (where it will stay), or it loops endlessly in a cycle which does not include 1.</p>
@@ -93,9 +93,9 @@
   
   <entry>
     <title type="html"><![CDATA[Scala Solution to Cheryl's Birthday Problem]]></title>
-    <link href="http://www.agileatwork.com/scala-solution-to-cheryls-birthday-problem/"/>
+    <link href="http://www.mikevalenty.com/scala-solution-to-cheryls-birthday-problem/"/>
     <updated>2015-04-19T14:54:00-07:00</updated>
-    <id>http://www.agileatwork.com/scala-solution-to-cheryls-birthday-problem</id>
+    <id>http://www.mikevalenty.com/scala-solution-to-cheryls-birthday-problem</id>
     <content type="html"><![CDATA[<p>I ran across a <a href="https://github.com/mad4j/puzzles/blob/master/src/dolmisani/puzzles/CherylBirthday.java">Java 8 solution</a> to <a href="http://www.nytimes.com/2015/04/15/science/a-math-problem-from-singapore-goes-viral-when-is-cheryls-birthday.html">Cheryl&rsquo;s birthday problem</a> and just had to write a Scala version since this is one of those problems the language was made for. Also, I&rsquo;ve been on the Java train for a few months and this was a good excuse to brush off the dust and work on my Scala chops.</p>
 
 <h4>Cheryl&rsquo;s Birthday Problem</h4>
@@ -231,9 +231,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Unit testing scalding jobs]]></title>
-    <link href="http://www.agileatwork.com/unit-testing-scalding-jobs/"/>
+    <link href="http://www.mikevalenty.com/unit-testing-scalding-jobs/"/>
     <updated>2014-03-15T15:27:00-07:00</updated>
-    <id>http://www.agileatwork.com/unit-testing-scalding-jobs</id>
+    <id>http://www.mikevalenty.com/unit-testing-scalding-jobs</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/twitter/scalding">Scalding</a> is a powerful framework for writing complex data processing applications on Apache Hadoop. It&rsquo;s concise and expressive &ndash; almost to a fault. It&rsquo;s dangerously easy to pack gobs of subtle business logic into just a few lines of code. If you&rsquo;re writing real data processing applications and not just ad-hoc reports, unit testing is a must. However tests can get unwieldy to manage as job complexity grows and the arity of data increases.</p>
 
 <p>For example, consider this scalding job:</p>
@@ -484,9 +484,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Parsing json with defaults in scala]]></title>
-    <link href="http://www.agileatwork.com/parsing-json-with-defaults-in-scala/"/>
+    <link href="http://www.mikevalenty.com/parsing-json-with-defaults-in-scala/"/>
     <updated>2014-01-24T22:57:00-08:00</updated>
-    <id>http://www.agileatwork.com/parsing-json-with-defaults-in-scala</id>
+    <id>http://www.mikevalenty.com/parsing-json-with-defaults-in-scala</id>
     <content type="html"><![CDATA[<p>The <a href="http://www.playframework.com/documentation/2.2.x/ScalaJson">json library in Play</a> does this thing where it explodes if the json you&rsquo;re reading is missing a property. <a href="https://code.google.com/p/google-gson/">Gson</a> would happily leave the property null, but that&rsquo;s just not the scala way. In scala, if something is optional, it&rsquo;s wrapped in an <code>Option</code>. The problem is I&rsquo;d like to add a property to my data model and I don&rsquo;t want it to be optional because it&rsquo;s not.</p>
 
 <p>In Java land, I probably would have added the property and thought about how to deal with migrating old data later, but not in scala. This battle has to be fought right now. That&rsquo;s what <em>type safe</em> means and it&rsquo;s why the <code>NullPointerException</code> has all but died in pure scala apps, not unlike the <a href="http://freakonomics.com/2013/09/12/whatever-happened-to-the-carpal-tunnel-epidemic/">carpal tunnel epidemic</a>.</p>
@@ -559,21 +559,21 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Web Framework Scaffolding Considered Harmful]]></title>
-    <link href="http://www.agileatwork.com/web-framework-scaffolding-considered-harmful/"/>
+    <link href="http://www.mikevalenty.com/web-framework-scaffolding-considered-harmful/"/>
     <updated>2014-01-02T09:59:00-08:00</updated>
-    <id>http://www.agileatwork.com/web-framework-scaffolding-considered-harmful</id>
+    <id>http://www.mikevalenty.com/web-framework-scaffolding-considered-harmful</id>
     <content type="html"><![CDATA[<p>If you&rsquo;re a start up and spending time building back office tools to input application data into web forms, you&rsquo;re doing it wrong. Sure, it&rsquo;s a pretty simple task to build a few <a href="http://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> screens using the hottest new MVC framework, but you can do better.</p>
 
 <p>Integrating with Google spreadsheets to manage application data unlocks powerful possibilities and will take you further than anything you could scaffold up in a comperable amount of time. To be clear, I&rsquo;m not suggesting you take a <em>runtime</em> dependency on Google docs. I&rsquo;m talking about using a lightweight business process that takes advantage of the rich collaborations features of Google docs and simply <em>import</em> the data into your database using the <a href="https://developers.google.com/google-apps/spreadsheets/">API</a>.</p>
 
-<p><img src="http://www.agileatwork.com/images/posts/example_sp3.png" width="600"></p>
+<p><img src="http://www.mikevalenty.com/images/posts/example_sp3.png" width="600"></p>
 
 <div style="clear:both;"></div>
 
 
 <h3>Revision history</h3>
 
-<p><img class="right" src="http://www.agileatwork.com/images/posts/example_rev.png" width="300"></p>
+<p><img class="right" src="http://www.mikevalenty.com/images/posts/example_rev.png" width="300"></p>
 
 <p>Google docs keeps a revision history of what was changed, when and by whom. That&rsquo;s a pretty cool feature and one you&rsquo;re not likely to build when there are more pressing customer facing features to work on.</p>
 
@@ -597,7 +597,7 @@ August 14, August 15, August 17
 
 <h3>Import</h3>
 
-<p><img class="right" src="http://www.agileatwork.com/images/posts/example_dup.png" width="300"></p>
+<p><img class="right" src="http://www.mikevalenty.com/images/posts/example_dup.png" width="300"></p>
 
 <p>A data update is a deployment just like a code deployment and things can go horribly wrong when there&rsquo;s a mistake in your data. Big companies get this and respond with change advisory boards and more process to protect themselves, but you can do better.</p>
 
@@ -620,9 +620,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Using Scala to Perform a Multi-Key Get on a Couchbase View]]></title>
-    <link href="http://www.agileatwork.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/"/>
+    <link href="http://www.mikevalenty.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view/"/>
     <updated>2013-11-16T15:26:00-08:00</updated>
-    <id>http://www.agileatwork.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view</id>
+    <id>http://www.mikevalenty.com/using-scala-to-perform-a-multi-key-get-on-a-couchbase-view</id>
     <content type="html"><![CDATA[<p>To retrieve documents from Couchbase by anything other than the document key requires querying a <a href="http://www.couchbase.com/docs//couchbase-manual-2.0/couchbase-views.html">view</a> and views are defined by map and reduce functions written in JavaScript. Consider a view that returns data like this:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -730,9 +730,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Hadoop MapReduce Join Optimization with a Bloom Filter]]></title>
-    <link href="http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/"/>
+    <link href="http://www.mikevalenty.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter/"/>
     <updated>2013-10-15T22:49:00-07:00</updated>
-    <id>http://www.agileatwork.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter</id>
+    <id>http://www.mikevalenty.com/hadoop-mapreduce-join-optimization-with-a-bloom-filter</id>
     <content type="html"><![CDATA[<p>Doing a join in hadoop with Java is painful. A one-liner in <a href="http://pig.apache.org/">Pig Latin</a> can easily explode into hundreds of lines of Java. However, the additional control in Java can yield significant performance gains and simplify complex logic that is difficult to express in Pig Latin.</p>
 
 <p>In my case, the left side of the join contained about 100K records while the right side was closer to 1B. Emitting all join keys from the mapper means that all 1B records from the right side of the join are shuffled, sorted and sent to a reducer. The reducer then ends up discarding most of join keys that don&rsquo;t match the left side.</p>
@@ -925,9 +925,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Extracting root domain from a url]]></title>
-    <link href="http://www.agileatwork.com/extracting-root-domain-from-a-url/"/>
+    <link href="http://www.mikevalenty.com/extracting-root-domain-from-a-url/"/>
     <updated>2013-10-06T17:05:00-07:00</updated>
-    <id>http://www.agileatwork.com/extracting-root-domain-from-a-url</id>
+    <id>http://www.mikevalenty.com/extracting-root-domain-from-a-url</id>
     <content type="html"><![CDATA[<p>Given a url like <code>http://www.google.com/?q=tld+uk</code>, extract the <em>root domain</em>. In this case, it would be <code>google.com</code>. Sounds easy, right? Well it is, but <code>http://www.google.com.br/</code> is also legit. Okay, so recursion to the rescue!</p>
 
 <p>Not so fast&hellip;</p>
@@ -989,9 +989,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Appreciating Algorithm Complexity]]></title>
-    <link href="http://www.agileatwork.com/appreciating-algorithm-complexity/"/>
+    <link href="http://www.mikevalenty.com/appreciating-algorithm-complexity/"/>
     <updated>2013-10-05T12:52:00-07:00</updated>
-    <id>http://www.agileatwork.com/appreciating-algorithm-complexity</id>
+    <id>http://www.mikevalenty.com/appreciating-algorithm-complexity</id>
     <content type="html"><![CDATA[<p><a href="https://www.coursera.org/course/algo">Algorithms: Design and Analysis, Part 1</a> is a free online course from Standford offered through <a href="https://www.coursera.org/">Coursera.org</a>. An assignment that stuck with me was implementing an algorithm for counting inversions. Counting inversions is a way to quantify similarity of two ordered lists. The canonical example described in the lectures was comparing lists of favorite movies.</p>
 
 <p>I banged out a naive implementation using nested loops that I could use for comparison to make sure I was implementing the real algorithm correctly.</p>
@@ -1107,16 +1107,16 @@ August 14, August 15, August 17
 
 <blockquote><p>Yeah, science!</p></blockquote>
 
-<iframe width="560" height="315" src="http://www.agileatwork.com//www.youtube.com/embed/eQR1r1KTjaE" frameborder="0" allowfullscreen></iframe>
+<iframe width="560" height="315" src="http://www.mikevalenty.com//www.youtube.com/embed/eQR1r1KTjaE" frameborder="0" allowfullscreen></iframe>
 
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Configuring Decorators with Google Guice]]></title>
-    <link href="http://www.agileatwork.com/configuring-decorators-with-google-guice/"/>
+    <link href="http://www.mikevalenty.com/configuring-decorators-with-google-guice/"/>
     <updated>2012-02-20T07:11:00-08:00</updated>
-    <id>http://www.agileatwork.com/configuring-decorators-with-google-guice</id>
+    <id>http://www.mikevalenty.com/configuring-decorators-with-google-guice</id>
     <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1161,7 +1161,7 @@ August 14, August 15, August 17
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because <a href="http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/">I’ve already done that</a>, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
+<p>I’m not going to rant about how extends is evil and that you’re better off with a decorator because <a href="http://www.mikevalenty.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/">I’ve already done that</a>, and this article is about how to wire up a decorator with Guice. So the challenge here is how to configure the container to supply the correct credit card processor as the first dependency of our double charge processor which itself implements <code>CreditCardProcessor</code>. Looking at the Guice documentation, you would likely think the answer is to do this:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1195,7 +1195,7 @@ August 14, August 15, August 17
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a <em>thing</em>, it’s a <em>seam</em> and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports <a href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">multi-tenancy</a> and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
+<p>That’s wrong though. The <code>CreditCardProcessor</code> isn’t a <em>thing</em>, it’s a <em>seam</em> and it’s where you put additional behavior like preventing duplicate charges in a short time period. If you look at the decorator, you’ll notice that it has nothing to do with PayPal. That’s because it’s a business rule and shouldn’t be mixed with integration code. Our business rule code and the PayPal integration code will likely live in different packages and the <code>CreditCardProcessor</code> abstraction could get assembled differently for any number of reasons. Maybe your application supports <a href="http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/">multi-tenancy</a> and each tenant can use a different payment gateway. We can’t reuse our double charge business rule if it’s hard-coded to wrap a PayPal processor, and that’s a problem.</p>
 
 <p>While I don’t particularly like using annotations for this sort of thing, it’s not the root cause. As a mechanic, it works just fine and can help us accomplish our task. The problem is that the documentation is subtly wrong and encourages mis-use of this feature. The better way to use binding annotations and not undermine the point of injecting your dependencies is like so:</p>
 
@@ -1251,9 +1251,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
-    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <link href="http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
-    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <id>http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add <code>tenant_id</code> to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1526,9 +1526,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
-    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <link href="http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
     <updated>2011-05-14T13:09:00-07:00</updated>
-    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <id>http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
     <content type="html"><![CDATA[<h3>The Mission:</h3>
 
 <p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
@@ -1838,9 +1838,9 @@ August 14, August 15, August 17
   
   <entry>
     <title type="html"><![CDATA[Tamarack: Chain of Responsibility Framework for .NET]]></title>
-    <link href="http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net/"/>
+    <link href="http://www.mikevalenty.com/tamarack-chain-of-responsibility-framework-for-net/"/>
     <updated>2011-04-21T21:39:00-07:00</updated>
-    <id>http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net</id>
+    <id>http://www.mikevalenty.com/tamarack-chain-of-responsibility-framework-for-net</id>
     <content type="html"><![CDATA[<p>The Chain of Responsibility is a key building block of extensible software.</p>
 
 <blockquote><p>Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. – Gang of Four</p></blockquote>
@@ -1856,7 +1856,7 @@ August 14, August 15, August 17
 </ol>
 
 
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/pkgmgr31.png"></p>
+<p><img class="plain" src="http://www.mikevalenty.com/images/posts/pkgmgr31.png"></p>
 
 <p>How does it work?
 It’s pretty simple, there is just one interface to implement and it looks like this:</p>
@@ -2071,9 +2071,9 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[A Custom HttpModule to Log Request Duration]]></title>
-    <link href="http://www.agileatwork.com/a-custom-httpmodule-to-log-request-duration/"/>
+    <link href="http://www.mikevalenty.com/a-custom-httpmodule-to-log-request-duration/"/>
     <updated>2011-01-16T02:31:00-08:00</updated>
-    <id>http://www.agileatwork.com/a-custom-httpmodule-to-log-request-duration</id>
+    <id>http://www.mikevalenty.com/a-custom-httpmodule-to-log-request-duration</id>
     <content type="html"><![CDATA[<p>My application has logging of fine-grained operations, but I want to see the duration of the entire web request. The idea is to start a <code>Stopwatch</code> on the <code>BeginRequest</code> event and then log the elapsed time on the <code>EndRequest</code> event. I started by modifying the <code>Global.asax</code> to wire this up, but quickly got turned off because I was violating the Open-Closed Principle. I really just want to bolt-in this behavior while I’m profiling the application and then turn it off when the kinks are worked out. IIS has a pretty slick extension point for this sort of thing that let’s you hook into the request lifecycle events.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -2193,15 +2193,15 @@ It’s pretty simple, there is just one interface to implement and it looks like
 
 <p>Finally, it’s time to run the application and see the total request duration logged.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/durationmodule.png"></p>
+<p><img class="plain" src="http://www.mikevalenty.com/images/posts/durationmodule.png"></p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[A Proper Closure in C#]]></title>
-    <link href="http://www.agileatwork.com/a-proper-closure-in-csharp/"/>
+    <link href="http://www.mikevalenty.com/a-proper-closure-in-csharp/"/>
     <updated>2010-12-18T20:46:00-08:00</updated>
-    <id>http://www.agileatwork.com/a-proper-closure-in-csharp</id>
+    <id>http://www.mikevalenty.com/a-proper-closure-in-csharp</id>
     <content type="html"><![CDATA[<p>You’ve seen code like this:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -2308,9 +2308,9 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[Refactoring C# Style]]></title>
-    <link href="http://www.agileatwork.com/refactoring-c-style/"/>
+    <link href="http://www.mikevalenty.com/refactoring-c-style/"/>
     <updated>2010-11-27T09:51:00-08:00</updated>
-    <id>http://www.agileatwork.com/refactoring-c-style</id>
+    <id>http://www.mikevalenty.com/refactoring-c-style</id>
     <content type="html"><![CDATA[<p>Take a look a this function.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -2576,9 +2576,9 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[Software Development Team Building – Part 1]]></title>
-    <link href="http://www.agileatwork.com/software-development-team-building-part-1/"/>
+    <link href="http://www.mikevalenty.com/software-development-team-building-part-1/"/>
     <updated>2010-11-13T17:26:00-08:00</updated>
-    <id>http://www.agileatwork.com/software-development-team-building-part-1</id>
+    <id>http://www.mikevalenty.com/software-development-team-building-part-1</id>
     <content type="html"><![CDATA[<p>The NHL season starts in October and ends 82 games later in April. Well, the regular season, that is. Hockey fans consider it an extended pre-season because when playoffs start, it’s like watching a different sport. To win the coveted Stanley Cup, a team must battle through four grueling best-of-seven series, and when it’s all over, it’s not about a bad call by the referee or a fluke fumble or broken tackle. It’s not even about a hot goal-tender or superstar forward. It’s about the whole team digging deep and banding together to create a whole greater than the sum of its parts.</p>
 
 <p>If that wasn’t true, you could simply put all the best players on one team and watch them dominate. Russia tried it in the 2010 Winter Olympics and only walked away with the bronze medal. A successful team has an identity that transcends individuals. If you watch hockey, you’ll hear teams described as up-tempo, finesse, defensive or gritty and hard-hitting. One isn’t better than another, it really depends on what your core strengths are and then getting buy-in from everyone on the team.</p>
@@ -2639,12 +2639,12 @@ It’s pretty simple, there is just one interface to implement and it looks like
   
   <entry>
     <title type="html"><![CDATA[Automatic Deployment from TeamCity using WebDeploy]]></title>
-    <link href="http://www.agileatwork.com/automatic-deployment-from-teamcity-using-webdeploy/"/>
+    <link href="http://www.mikevalenty.com/automatic-deployment-from-teamcity-using-webdeploy/"/>
     <updated>2010-10-27T11:07:00-07:00</updated>
-    <id>http://www.agileatwork.com/automatic-deployment-from-teamcity-using-webdeploy</id>
+    <id>http://www.mikevalenty.com/automatic-deployment-from-teamcity-using-webdeploy</id>
     <content type="html"><![CDATA[<p>A solid continuous integration strategy for an enterprise web application is more than just an automated build. You really need a layered approach to maintain a high level of confidence in your code base.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/tcp1.jpg"></p>
+<p><img class="plain" src="http://www.mikevalenty.com/images/posts/tcp1.jpg"></p>
 
 <ol>
 <li><strong>Run unit tests</strong> – these are fast running unit tests with no external dependencies. We use NUnit.</li>
@@ -2689,13 +2689,13 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
 
 <p>Paste the command line parameters you figured out in Step 3 into the Build Runner configuration in TeamCity:</p>
 
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/teamcity2.jpg"></p>
+<p><img class="plain" src="http://www.mikevalenty.com/images/posts/teamcity2.jpg"></p>
 
 <p><strong>Step 5:</strong> Configure build dependencies in TeamCity. This means the integration tests will only run if the unit tests have passed and so on.</p>
 
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/dep1.jpg"></p>
+<p><img class="plain" src="http://www.mikevalenty.com/images/posts/dep1.jpg"></p>
 
-<p><img class="plain" src="http://www.agileatwork.com/images/posts/snap1.jpg"></p>
+<p><img class="plain" src="http://www.mikevalenty.com/images/posts/snap1.jpg"></p>
 
 <p><strong>Step 6:</strong> Write some code.</p>
 ]]></content>
@@ -2703,9 +2703,9 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
   <entry>
     <title type="html"><![CDATA[Hacker, Artist, Craftsman or Engineer?]]></title>
-    <link href="http://www.agileatwork.com/hacker-artist-craftsman-or-engineer/"/>
+    <link href="http://www.mikevalenty.com/hacker-artist-craftsman-or-engineer/"/>
     <updated>2010-10-10T09:44:00-07:00</updated>
-    <id>http://www.agileatwork.com/hacker-artist-craftsman-or-engineer</id>
+    <id>http://www.mikevalenty.com/hacker-artist-craftsman-or-engineer</id>
     <content type="html"><![CDATA[<p>I recently read the book <a href="http://www.codersatwork.com/">Coders at Work</a> on <a href="http://blargh.tommymontgomery.com/">tmont’s</a> recommendation. It was a good read, and at 500+ pages you can repurpose it as a monitor stand when you’re finished reading it.</p>
 
 <blockquote><p>Based on nearly eighty hours of conversations with fifteen all-time great programmers and computer scientists, the Q&amp;A interviews in Coders at Work provide a multifaceted view into how great programmers learn to program, how they practice their craft, and what they think about the future of programming.</p></blockquote>
@@ -2752,12 +2752,12 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe MyProject.sln
   
   <entry>
     <title type="html"><![CDATA[Don't Say Singleton]]></title>
-    <link href="http://www.agileatwork.com/dont-say-singleton/"/>
+    <link href="http://www.mikevalenty.com/dont-say-singleton/"/>
     <updated>2010-09-18T22:10:00-07:00</updated>
-    <id>http://www.agileatwork.com/dont-say-singleton</id>
+    <id>http://www.mikevalenty.com/dont-say-singleton</id>
     <content type="html"><![CDATA[<p>I was in junior high around the time that Master of Puppets was released followed by <em>…And Justice For All</em>. Maybe it’s nostalgia, but those two albums were not only the best Metallica albums, they were perhaps the greatest albums of the entire genre. Something happened though and I don’t mean grunge.</p>
 
-<p><img src="http://www.agileatwork.com/images/posts/grunge_thumb.jpg"></p>
+<p><img src="http://www.mikevalenty.com/images/posts/grunge_thumb.jpg"></p>
 
 <p>Metallica eventually succumbed to their own success and tried to crank out albums more accessible to wider audiences. This tension between music with something to say and music that appeals to the masses has been the bane of the industry since the invention of the radio.</p>
 

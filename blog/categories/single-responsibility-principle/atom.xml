@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Single Responsibility Principle | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/single-responsibility-principle/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/single-responsibility-principle/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Tamarack: Chain of Responsibility Framework for .NET]]></title>
-    <link href="http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net/"/>
+    <link href="http://www.mikevalenty.com/tamarack-chain-of-responsibility-framework-for-net/"/>
     <updated>2011-04-21T21:39:00-07:00</updated>
-    <id>http://www.agileatwork.com/tamarack-chain-of-responsibility-framework-for-net</id>
+    <id>http://www.mikevalenty.com/tamarack-chain-of-responsibility-framework-for-net</id>
     <content type="html"><![CDATA[<p>The Chain of Responsibility is a key building block of extensible software.</p>
 
 <blockquote><p>Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. – Gang of Four</p></blockquote>
@@ -191,9 +191,9 @@ public bool Execute(LoginContext context, Func&lt;LoginContext, bool&gt; execute
   
   <entry>
     <title type="html"><![CDATA[Refactoring: Introduce Parameter Object]]></title>
-    <link href="http://www.agileatwork.com/rafactoring-introduce-parameter-object/"/>
+    <link href="http://www.mikevalenty.com/rafactoring-introduce-parameter-object/"/>
     <updated>2010-02-15T06:49:00-08:00</updated>
-    <id>http://www.agileatwork.com/rafactoring-introduce-parameter-object</id>
+    <id>http://www.mikevalenty.com/rafactoring-introduce-parameter-object</id>
     <content type="html"><![CDATA[<p>Take a look at this function:</p>
 
 <p>``` c#
@@ -299,9 +299,9 @@ public int Number {</p>
   
   <entry>
     <title type="html"><![CDATA[The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Interfaces (No Excuses!)]]></title>
-    <link href="http://www.agileatwork.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/"/>
+    <link href="http://www.mikevalenty.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses/"/>
     <updated>2010-01-13T22:24:00-08:00</updated>
-    <id>http://www.agileatwork.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses</id>
+    <id>http://www.mikevalenty.com/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-interfaces-no-excuses</id>
     <content type="html"><![CDATA[<p><span style="font-size: 70%">
 The title of this article was inspired by <a href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!) </a>
 by Joel Spolsky
@@ -366,9 +366,9 @@ public interface IVehicle {</p>
   
   <entry>
     <title type="html"><![CDATA[Inheritance is Evil: The Epic Fail of the DataAnnotationsModelBinder]]></title>
-    <link href="http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/"/>
+    <link href="http://www.mikevalenty.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder/"/>
     <updated>2010-01-04T06:52:00-08:00</updated>
-    <id>http://www.agileatwork.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
+    <id>http://www.mikevalenty.com/inheritance-is-evil-the-story-of-the-epic-fail-of-dataannotationsmodelbinder</id>
     <content type="html"><![CDATA[<p>The <code>DataAnnotationsModelBinder</code> is a pretty neat little class that enforces validation attributes on models like this one:</p>
 
 <p>``` c#
@@ -497,9 +497,9 @@ new BetterDataAnnotationsModelBinder(productModelBinder));
   
   <entry>
     <title type="html"><![CDATA[Custom Model Binder in ASP.NET MVC]]></title>
-    <link href="http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc/"/>
+    <link href="http://www.mikevalenty.com/custom-model-binder-in-asp-dot-net-mvc/"/>
     <updated>2009-12-31T14:59:00-08:00</updated>
-    <id>http://www.agileatwork.com/custom-model-binder-in-asp-dot-net-mvc</id>
+    <id>http://www.mikevalenty.com/custom-model-binder-in-asp-dot-net-mvc</id>
     <content type="html"><![CDATA[<p>The default model binder or <code>DataAnnotationsModelBinder</code> in ASP.NET MVC works well for simple data structures that basically map properties directly to form elements, but it quickly breaks down in a real world application. Take this simple scenario:</p>
 
 <p><img class="plain" src="/images/posts/brimley.png"></p>

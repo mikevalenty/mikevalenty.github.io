@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: AOP | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/aop/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/aop/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Where Does it Hurt?]]></title>
-    <link href="http://www.agileatwork.com/where-does-it-hurt/"/>
+    <link href="http://www.mikevalenty.com/where-does-it-hurt/"/>
     <updated>2009-12-26T20:30:00-08:00</updated>
-    <id>http://www.agileatwork.com/where-does-it-hurt</id>
+    <id>http://www.mikevalenty.com/where-does-it-hurt</id>
     <content type="html"><![CDATA[<p>Notes from my Brown Bag Learning Forum Presentation. <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">Download the source code</a>, or just sit back and relax.</p>
 
 <h3>GoF Patterns:</h3>
@@ -351,9 +351,9 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   
   <entry>
     <title type="html"><![CDATA[Definition of Enterprise Software]]></title>
-    <link href="http://www.agileatwork.com/definition-of-enterprise-software/"/>
+    <link href="http://www.mikevalenty.com/definition-of-enterprise-software/"/>
     <updated>2009-12-06T12:41:00-08:00</updated>
-    <id>http://www.agileatwork.com/definition-of-enterprise-software</id>
+    <id>http://www.mikevalenty.com/definition-of-enterprise-software</id>
     <content type="html"><![CDATA[<p>The difference between Enterprise software and regular software is like the difference between a start-up and a public company. Enterprise software has lots of bureaucracy and red tape (indirection and configuration) to support transparency and top-down policy. You pay a price up front to create all these layers and well-defined communication channels between departments, but once the whole thing is up and running, it’s powerful.</p>
 
 <p>Big companies can throw time and money at problems to produce activity diagrams, advisory boards and flow charts. Sure there’s bloat, but you need that kind of oversight to enforce corporate policy. Similarly, enterprise software can extravagantly use cpu cycles, disk space and memory, but this is a fair price to pay when complexity is king. Enterprise software must be concerned with things like service level agreements and government regulations. So how do you do that?</p>
@@ -372,9 +372,9 @@ DEBUG VerifyChainCaptchaProvider.Verify() > False [14 ms]
   
   <entry>
     <title type="html"><![CDATA[Default Interceptor for Unity]]></title>
-    <link href="http://www.agileatwork.com/default-interceptor-for-unity/"/>
+    <link href="http://www.mikevalenty.com/default-interceptor-for-unity/"/>
     <updated>2009-07-22T18:17:00-07:00</updated>
-    <id>http://www.agileatwork.com/default-interceptor-for-unity</id>
+    <id>http://www.mikevalenty.com/default-interceptor-for-unity</id>
     <content type="html"><![CDATA[<blockquote><p>Default: the two sweetest words in the English language – Homer Simpson</p></blockquote>
 
 <p>Unity interception requires you to specify what kind of interceptor to use for each type you want to intercept. This can be a little painful, so I decided to take a stab at a container extension that will apply a default interceptor with optional matching rules.</p>
@@ -515,9 +515,9 @@ public bool Matches(Type typeToIntercept, Type typeOfInstance) {
   
   <entry>
     <title type="html"><![CDATA[Validation with Unity Interception]]></title>
-    <link href="http://www.agileatwork.com/validation-with-unity-interception/"/>
+    <link href="http://www.mikevalenty.com/validation-with-unity-interception/"/>
     <updated>2009-07-18T18:20:00-07:00</updated>
-    <id>http://www.agileatwork.com/validation-with-unity-interception</id>
+    <id>http://www.mikevalenty.com/validation-with-unity-interception</id>
     <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
 
 <p>This is how I want things to look:</p>
@@ -673,9 +673,9 @@ container.AddNewExtension<Interception>()</p>
   
   <entry>
     <title type="html"><![CDATA[What Happens When You Actually Use AOP for Logging?]]></title>
-    <link href="http://www.agileatwork.com/what-happens-when-you-actually-use-aop-for-logging/"/>
+    <link href="http://www.mikevalenty.com/what-happens-when-you-actually-use-aop-for-logging/"/>
     <updated>2009-07-05T20:10:00-07:00</updated>
-    <id>http://www.agileatwork.com/what-happens-when-you-actually-use-aop-for-logging</id>
+    <id>http://www.mikevalenty.com/what-happens-when-you-actually-use-aop-for-logging</id>
     <content type="html"><![CDATA[<p>Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s something everyone can relate to. Well, what happens when you actually use it for logging?</p>
 
 <p>I can tell you what happened to me last week. Things were going great until it came time to port our credit card charging program from the stone age to .NET. It occurred to me that our fancy AOP logging would unknowingly log decrypted credit cards!</p>

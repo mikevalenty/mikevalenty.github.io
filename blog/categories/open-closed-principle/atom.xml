@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Open Closed Principle | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/open-closed-principle/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/open-closed-principle/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Configuring Decorators with Google Guice]]></title>
-    <link href="http://www.agileatwork.com/configuring-decorators-with-google-guice/"/>
+    <link href="http://www.mikevalenty.com/configuring-decorators-with-google-guice/"/>
     <updated>2012-02-20T07:11:00-08:00</updated>
-    <id>http://www.agileatwork.com/configuring-decorators-with-google-guice</id>
+    <id>http://www.mikevalenty.com/configuring-decorators-with-google-guice</id>
     <content type="html"><![CDATA[<p>You have a few options and each have their trade-offs. The one I find least annoying requires using a binding annotation. Since I’m stuck using annotations with Guice anyway, using one more to facilitate a decorator seems like an acceptable concession. Before I go on though, I have to take a moment. My beef isn’t about verbose configuration or annotations, it’s that once again the documentation gets it all wrong and sends the impressionable reader down a misguided path. Let’s take a look at this excerpt from the Guice documentation for binding annotations:</p>
 
 <p>``` java
@@ -122,9 +122,9 @@ bind(CreditCardProcessor.class)
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate: Part II – Commingled Data]]></title>
-    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
+    <link href="http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data/"/>
     <updated>2011-06-18T11:08:00-07:00</updated>
-    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
+    <id>http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate-part-ii-commingled-data</id>
     <content type="html"><![CDATA[<p>Last time I went over going from separate web applications per tenant to a shared web application for all tenants, but each tenant still had its own database. Now we’re going to take the next step and let multiple tenants share the same database. After we add <code>tenant_id</code> to most of the tables in our database we’ll need the application to take care of a few things. First, we need to apply a where clause to all queries to ensure that each tenant sees only their data. This is pretty painless with NHibernate, we just have to define a parameterized filter:</p>
 
 <p>``` xml
@@ -309,9 +309,9 @@ public override bool OnLoad(object entity... object[] state, string[] propertyNa
   
   <entry>
     <title type="html"><![CDATA[Bolt-on Multi-Tenancy in ASP.NET MVC with Unity and NHibernate]]></title>
-    <link href="http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
+    <link href="http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate/"/>
     <updated>2011-05-14T13:09:00-07:00</updated>
-    <id>http://www.agileatwork.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
+    <id>http://www.mikevalenty.com/bolt-on-multi-tenancy-in-asp-net-mvc-with-unity-and-nhibernate</id>
     <content type="html"><![CDATA[<h3>The Mission:</h3>
 
 <p>Build a web application as though it’s for a single customer (tenant) and add multi-tenancy as a bolt-on feature by writing only new code. There are flavors of multi-tenancy, in this case I want each tenant to have its own database but I want all tenants to share the same web application and figure out who’s who by looking at the host header on the http request.</p>
@@ -518,9 +518,9 @@ private string GetHost()
   
   <entry>
     <title type="html"><![CDATA[A Custom HttpModule to Log Request Duration]]></title>
-    <link href="http://www.agileatwork.com/a-custom-httpmodule-to-log-request-duration/"/>
+    <link href="http://www.mikevalenty.com/a-custom-httpmodule-to-log-request-duration/"/>
     <updated>2011-01-16T02:31:00-08:00</updated>
-    <id>http://www.agileatwork.com/a-custom-httpmodule-to-log-request-duration</id>
+    <id>http://www.mikevalenty.com/a-custom-httpmodule-to-log-request-duration</id>
     <content type="html"><![CDATA[<p>My application has logging of fine-grained operations, but I want to see the duration of the entire web request. The idea is to start a <code>Stopwatch</code> on the <code>BeginRequest</code> event and then log the elapsed time on the <code>EndRequest</code> event. I started by modifying the <code>Global.asax</code> to wire this up, but quickly got turned off because I was violating the Open-Closed Principle. I really just want to bolt-in this behavior while I’m profiling the application and then turn it off when the kinks are worked out. IIS has a pretty slick extension point for this sort of thing that let’s you hook into the request lifecycle events.</p>
 
 <p>``` c#
@@ -604,9 +604,9 @@ public void Dispose()
   
   <entry>
     <title type="html"><![CDATA[Where Does it Hurt?]]></title>
-    <link href="http://www.agileatwork.com/where-does-it-hurt/"/>
+    <link href="http://www.mikevalenty.com/where-does-it-hurt/"/>
     <updated>2009-12-26T20:30:00-08:00</updated>
-    <id>http://www.agileatwork.com/where-does-it-hurt</id>
+    <id>http://www.mikevalenty.com/where-does-it-hurt</id>
     <content type="html"><![CDATA[<p>Notes from my Brown Bag Learning Forum Presentation. <a href="http://www.secure-session.com/files/20/205/1664955444/E20E1B7ED7/i/brownbag-20110205b.zip">Download the source code</a>, or just sit back and relax.</p>
 
 <h3>GoF Patterns:</h3>

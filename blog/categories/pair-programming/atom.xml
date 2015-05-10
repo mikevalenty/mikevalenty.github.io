@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Pair Programming | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/pair-programming/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/pair-programming/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[5 Ways to Fail at Pair Programming]]></title>
-    <link href="http://www.agileatwork.com/5-ways-to-fail-at-pair-programming/"/>
+    <link href="http://www.mikevalenty.com/5-ways-to-fail-at-pair-programming/"/>
     <updated>2009-05-10T21:37:00-07:00</updated>
-    <id>http://www.agileatwork.com/5-ways-to-fail-at-pair-programming</id>
+    <id>http://www.mikevalenty.com/5-ways-to-fail-at-pair-programming</id>
     <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/shoes.jpg"></p>
 
 <p>The only hard part is convincing your boss that it’s not a colossal waste of time, right? Well that’s the first hurdle and yes it’s a doosie, but it’s just the price of admission. The real fun starts when you sit next to your partner and try to prove your boss wrong. After a year or so in the trenches, I’ve learned a thing or two on how to mess it up.</p>

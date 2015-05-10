@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Introduce Parameter Object | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/introduce-parameter-object/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/introduce-parameter-object/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Refactoring: Introduce Parameter Object]]></title>
-    <link href="http://www.agileatwork.com/rafactoring-introduce-parameter-object/"/>
+    <link href="http://www.mikevalenty.com/rafactoring-introduce-parameter-object/"/>
     <updated>2010-02-15T06:49:00-08:00</updated>
-    <id>http://www.agileatwork.com/rafactoring-introduce-parameter-object</id>
+    <id>http://www.mikevalenty.com/rafactoring-introduce-parameter-object</id>
     <content type="html"><![CDATA[<p>Take a look at this function:</p>
 
 <p>``` c#

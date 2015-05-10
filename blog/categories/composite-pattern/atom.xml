@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Composite Pattern | Mike Valenty]]></title>
-  <link href="http://www.agileatwork.com/blog/categories/composite-pattern/atom.xml" rel="self"/>
-  <link href="http://www.agileatwork.com/"/>
-  <updated>2015-05-09T22:12:02-07:00</updated>
-  <id>http://www.agileatwork.com/</id>
+  <link href="http://www.mikevalenty.com/blog/categories/composite-pattern/atom.xml" rel="self"/>
+  <link href="http://www.mikevalenty.com/"/>
+  <updated>2015-05-09T22:40:03-07:00</updated>
+  <id>http://www.mikevalenty.com/</id>
   <author>
     <name><![CDATA[Mike Valenty]]></name>
     <email><![CDATA[mike@valenty.com]]></email>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Validation with Unity Interception]]></title>
-    <link href="http://www.agileatwork.com/validation-with-unity-interception/"/>
+    <link href="http://www.mikevalenty.com/validation-with-unity-interception/"/>
     <updated>2009-07-18T18:20:00-07:00</updated>
-    <id>http://www.agileatwork.com/validation-with-unity-interception</id>
+    <id>http://www.mikevalenty.com/validation-with-unity-interception</id>
     <content type="html"><![CDATA[<p><img class="plain" src="/images/posts/funny_sign_5.jpg"></p>
 
 <p>This is how I want things to look:</p>
@@ -173,9 +173,9 @@ container.AddNewExtension<Interception>()</p>
   
   <entry>
     <title type="html"><![CDATA[What Happens When You Actually Use AOP for Logging?]]></title>
-    <link href="http://www.agileatwork.com/what-happens-when-you-actually-use-aop-for-logging/"/>
+    <link href="http://www.mikevalenty.com/what-happens-when-you-actually-use-aop-for-logging/"/>
     <updated>2009-07-05T20:10:00-07:00</updated>
-    <id>http://www.agileatwork.com/what-happens-when-you-actually-use-aop-for-logging</id>
+    <id>http://www.mikevalenty.com/what-happens-when-you-actually-use-aop-for-logging</id>
     <content type="html"><![CDATA[<p>Everybody’s favorite example for AOP is logging. There are a few reasons for that. First, it’s a great problem to solve with AOP and chances are it’s something everyone can relate to. Well, what happens when you actually use it for logging?</p>
 
 <p>I can tell you what happened to me last week. Things were going great until it came time to port our credit card charging program from the stone age to .NET. It occurred to me that our fancy AOP logging would unknowingly log decrypted credit cards!</p>
